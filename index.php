@@ -13,9 +13,9 @@ require_once __DIR__ . '/includes/components.php';
       <div class="container hero-content">
         <div class="row align-items-center g-5">
           <div class="col-12 col-lg-7 hero-copy">
-            <p class="hero-kicker"><span class="pulse-dot" aria-hidden="true"></span> Himachal trips made easy</p>
-            <h1 id="heroTitle">From your door<br>to the <em>mountains.</em></h1>
-            <p class="hero-lead">We plan your full Himachal trip — car with driver, hotels and sightseeing. We pick you up and bring you back home.</p>
+            <p class="hero-kicker"><span class="pulse-dot" aria-hidden="true"></span> Himachal & India journeys made easy</p>
+            <h1 id="heroTitle">From your door<br>to the <em>mountains & monuments.</em></h1>
+            <p class="hero-lead">We plan complete trips across Himachal and India — car with driver, stays and sightseeing. We pick you up and bring you back home.</p>
             <div class="hero-actions">
               <a class="btn btn-gold" href="packages.php">Explore packages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
               <a class="btn btn-glass" href="<?= e(wa_link()) ?>" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Plan on WhatsApp</a>
@@ -104,11 +104,11 @@ require_once __DIR__ . '/includes/components.php';
       <span class="bg-word" data-drift="0.25" aria-hidden="true">HIMACHAL</span>
       <div class="container">
         <div class="section-heading split">
-          <div><span class="eyebrow">Popular packages</span><h2>Pick your trip.</h2><p>Every trip includes pickup and drop. Days and hotels can be changed to suit you.</p></div>
+          <div><span class="eyebrow">Popular packages</span><h2>Pick your trip.</h2><p>From Himalayan escapes to royal Rajasthan and the Golden Triangle, we design journeys for every kind of traveller.</p></div>
           <a class="text-link" href="contact.php">Plan a custom trip <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
         <div class="row g-4">
-<?php foreach (array_slice($packages, 0, 3, true) as $slug => $package): ?>
+<?php foreach (['shimla-spiti-kinnaur', 'golden-triangle-delhi-agra-jaipur', 'rajasthan-heritage-trail'] as $slug): $package = $packages[$slug]; ?>
           <div class="col-12 col-md-6 col-lg-4">
 <?php package_card($slug, $package); ?>
           </div>
@@ -116,6 +116,83 @@ require_once __DIR__ . '/includes/components.php';
         </div>
         <div class="section-more"><a class="btn btn-dark" href="packages.php">View all <?= count($packages) ?> packages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
         <p class="pricing-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Price depends on the season, hotel type, car and number of people. Ask us for a free quote.</p>
+      </div>
+    </section>
+
+    <!-- India signature escapes -->
+    <section class="section section-india-escapes">
+      <div class="container">
+        <div class="section-heading split">
+          <div>
+            <span class="eyebrow">India signature escapes</span>
+            <h2>Classic routes, modern comfort.</h2>
+            <p>Thoughtful itineraries for travellers who want iconic landmarks, heritage stays and easy, well-paced travel.</p>
+          </div>
+          <a class="text-link" href="packages.php">Browse all packages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
+
+        <div class="india-journeys-grid">
+          <article class="india-journey-card india-journey-card-featured">
+            <div class="india-journey-media">
+              <img src="<?= e(img('shimla-city', true)) ?>" alt="Delhi and Agra heritage route" loading="lazy">
+              <span class="india-journey-badge">Best seller</span>
+            </div>
+            <div class="india-journey-body">
+              <span class="india-route-label">North India</span>
+              <h3>Golden Triangle</h3>
+              <p>Delhi • Agra • Jaipur</p>
+              <ul>
+                <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Taj Mahal sunrise</li>
+                <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Heritage city stay</li>
+                <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Easy 4-day route</li>
+              </ul>
+              <div class="india-journey-foot">
+                <span>4D · 3N</span>
+                <a href="<?= e(package_url('golden-triangle-delhi-agra-jaipur')) ?>">View plan</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="india-journey-card">
+            <div class="india-journey-media">
+              <img src="<?= e(img('manali-valley', true)) ?>" alt="Rajasthan palace route" loading="lazy">
+            </div>
+            <div class="india-journey-body">
+              <span class="india-route-label">Royal Rajasthan</span>
+              <h3>Heritage Trail</h3>
+              <p>Jaipur • Jodhpur • Jaisalmer • Udaipur</p>
+              <ul>
+                <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Forts & palaces</li>
+                <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Desert nights</li>
+                <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Local food & culture</li>
+              </ul>
+              <div class="india-journey-foot">
+                <span>6D · 5N</span>
+                <a href="<?= e(package_url('rajasthan-heritage-trail')) ?>">View plan</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="india-journey-card">
+            <div class="india-journey-media">
+              <img src="<?= e(img('shimla-church', true)) ?>" alt="Quick Delhi Agra getaway" loading="lazy">
+            </div>
+            <div class="india-journey-body">
+              <span class="india-route-label">Quick getaway</span>
+              <h3>Delhi & Agra</h3>
+              <p>Delhi • Agra</p>
+              <ul>
+                <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Iconic city highlights</li>
+                <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Smart short itinerary</li>
+                <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Great for couples & families</li>
+              </ul>
+              <div class="india-journey-foot">
+                <span>3D · 2N</span>
+                <a href="<?= e(package_url('delhi-agra-weekend')) ?>">View plan</a>
+              </div>
+            </div>
+          </article>
+        </div>
       </div>
     </section>
 

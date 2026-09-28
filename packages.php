@@ -2,11 +2,11 @@
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'packages';
 $pageTitle = 'Tour Packages';
-$pageDescription = 'Private Himachal tour packages — Spiti via Kinnaur, Shimla–Kullu–Manali, Chitkul, Kasol, Chandratal and Shimla local tours, with stays and transport arranged.';
+$pageDescription = 'Private Himachal and India tour packages — Spiti, Shimla, Rajasthan, Delhi, Agra and the Golden Triangle, with stays and transport arranged.';
 $pageHero = [
     'crumb'   => 'Packages',
     'eyebrow' => 'Tour packages',
-    'title'   => 'Journeys across Himachal',
+    'title'   => 'Journeys across Himachal & India',
     'lead'    => 'Every trip includes pickup and drop. Car, driver and hotels are included in the plan, and you can change the days to suit you.',
     'image'   => img('spiti-key-sunset'),
     'meta'    => [['fa-route', count($packages) . ' signature routes'], ['fa-location-dot', 'Pickup and drop'], ['fa-sliders', 'Fully customisable']],

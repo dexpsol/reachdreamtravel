@@ -51,7 +51,7 @@ function img(string $name, bool $small = false): string
  * Tour packages. Every package includes pickup and drop.
  * 'cat' drives the filters on packages.php.
  * ------------------------------------------------------------------------- */
-$packageCategories = ['all' => 'All packages', 'road' => 'Long road trips', 'hills' => 'Hill stations', 'nature' => 'Nature & adventure'];
+$packageCategories = ['all' => 'All packages', 'road' => 'Long road trips', 'hills' => 'Hill stations', 'nature' => 'Nature & adventure', 'heritage' => 'Heritage & culture', 'city' => 'City escapes'];
 
 $packages = [
     'shimla-spiti-kinnaur' => [
@@ -153,6 +153,52 @@ $packages = [
             ['Return journey', 'Drive back from Manali. Drop at your home or hotel.'],
         ],
     ],
+    'golden-triangle-delhi-agra-jaipur' => [
+        'title' => 'Golden Triangle', 'label' => 'Classic India loop', 'cat' => 'heritage',
+        'duration' => '4 days · 3 nights', 'short' => '4D · 3N', 'popular' => true,
+        'image' => 'shimla-city', 'difficulty' => 'Easy', 'season' => 'All year',
+        'start' => 'Delhi airport or hotel', 'end' => 'Delhi airport or hotel',
+        'route' => 'Delhi · Agra · Jaipur',
+        'overview' => 'A compact India circuit with the capital, a Mughal masterpiece and a royal Rajasthani city. You see the key monuments without the long travel fatigue.',
+        'highlights' => ['Red Fort and Jama Masjid in Delhi', 'Sunrise at the Taj Mahal', 'Agra Fort and local artisan streets', 'Amber Fort and Hawa Mahal in Jaipur', 'Heritage hotel stays'],
+        'days' => [
+            ['Arrival in Delhi', 'Pick-up from the airport or your hotel. Easy city check-in and an evening walk around Connaught Place or Chandni Chowk.'],
+            ['Delhi to Agra', 'Drive to Agra after breakfast. Visit Agra Fort and evening markets.'],
+            ['Taj Mahal and Jaipur', 'Early sunrise at the Taj Mahal, then continue to Jaipur with a stop for lunch.'],
+            ['Jaipur highlights', 'Amber Fort, City Palace and local bazaars before your return to Delhi.'],
+        ],
+    ],
+    'rajasthan-heritage-trail' => [
+        'title' => 'Rajasthan Heritage Trail', 'label' => 'Palaces, forts & desert nights', 'cat' => 'heritage',
+        'duration' => '6 days · 5 nights', 'short' => '6D · 5N', 'popular' => false,
+        'image' => 'shimla-lodge', 'difficulty' => 'Easy', 'season' => 'October – March',
+        'start' => 'Delhi airport or hotel', 'end' => 'Delhi airport or hotel',
+        'route' => 'Jaipur · Jodhpur · Jaisalmer · Udaipur',
+        'overview' => 'A royal route through Rajasthan’s forts, havelis and desert towns. The trip balances heritage sightseeing with relaxed evenings and local food.',
+        'highlights' => ['Amber Fort and City Palace in Jaipur', 'Mehrangarh Fort in Jodhpur', 'Golden sands of Jaisalmer', 'Lake Palace views in Udaipur', 'Rajasthani folk culture and cuisine'],
+        'days' => [
+            ['Arrive in Jaipur', 'Meet in Jaipur and settle into a heritage stay. Evening walk in the bazaars.'],
+            ['Jaipur city tour', 'Amber Fort, Hawa Mahal, Jantar Mantar and local craft markets.'],
+            ['Jaipur to Jodhpur', 'Drive to Jodhpur for fort views and the blue city streets.'],
+            ['Jodhpur to Jaisalmer', 'Continue to the golden desert city and enjoy a sunset desert experience.'],
+            ['Jaisalmer to Udaipur', 'Drive onward to Udaipur for lakeside evenings and palace views.'],
+            ['Return journey', 'Drive back to Delhi or depart from Udaipur depending on your plan.'],
+        ],
+    ],
+    'delhi-agra-weekend' => [
+        'title' => 'Delhi & Agra Weekend', 'label' => 'Quick cultural escape', 'cat' => 'city',
+        'duration' => '3 days · 2 nights', 'short' => '3D · 2N', 'popular' => false,
+        'image' => 'manali-mall', 'difficulty' => 'Easy', 'season' => 'All year',
+        'start' => 'Delhi airport or hotel', 'end' => 'Delhi airport or hotel',
+        'route' => 'Delhi · Agra',
+        'overview' => 'A smooth short trip for couples, families or friends who want a fast cultural getaway with iconic monuments, great food and no complicated planning.',
+        'highlights' => ['Old Delhi heritage lanes', 'Red Fort and India Gate', 'Sunrise Taj Mahal visit', 'Agra Fort and marble market'],
+        'days' => [
+            ['Arrival in Delhi', 'Airport or hotel pickup and a guided evening in central Delhi.'],
+            ['Delhi sightseeing', 'Old Delhi, Raj Ghat, India Gate and local food stops.'],
+            ['Agra day trip', 'Drive to Agra for the Taj Mahal, Agra Fort and a relaxed evening return to Delhi.'],
+        ],
+    ],
 ];
 
 /* ---------------------------------------------------------------------------
@@ -194,6 +240,24 @@ $destinations = [
         'text' => 'A blue lake shaped like a half moon, open only in summer. Reached through the Atal Tunnel from Manali.',
         'see' => ['Chandratal Lake', 'Sissu', 'Batal', 'Chandra river valley'],
         'packages' => ['chandratal-lahaul'],
+    ],
+    'delhi' => [
+        'name' => 'Delhi', 'tagline' => 'India’s capital energy', 'image' => 'shimla-city', 'altitude' => '216 m', 'best' => 'All year', 'drive' => 'On arrival day',
+        'text' => 'A layered mix of Mughal heritage, colonial landmarks, buzzing markets and endless food streets. Delhi is a natural gateway for India’s classic heritage circuits.',
+        'see' => ['Red Fort', 'India Gate', 'Chandni Chowk', 'Jama Masjid', 'Qutub Minar'],
+        'packages' => ['golden-triangle-delhi-agra-jaipur', 'delhi-agra-weekend'],
+    ],
+    'agra' => [
+        'name' => 'Agra', 'tagline' => 'The city of marble and memory', 'image' => 'shimla-church', 'altitude' => '169 m', 'best' => 'All year', 'drive' => '3–5 hrs from Delhi',
+        'text' => 'Home to the Taj Mahal and a remarkable Mughal legacy, Agra gives you one of India’s most memorable heritage experiences in just a day or two.',
+        'see' => ['Taj Mahal', 'Agra Fort', 'Mehtab Bagh', 'local marble markets', 'Fatehpur Sikri day trip'],
+        'packages' => ['golden-triangle-delhi-agra-jaipur', 'delhi-agra-weekend'],
+    ],
+    'rajasthan' => [
+        'name' => 'Rajasthan', 'tagline' => 'Royal forts and desert skies', 'image' => 'manali-valley', 'altitude' => 'Varies by city', 'best' => 'October – March', 'drive' => 'Flexible by route',
+        'text' => 'From Jaipur’s palace lanes to Jaisalmer’s golden desert dunes, Rajasthan brings together a rich mix of history, architecture and warm hospitality.',
+        'see' => ['Jaipur', 'Jodhpur', 'Jaisalmer', 'Udaipur', 'Desert camps'],
+        'packages' => ['rajasthan-heritage-trail', 'golden-triangle-delhi-agra-jaipur'],
     ],
 ];
 

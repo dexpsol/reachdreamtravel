@@ -3032,6 +3032,7 @@ h3 {
     opacity: 1 !important
   }
 }
+
 /* =====================================================================
    Inner pages: page banner, breadcrumb and page-specific sections
    ===================================================================== */
@@ -3059,6 +3060,149 @@ h3 {
   display: flex;
   justify-content: center;
   margin-top: 48px
+}
+
+.section-india-escapes {
+  position: relative;
+  background: linear-gradient(180deg, #f8f4ee 0%, #fff 100%)
+}
+
+.india-journeys-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  margin-top: 12px
+}
+
+.india-journey-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: transform .3s var(--ease), box-shadow .3s var(--ease), border-color .3s ease
+}
+
+.india-journey-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(245, 183, 59, .55);
+  box-shadow: var(--shadow-lg)
+}
+
+.india-journey-card-featured {
+  border-color: rgba(245, 183, 59, .7);
+  box-shadow: 0 26px 60px -20px rgba(201, 138, 18, .35)
+}
+
+.india-journey-media {
+  position: relative;
+  aspect-ratio: 4/3;
+  overflow: hidden
+}
+
+.india-journey-media img {
+  width: 100%;
+  height: 100%;
+  transition: transform .8s var(--ease)
+}
+
+.india-journey-card:hover .india-journey-media img {
+  transform: scale(1.06)
+}
+
+.india-journey-badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(245, 183, 59, .96);
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase
+}
+
+.india-journey-body {
+  padding: 24px 22px 18px
+}
+
+.india-route-label {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase
+}
+
+.india-journey-body h3 {
+  margin: 0 0 6px;
+  font: 800 26px/1.2 Montserrat, sans-serif;
+  letter-spacing: -.02em
+}
+
+.india-journey-body p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600
+}
+
+.india-journey-body ul {
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px
+}
+
+.india-journey-body li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink)
+}
+
+.india-journey-body li i {
+  color: var(--green);
+  font-size: 11px
+}
+
+.india-journey-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-weight: 800
+}
+
+.india-journey-foot span {
+  color: var(--navy)
+}
+
+.india-journey-foot a {
+  color: var(--green);
+  transition: color .2s ease
+}
+
+.india-journey-foot a:hover {
+  color: var(--navy)
+}
+
+@media (max-width: 991.98px) {
+  .india-journeys-grid {
+    grid-template-columns: 1fr
+  }
 }
 
 .credit-note {
@@ -4360,6 +4504,7 @@ a.contact-card:hover em i {
 }
 
 @media(prefers-reduced-motion:reduce) {
+
   .page-hero-bg,
   .page-hero-content {
     translate: none !important

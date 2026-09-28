@@ -2,12 +2,12 @@
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'destinations';
 $pageTitle = 'Destinations';
-$pageDescription = 'Explore Himachal destinations — Shimla, Manali & Solang, Kullu & Kasol, Kinnaur, Spiti Valley and Chandratal — with the best time to visit and what to see.';
+$pageDescription = 'Explore India destinations — Himachal, Delhi, Agra, Rajasthan and the Golden Triangle — with the best time to visit and what to see.';
 $pageHero = [
     'crumb'   => 'Destinations',
     'eyebrow' => 'Where we travel',
-    'title'   => 'Destinations in Himachal',
-    'lead'    => 'Six places in Himachal we take you to — with road time, best season and what to see.',
+    'title'   => 'Destinations in Himachal & India',
+    'lead'    => 'From Himalayan valleys to royal Rajasthan and iconic city escapes, these are the places we help you discover.',
     'image'   => img('spiti-key-snow'),
 ];
 require __DIR__ . '/includes/header.php';
