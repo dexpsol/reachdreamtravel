@@ -7,7 +7,7 @@ $pageHero = [
     'crumb'   => 'Vehicles',
     'eyebrow' => 'Our fleet',
     'title'   => 'Vehicles for every road',
-    'lead'    => 'Every car comes with an experienced hill driver. We pick you up in Amritsar and bring you back.',
+    'lead'    => 'Every car comes with an experienced hill driver. We pick you up and bring you back.',
     'image'   => img('road-van'),
     'meta'    => [['fa-car-side', '6 vehicle types'], ['fa-id-card', 'Driver included'], ['fa-headset', '24/7 support']],
 ];
@@ -22,7 +22,7 @@ $routeGuide = [
 $includes = [
     ['fa-id-card', 'Experienced hill driver', 'Local drivers who know mountain roads, weather and the best stops.'],
     ['fa-spray-can-sparkles', 'Clean, checked vehicle', 'Cleaned and inspected before every trip.'],
-    ['fa-location-crosshairs', 'Pickup in Amritsar', 'From your home, hotel, Amritsar airport or railway station.'],
+    ['fa-location-crosshairs', 'Doorstep pickup', 'From your home, hotel, airport or railway station.'],
     ['fa-camera', 'Photo & chai stops', 'Stop wherever you like for photos or tea.'],
     ['fa-file-invoice', 'Clear, upfront quote', 'Tolls, parking, permits and driver allowance listed before you book.'],
     ['fa-headset', '24/7 support', 'A call or WhatsApp away for the whole journey.'],
@@ -32,7 +32,7 @@ $faqs = [
     ['Does every vehicle come with a driver?', 'Yes. All our vehicles are chauffeur-driven by experienced drivers who know Himachal’s mountain roads well.'],
     ['Which vehicle is best for Spiti Valley?', 'For the full Spiti circuit we recommend the Toyota Innova Crysta for comfort or the Suzuki Jimny 4×4 for rough, unpaved sections such as Chandratal. We will suggest the best option for your dates and group.'],
     ['What is included in the vehicle price?', 'Your quote clearly lists what is included — typically the vehicle, driver and fuel for the planned route. Tolls, parking, permits and driver allowance are confirmed in your quote before you book.'],
-    ['Can I book only a car, without a package?', 'Yes. You can book just the car and driver — for a Himachal trip, a day trip, or an airport or station transfer in Amritsar.'],
+    ['Can I book only a car, without a package?', 'Yes. You can book just the car and driver — for a Himachal trip, a day trip, or an airport or station transfer.'],
     ['Can we change the plan during the trip?', 'Small changes to stops and timings are usually fine. For route changes that add distance or days, just call us and we will adjust the plan.'],
 ];
 
@@ -45,7 +45,7 @@ $slugify = fn(string $name): string => trim(strtolower(preg_replace('/[^a-z0-9]+
         <div class="feature-panel">
           <div class="feature"><span class="feature-icon fi-amber"><i class="fa-solid fa-id-card" aria-hidden="true"></i></span><div><b>Experienced drivers</b><small>Years of mountain driving</small></div></div>
           <div class="feature"><span class="feature-icon fi-green"><i class="fa-solid fa-spray-can-sparkles" aria-hidden="true"></i></span><div><b>Clean &amp; well-kept</b><small>Checked before every trip</small></div></div>
-          <div class="feature"><span class="feature-icon fi-blue"><i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i></span><div><b>Pickup in Amritsar</b><small>Home, hotel, airport or station</small></div></div>
+          <div class="feature"><span class="feature-icon fi-blue"><i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i></span><div><b>Doorstep pickup</b><small>Home, hotel, airport or station</small></div></div>
           <div class="feature"><span class="feature-icon fi-rose"><i class="fa-solid fa-headset" aria-hidden="true"></i></span><div><b>24/7 support</b><small>We are a call away</small></div></div>
         </div>
       </div>

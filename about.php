@@ -2,12 +2,12 @@
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'about';
 $pageTitle = 'About Us';
-$pageDescription = 'Reach Dream Travel is an Amritsar travel company. We plan Himachal trips with car, driver, hotels and sightseeing — pickup and drop in Amritsar.';
+$pageDescription = 'Reach Dream Travel is a Himachal travel company. We plan Himachal trips with car, driver, hotels and sightseeing — with pickup and drop.';
 $pageHero = [
     'crumb'   => 'About',
     'eyebrow' => 'Who we are',
     'title'   => 'About Reach Dream Travel',
-    'lead'    => 'An Amritsar travel team taking families, friends and groups to the Himachal mountains.',
+    'lead'    => 'A travel team taking families, friends and groups to the Himachal mountains.',
     'image'   => img('kinnaur-autumn'),
 ];
 require __DIR__ . '/includes/header.php';
@@ -24,16 +24,16 @@ require __DIR__ . '/includes/header.php';
               <img class="about-main" src="<?= e(img('kinnaur-sangla', true)) ?>" srcset="<?= e(img('kinnaur-sangla', true)) ?> 900w, <?= e(img('kinnaur-sangla')) ?> 2000w" sizes="(min-width: 992px) 560px, 100vw" alt="Sangla valley in Kinnaur" loading="lazy">
               <img class="about-sub" data-depth="-0.12" src="<?= e(img('spiti-key', true)) ?>" alt="Key Monastery in Spiti" loading="lazy">
               <div class="about-stamp" data-depth="0.18"><b>RD</b><small>YOUR JOURNEY<br>OUR PASSION</small></div>
-              <div class="about-chip" data-depth="0.08"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><b>Based in Amritsar</b><small>Trips all over Himachal</small></span></div>
+              <div class="about-chip" data-depth="0.08"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><b>Trips all over Himachal</b><small>Door-to-door pickup</small></span></div>
             </div>
           </div>
           <div class="col-12 col-lg-6 about-copy">
             <span class="eyebrow">Our story</span>
-            <h2>Mountain trips made easy, from Amritsar.</h2>
-            <p>Reach Dream Travel is based in Amritsar, Punjab. Many people here love the Himachal mountains, but planning the trip — the car, the hotels, the route — takes time. So we do it for you.</p>
-            <p>We pick you up from your home or hotel in Amritsar, take you to the mountains and bring you back. Our drivers know the hill roads well, and we are always one call away.</p>
+            <h2>Mountain trips made easy.</h2>
+            <p>Many people love the Himachal mountains, but planning the trip — the car, the hotels, the route — takes time. Reach Dream Travel does it for you.</p>
+            <p>We pick you up from your home or hotel, take you to the mountains and bring you back. Our drivers know the hill roads well, and we are always one call away.</p>
             <ul class="about-list list-unstyled">
-              <li><i class="fa-solid fa-route" aria-hidden="true"></i> Pickup and drop in Amritsar</li>
+              <li><i class="fa-solid fa-route" aria-hidden="true"></i> Pickup and drop at your door</li>
               <li><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Car, hotels &amp; sightseeing together</li>
               <li><i class="fa-solid fa-binoculars" aria-hidden="true"></i> Trip plan changed to suit you</li>
               <li><i class="fa-solid fa-user-shield" aria-hidden="true"></i> Safe, experienced hill drivers</li>
@@ -65,7 +65,7 @@ require __DIR__ . '/includes/header.php';
     <section class="section section-destinations">
       <div class="container">
         <div class="section-heading split">
-          <div><span class="eyebrow">Where we travel</span><h2>Places we take you.</h2><p>From easy hill stations close to Amritsar to long trips in the high mountains.</p></div>
+          <div><span class="eyebrow">Where we travel</span><h2>Places we take you.</h2><p>From easy hill stations to long trips in the high mountains.</p></div>
           <a class="text-link" href="destinations.php">All destinations <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
         <div class="dest-grid">
@@ -86,7 +86,7 @@ require __DIR__ . '/includes/header.php';
           <div class="col-12 col-lg-5">
             <span class="eyebrow eyebrow-light">How we work</span>
             <h2 id="planTitle">Booking is easy.</h2>
-            <p>Tell us where you want to go. We plan everything and pick you up from your door in Amritsar.</p>
+            <p>Tell us where you want to go. We plan everything and pick you up from your door.</p>
             <div class="counter-grid">
               <div class="counter-item"><strong><span data-counter="7">0</span><i>+</i></strong><small>Vehicle choices</small></div>
               <div class="counter-item"><strong><span data-counter="24">0</span><i>/7</i></strong><small>Booking support</small></div>
@@ -97,7 +97,7 @@ require __DIR__ . '/includes/header.php';
             <ol class="steps list-unstyled">
               <li class="step"><span class="step-no">01</span><div><h3>Tell us your plan</h3><p>Your dates, how many people, and where you want to go — even a rough idea is fine.</p></div><i class="fa-solid fa-comments step-icon" aria-hidden="true"></i></li>
               <li class="step"><span class="step-no">02</span><div><h3>Get your trip plan</h3><p>We send you the day-by-day plan, hotels, car and price.</p></div><i class="fa-solid fa-map-location-dot step-icon" aria-hidden="true"></i></li>
-              <li class="step"><span class="step-no">03</span><div><h3>Start your trip</h3><p>The driver picks you up in Amritsar. We are one call away the whole time.</p></div><i class="fa-solid fa-car-side step-icon" aria-hidden="true"></i></li>
+              <li class="step"><span class="step-no">03</span><div><h3>Start your trip</h3><p>The driver picks you up from your door. We are one call away the whole time.</p></div><i class="fa-solid fa-car-side step-icon" aria-hidden="true"></i></li>
             </ol>
           </div>
         </div>

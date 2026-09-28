@@ -9,18 +9,17 @@
 
 $site = [
     'name'      => 'Reach Dream Travel',
-    'city'      => 'Amritsar',
-    'phone'     => '+91 98765 43210',
-    'phoneLink' => '+919876543210',
-    'whatsapp'  => '919876543210', // Also update whatsappNumber in script.js.
-    'email'     => 'info@reachdreamtravel.com',
+    'phone'     => '+91 98883 51723',
+    'phoneLink' => '+919888351723',
+    'whatsapp'  => '919888351723', // Also update whatsappNumber in script.js.
+    'email'     => 'reachdreamtravel@gmail.com',
     'address'   => 'Amritsar, Punjab, India',
 ];
 
 /*
- * Approximate road times from Amritsar. Real times depend on traffic, weather and stops.
+ * Approximate road times from our base. Real times depend on traffic, weather and stops.
  */
-$fromAmritsar = [
+$driveTimes = [
     ['Shimla', '7–8 hrs', 'shimla'],
     ['Manali', '9–10 hrs', 'manali'],
     ['Kasol', 'about 9 hrs', 'kasol'],
@@ -36,7 +35,7 @@ function e($value): string
 }
 
 /** WhatsApp link with a prefilled message. */
-function wa_link(string $message = 'Hello Reach Dream Travel, I would like to plan a Himachal trip from Amritsar.'): string
+function wa_link(string $message = 'Hello Reach Dream Travel, I would like to plan a Himachal trip.'): string
 {
     global $site;
     return 'https://wa.me/' . $site['whatsapp'] . '?text=' . rawurlencode($message);
@@ -49,7 +48,7 @@ function img(string $name, bool $small = false): string
 }
 
 /* ---------------------------------------------------------------------------
- * Tour packages. Every package starts and ends in Amritsar.
+ * Tour packages. Every package includes pickup and drop.
  * 'cat' drives the filters on packages.php.
  * ------------------------------------------------------------------------- */
 $packageCategories = ['all' => 'All packages', 'road' => 'Long road trips', 'hills' => 'Hill stations', 'nature' => 'Nature & adventure'];
@@ -59,99 +58,99 @@ $packages = [
         'title' => 'Spiti Valley via Kinnaur', 'label' => 'Our biggest road trip', 'cat' => 'road',
         'duration' => '8 days · 7 nights', 'short' => '8D · 7N', 'popular' => true,
         'image' => 'spiti-key-sunset', 'difficulty' => 'Moderate', 'season' => 'June – October',
-        'start' => 'Amritsar', 'end' => 'Amritsar',
+        'start' => 'Your home or hotel', 'end' => 'Your home or hotel',
         'route' => 'Shimla · Kalpa · Nako · Tabo · Kaza · Manali',
-        'overview' => 'A full loop through the high Himalaya. We drive from Amritsar to Shimla, then through Kinnaur’s apple orchards into Spiti’s cold desert of old monasteries and clear night skies. We come back through Manali.',
+        'overview' => 'A full loop through the high Himalaya. We drive to Shimla, then through Kinnaur’s apple orchards into Spiti’s cold desert of old monasteries and clear night skies. We come back through Manali.',
         'highlights' => ['Kinner Kailash mountain views from Kalpa', 'Nako Lake and village', 'Tabo Monastery, over 1,000 years old', 'Key Monastery above the Spiti river', 'Kunzum Pass on the way to Manali', 'Nights in simple, cosy homestays'],
         'days' => [
-            ['Amritsar to Shimla', 'Pickup in Amritsar in the morning. About 7–8 hours by road. Evening walk on Mall Road.'],
+            ['Drive to Shimla', 'Morning pickup from your home or hotel. About 7–8 hours by road. Evening walk on Mall Road.'],
             ['Shimla to Sarahan', 'Drive along the Sutlej river to Sarahan and visit the Bhimakali Temple.'],
             ['Sarahan to Kalpa', 'Through apple orchards to Kalpa. See the Kinner Kailash peaks at sunset.'],
             ['Kalpa to Tabo', 'Stop at Nako Lake, then continue to Tabo and its old monastery.'],
             ['Tabo to Kaza', 'Visit Dhankar Monastery on its cliff, then reach Kaza, the main town of Spiti.'],
             ['Around Kaza', 'Key Monastery, Kibber village and the high village of Langza.'],
             ['Kaza to Manali', 'Cross Kunzum Pass. Visit Chandratal Lake if the road is open.'],
-            ['Manali to Amritsar', 'Drive back to Amritsar (about 9–10 hours). Drop at your home or hotel.'],
+            ['Return journey', 'Drive back from Manali. Drop at your home or hotel.'],
         ],
     ],
     'shimla-kullu-manali' => [
         'title' => 'Shimla · Kullu · Manali', 'label' => 'Most loved hill trip', 'cat' => 'hills',
         'duration' => '6 days · 5 nights', 'short' => '6D · 5N', 'popular' => false,
         'image' => 'solang', 'difficulty' => 'Easy', 'season' => 'All year (snow Dec – Feb)',
-        'start' => 'Amritsar', 'end' => 'Amritsar',
+        'start' => 'Your home or hotel', 'end' => 'Your home or hotel',
         'route' => 'Shimla · Kufri · Kullu · Manali · Solang · Atal Tunnel',
         'overview' => 'The most popular Himachal trip for families. Two days in Shimla, then on to Manali for snow, rivers and the Atal Tunnel. Easy roads the whole way.',
         'highlights' => ['Mall Road and the Ridge in Shimla', 'Kufri hills', 'River rafting stop in Kullu', 'Hidimba Temple and Old Manali', 'Solang Valley snow', 'Drive through the Atal Tunnel'],
         'days' => [
-            ['Amritsar to Shimla', 'Pickup in Amritsar. About 7–8 hours by road. Evening free in Shimla.'],
+            ['Drive to Shimla', 'Pickup from your home or hotel. About 7–8 hours by road. Evening free in Shimla.'],
             ['Shimla and Kufri', 'The Ridge, Jakhu Temple and Mall Road, plus a trip up to Kufri.'],
             ['Shimla to Manali', 'Drive through the Kullu valley (about 8 hours). Optional river rafting on the way.'],
             ['Manali sightseeing', 'Hidimba Temple, Vashisht hot springs, Old Manali and Mall Road.'],
             ['Solang & Atal Tunnel', 'Snow fun at Solang Valley and a drive through the Atal Tunnel to Sissu (weather permitting).'],
-            ['Manali to Amritsar', 'Drive back to Amritsar (about 9–10 hours).'],
+            ['Return journey', 'Drive back from Manali. Drop at your home or hotel.'],
         ],
     ],
     'shimla-local' => [
         'title' => 'Shimla short break', 'label' => 'Quick weekend trip', 'cat' => 'hills',
         'duration' => '4 days · 3 nights', 'short' => '4D · 3N', 'popular' => false,
         'image' => 'shimla-city', 'difficulty' => 'Easy', 'season' => 'All year',
-        'start' => 'Amritsar', 'end' => 'Amritsar',
+        'start' => 'Your home or hotel', 'end' => 'Your home or hotel',
         'route' => 'Shimla · Mall Road · Kufri · Narkanda',
-        'overview' => 'The easiest hill break from Amritsar. Cool air, old British buildings, pine forests and a day out to Kufri and Narkanda.',
+        'overview' => 'The easiest hill break. Cool air, old British buildings, pine forests and a day out to Kufri and Narkanda.',
         'highlights' => ['Mall Road and the Ridge', 'Jakhu Temple', 'Viceregal Lodge', 'Kufri and Narkanda day trip'],
         'days' => [
-            ['Amritsar to Shimla', 'Pickup in Amritsar. About 7–8 hours by road.'],
+            ['Drive to Shimla', 'Pickup from your home or hotel. About 7–8 hours by road.'],
             ['Shimla sightseeing', 'Jakhu Temple, the Ridge, Christ Church, Viceregal Lodge and Mall Road.'],
             ['Kufri & Narkanda', 'A day trip to Kufri and Narkanda for mountain views (and snow in winter).'],
-            ['Shimla to Amritsar', 'Relaxed breakfast, then drive back to Amritsar.'],
+            ['Return journey', 'Relaxed breakfast, then drive back home.'],
         ],
     ],
     'kinnaur-chitkul' => [
         'title' => 'Kinnaur & Chitkul', 'label' => 'Villages near the Tibet border', 'cat' => 'road',
         'duration' => '6 days · 5 nights', 'short' => '6D · 5N', 'popular' => false,
         'image' => 'kinnaur-sangla', 'difficulty' => 'Easy – moderate', 'season' => 'April – November',
-        'start' => 'Amritsar', 'end' => 'Amritsar',
+        'start' => 'Your home or hotel', 'end' => 'Your home or hotel',
         'route' => 'Shimla · Sangla · Chitkul · Kalpa',
         'overview' => 'A shorter trip into the high mountains. Visit Chitkul, the last village on the road to Tibet, and wake up to snow peaks in Kalpa.',
         'highlights' => ['Sangla valley and the Baspa river', 'Chitkul village', 'Sunrise over Kinner Kailash from Kalpa', 'Apple orchards (Aug – Oct)'],
         'days' => [
-            ['Amritsar to Shimla', 'Pickup in Amritsar. About 7–8 hours by road.'],
+            ['Drive to Shimla', 'Pickup from your home or hotel. About 7–8 hours by road.'],
             ['Shimla to Sangla', 'Along the Sutlej and into the green Sangla valley.'],
             ['Chitkul', 'Morning in Chitkul village by the river. Evening back in Sangla.'],
             ['Sangla to Kalpa', 'Short drive to Kalpa. Views of the Kinner Kailash peaks.'],
             ['Kalpa to Shimla', 'Drive back to Shimla with stops along the river.'],
-            ['Shimla to Amritsar', 'Drive back to Amritsar.'],
+            ['Return journey', 'Drive back from Shimla. Drop at your home or hotel.'],
         ],
     ],
     'kasol-parvati' => [
         'title' => 'Kasol & Parvati Valley', 'label' => 'Riverside rest', 'cat' => 'nature',
         'duration' => '4 days · 3 nights', 'short' => '4D · 3N', 'popular' => false,
         'image' => 'kasol-town', 'difficulty' => 'Easy', 'season' => 'March – June, Sept – Nov',
-        'start' => 'Amritsar', 'end' => 'Amritsar',
+        'start' => 'Your home or hotel', 'end' => 'Your home or hotel',
         'route' => 'Kasol · Manikaran · Tosh · Chalal',
         'overview' => 'Slow, relaxing days by the Parvati river — pine forests, cafés, hot springs and short village walks.',
         'highlights' => ['Riverside cafés in Kasol', 'Manikaran Sahib Gurudwara and hot springs', 'Forest walk to Chalal', 'Tosh village views'],
         'days' => [
-            ['Amritsar to Kasol', 'Pickup in Amritsar. About 9 hours by road. Evening by the river.'],
+            ['Drive to Kasol', 'Pickup from your home or hotel. About 9 hours by road. Evening by the river.'],
             ['Manikaran & Tosh', 'Visit Manikaran Sahib, then drive up to Tosh village.'],
             ['Chalal & free time', 'Easy forest walk to Chalal and a free afternoon in Kasol.'],
-            ['Kasol to Amritsar', 'Drive back to Amritsar.'],
+            ['Return journey', 'Drive back from Kasol. Drop at your home or hotel.'],
         ],
     ],
     'chandratal-lahaul' => [
         'title' => 'Chandratal & Lahaul', 'label' => 'Through the Atal Tunnel', 'cat' => 'nature',
         'duration' => '5 days · 4 nights', 'short' => '5D · 4N', 'popular' => false,
         'image' => 'chandratal', 'difficulty' => 'Moderate', 'season' => 'Mid June – early October',
-        'start' => 'Amritsar', 'end' => 'Amritsar',
+        'start' => 'Your home or hotel', 'end' => 'Your home or hotel',
         'route' => 'Manali · Atal Tunnel · Sissu · Chandratal',
         'overview' => 'Drive through the Atal Tunnel into Lahaul, then on a rough mountain road to Chandratal — a blue lake at 4,300 m. We use a 4×4 for the last part.',
         'highlights' => ['Atal Tunnel and Sissu waterfall', 'Chandra river valley', 'Night in camps under the stars', 'Sunrise at Chandratal Lake'],
         'days' => [
-            ['Amritsar to Manali', 'Pickup in Amritsar. About 9–10 hours by road.'],
+            ['Drive to Manali', 'Pickup from your home or hotel. About 9–10 hours by road.'],
             ['Manali to Sissu', 'Through the Atal Tunnel into Lahaul. Afternoon at Sissu waterfall.'],
             ['Sissu to Chandratal', 'Along the Chandra river to the lake. Night in camps nearby.'],
             ['Chandratal to Manali', 'Sunrise at the lake, then back to Manali.'],
-            ['Manali to Amritsar', 'Drive back to Amritsar.'],
+            ['Return journey', 'Drive back from Manali. Drop at your home or hotel.'],
         ],
     ],
 ];
@@ -161,37 +160,37 @@ $packages = [
  * ------------------------------------------------------------------------- */
 $destinations = [
     'shimla' => [
-        'name' => 'Shimla', 'tagline' => 'The Queen of Hills', 'image' => 'shimla-church', 'altitude' => '2,200 m', 'best' => 'All year', 'drive' => '7–8 hrs from Amritsar',
-        'text' => 'The closest big hill station from Amritsar. Old British buildings, Mall Road, pine forests and the famous toy train.',
+        'name' => 'Shimla', 'tagline' => 'The Queen of Hills', 'image' => 'shimla-church', 'altitude' => '2,200 m', 'best' => 'All year', 'drive' => '7–8 hrs by road',
+        'text' => 'The closest big hill station. Old British buildings, Mall Road, pine forests and the famous toy train.',
         'see' => ['The Ridge & Christ Church', 'Mall Road', 'Jakhu Temple', 'Viceregal Lodge', 'Kufri & Narkanda'],
         'packages' => ['shimla-local', 'shimla-kullu-manali'],
     ],
     'manali' => [
-        'name' => 'Manali & Solang', 'tagline' => 'Snow and adventure', 'image' => 'manali-valley', 'altitude' => '2,050 m', 'best' => 'All year (snow Dec – Feb)', 'drive' => '9–10 hrs from Amritsar',
+        'name' => 'Manali & Solang', 'tagline' => 'Snow and adventure', 'image' => 'manali-valley', 'altitude' => '2,050 m', 'best' => 'All year (snow Dec – Feb)', 'drive' => '9–10 hrs by road',
         'text' => 'Snow, rivers, old wooden temples and adventure sports. Also the starting point for the Atal Tunnel and Lahaul.',
         'see' => ['Hidimba Devi Temple', 'Old Manali', 'Solang Valley', 'Atal Tunnel & Sissu', 'Vashisht hot springs'],
         'packages' => ['shimla-kullu-manali', 'chandratal-lahaul'],
     ],
     'kasol' => [
-        'name' => 'Kullu & Kasol', 'tagline' => 'Life by the river', 'image' => 'kasol-river', 'altitude' => '1,580 m', 'best' => 'March – June, Sept – Nov', 'drive' => 'About 9 hrs from Amritsar',
+        'name' => 'Kullu & Kasol', 'tagline' => 'Life by the river', 'image' => 'kasol-river', 'altitude' => '1,580 m', 'best' => 'March – June, Sept – Nov', 'drive' => 'About 9 hrs by road',
         'text' => 'Pine forests, a fast blue river and slow, peaceful days. Great for short walks, hot springs and cafés.',
         'see' => ['Kasol', 'Manikaran Sahib', 'Tosh & Chalal', 'Kullu shawl makers'],
         'packages' => ['kasol-parvati', 'shimla-kullu-manali'],
     ],
     'kinnaur' => [
-        'name' => 'Kinnaur', 'tagline' => 'Apple orchards & snow peaks', 'image' => 'kinnaur-autumn', 'altitude' => '2,900 m (Kalpa)', 'best' => 'April – November', 'drive' => '2 days from Amritsar',
+        'name' => 'Kinnaur', 'tagline' => 'Apple orchards & snow peaks', 'image' => 'kinnaur-autumn', 'altitude' => '2,900 m (Kalpa)', 'best' => 'April – November', 'drive' => '2 days by road',
         'text' => 'Green valleys, apple orchards and wooden villages under the snowy Kinner Kailash mountains.',
         'see' => ['Sarahan', 'Sangla & Chitkul', 'Kalpa', 'Nako Lake'],
         'packages' => ['kinnaur-chitkul', 'shimla-spiti-kinnaur'],
     ],
     'spiti' => [
-        'name' => 'Spiti Valley', 'tagline' => 'The cold desert', 'image' => 'spiti-key', 'altitude' => '3,800 m (Kaza)', 'best' => 'June – October', 'drive' => '3 days from Amritsar',
+        'name' => 'Spiti Valley', 'tagline' => 'The cold desert', 'image' => 'spiti-key', 'altitude' => '3,800 m (Kaza)', 'best' => 'June – October', 'drive' => '3 days by road',
         'text' => 'A high, dry mountain valley with monasteries on cliffs, tiny villages and some of the clearest night skies in India.',
         'see' => ['Key Monastery', 'Dhankar Monastery', 'Tabo', 'Langza & Kibber', 'Pin Valley'],
         'packages' => ['shimla-spiti-kinnaur'],
     ],
     'chandratal' => [
-        'name' => 'Chandratal & Lahaul', 'tagline' => 'The moon lake', 'image' => 'chandratal-b', 'altitude' => '4,300 m', 'best' => 'Mid June – early October', 'drive' => '2 days from Amritsar',
+        'name' => 'Chandratal & Lahaul', 'tagline' => 'The moon lake', 'image' => 'chandratal-b', 'altitude' => '4,300 m', 'best' => 'Mid June – early October', 'drive' => '2 days by road',
         'text' => 'A blue lake shaped like a half moon, open only in summer. Reached through the Atal Tunnel from Manali.',
         'see' => ['Chandratal Lake', 'Sissu', 'Batal', 'Chandra river valley'],
         'packages' => ['chandratal-lahaul'],
@@ -210,17 +209,17 @@ $vehicles = [
         'seats' => '4', 'bags' => '2 bags', 'extra' => ['fa-snowflake', 'AC'],
         'best' => 'City & hill drives', 'terrain' => 'Paved highways',
         'features' => ['Air conditioning', 'Easy to park in hill towns', 'Economical on long drives', 'Dzire sedan & Alto on request'],
-        'routes' => ['Amritsar ↔ Shimla', 'Shimla local', 'Kullu · Manali'],
+        'routes' => ['Shimla trips', 'Shimla local', 'Kullu · Manali'],
     ],
     [
         'name' => 'Maruti Ertiga', 'type' => 'suv', 'tag' => 'MUV', 'group' => 'medium',
         'image' => 'assets/images/fleet-ertiga.jpg', 'alt' => 'White Maruti Suzuki Ertiga MPV',
         'summary' => 'Seven-seater for families of 5–6 people.',
-        'details' => 'Three rows of seats, so the whole family travels together. Smooth and comfortable on the long drive from Amritsar and on hill roads.',
+        'details' => 'Three rows of seats, so the whole family travels together. Smooth and comfortable on long drives and on hill roads.',
         'seats' => '6', 'bags' => '3 bags', 'extra' => ['fa-snowflake', 'AC'],
         'best' => 'Family trips', 'terrain' => 'Highways & hill roads',
         'features' => ['Three-row seating', 'Rear AC vents', 'Space for 3 suitcases', 'Great value for families'],
-        'routes' => ['Amritsar ↔ Manali', 'Shimla · Kullu · Manali', 'Kasol'],
+        'routes' => ['Manali trips', 'Shimla · Kullu · Manali', 'Kasol'],
     ],
     [
         'name' => 'Toyota Innova Crysta', 'type' => 'suv', 'tag' => 'Premium MUV', 'group' => 'medium',
@@ -246,7 +245,7 @@ $vehicles = [
         'name' => 'Tempo Traveller', 'type' => 'group', 'tag' => 'Mini coach', 'group' => 'large',
         'image' => 'assets/images/fleet-traveller.jpg', 'alt' => 'White Force Tempo Traveller on a Himalayan mountain road',
         'summary' => 'Mini bus for groups of 12–17 people.',
-        'details' => 'The usual choice for group trips from Amritsar. Push-back seats, a high roof and a roof carrier, so everyone and all the bags go in one vehicle.',
+        'details' => 'The usual choice for group trips. Push-back seats, a high roof and a roof carrier, so everyone and all the bags go in one vehicle.',
         'seats' => '12–17', 'bags' => 'Roof carrier', 'extra' => ['fa-snowflake', 'AC'],
         'best' => 'Group journeys', 'terrain' => 'Highways & hill roads',
         'features' => ['Push-back seats', 'Roof carrier for luggage', 'High roof for easy movement', 'Music system'],

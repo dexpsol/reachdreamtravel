@@ -7,7 +7,7 @@ $pageHero = [
     'crumb'   => 'Destinations',
     'eyebrow' => 'Where we travel',
     'title'   => 'Destinations in Himachal',
-    'lead'    => 'Six places in Himachal we take you to from Amritsar — with road time, best season and what to see.',
+    'lead'    => 'Six places in Himachal we take you to — with road time, best season and what to see.',
     'image'   => img('spiti-key-snow'),
 ];
 require __DIR__ . '/includes/header.php';

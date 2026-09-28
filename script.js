@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const whatsappNumber = '919876543210'; // Replace with the business WhatsApp number.
+  const whatsappNumber = '919888351723'; // Keep in sync with $site['whatsapp'] in includes/data.php.
   const waLink = text => `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const siteHeader = document.querySelector('.site-header');
@@ -246,16 +246,45 @@
     link.href = waLink(`Hello Reach Dream Travel, I would like to book a ${link.dataset.vehicle} for my Himachal trip.`);
   });
 
-  // Trip enquiry forms compose a WhatsApp message from the filled-in fields.
+  // Trip enquiry forms: the details are emailed to us (send-enquiry.php) and a
+  // WhatsApp chat opens with the same details ready to send.
   const labels = { name: 'Name', phone: 'Phone', destination: 'Trip', date: 'Travel date', travellers: 'Travellers', vehicle: 'Vehicle', message: 'Notes' };
   document.querySelectorAll('.trip-form').forEach(form => form.addEventListener('submit', event => {
     event.preventDefault();
-    const lines = ['Hello Reach Dream Travel, I would like a quote for a Himachal trip from Amritsar.'];
-    new FormData(form).forEach((value, key) => {
+    const status = form.querySelector('.form-status');
+    const showStatus = (text, isError) => {
+      if (!status) return;
+      status.textContent = text;
+      status.classList.toggle('is-error', isError);
+      status.hidden = false;
+    };
+    const missing = [...form.querySelectorAll('[required]')].find(field => !field.value.trim());
+    if (missing) {
+      showStatus('Please enter your name and phone number.', true);
+      missing.focus();
+      return;
+    }
+
+    const data = new FormData(form);
+    const lines = ['Hello Reach Dream Travel, I would like a quote for a Himachal trip.'];
+    data.forEach((value, key) => {
       const text = String(value).trim();
-      if (text) lines.push(`${labels[key] || key}: ${text}`);
+      if (text && labels[key]) lines.push(`${labels[key]}: ${text}`);
     });
+    // Open WhatsApp straight away (inside the click) so pop-up blockers allow it.
     window.open(waLink(lines.join('\n')), '_blank', 'noopener');
+
+    const button = form.querySelector('[type="submit"]');
+    if (button) button.disabled = true;
+    showStatus('Sending your enquiry…', false);
+    fetch('send-enquiry.php', { method: 'POST', body: data })
+      .then(response => response.json())
+      .then(result => {
+        showStatus(result.message, !result.ok);
+        if (result.ok) form.reset();
+      })
+      .catch(() => showStatus('Could not send by email. Please send the WhatsApp message or call us.', true))
+      .finally(() => { if (button) button.disabled = false; });
   }));
 
   // Vehicle showroom: tabs switch the vehicle shown in the detail panel.
@@ -346,6 +375,6 @@
 
   // Keep every remaining WhatsApp link pointed at the configurable business number.
   document.querySelectorAll('a[href*="wa.me"]').forEach(link => {
-    if (!link.href.includes('?text=')) link.href = waLink('Hello Reach Dream Travel, I would like to plan a Himachal trip from Amritsar.');
+    if (!link.href.includes('?text=')) link.href = waLink('Hello Reach Dream Travel, I would like to plan a Himachal trip.');
   });
 })();

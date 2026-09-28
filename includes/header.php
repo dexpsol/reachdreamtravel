@@ -15,7 +15,7 @@ require_once __DIR__ . '/components.php';
 
 $pageKey         = $pageKey ?? 'home';
 $pageTitle       = $pageTitle ?? 'Discover Himachal';
-$pageDescription = $pageDescription ?? 'Reach Dream Travel, Amritsar — Himachal tour packages with pickup from Amritsar. Shimla, Manali, Kasol, Kinnaur and Spiti trips with car, driver and hotels.';
+$pageDescription = $pageDescription ?? 'Reach Dream Travel — Himachal tour packages with pickup and drop. Shimla, Manali, Kasol, Kinnaur and Spiti trips with car, driver and hotels.';
 $pageHero        = $pageHero ?? null;
 $breadcrumbs     = $breadcrumbs ?? [];
 $isHome          = $pageKey === 'home';
@@ -53,7 +53,7 @@ $nav = [
   <link rel="stylesheet" href="assets/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="style.css">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TravelAgency","name":"<?= e($site['name']) ?>","description":"Himachal tour packages from Amritsar with car, driver and hotels","address":{"@type":"PostalAddress","addressLocality":"Amritsar","addressRegion":"Punjab","addressCountry":"IN"},"areaServed":"Himachal Pradesh, India","telephone":"<?= e($site['phone']) ?>"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TravelAgency","name":"<?= e($site['name']) ?>","description":"Himachal tour packages with car, driver and hotels","address":{"@type":"PostalAddress","addressLocality":"Amritsar","addressRegion":"Punjab","addressCountry":"IN"},"areaServed":"Himachal Pradesh, India","telephone":"<?= e($site['phone']) ?>"}</script>
 </head>
 <body class="page-<?= e($pageKey) ?>">
   <a class="skip-link" href="#main">Skip to content</a>

@@ -17,7 +17,7 @@ function package_card(string $slug, array $p): void
                 <span class="package-label"><?= e($p['label']) ?></span>
                 <h3><a href="<?= e(package_url($slug)) ?>"><?= e($p['title']) ?></a></h3>
                 <p class="route"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <?= e($p['route']) ?></p>
-                <div class="package-tags"><span class="tag-from"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> From Amritsar</span><span><i class="fa-solid fa-signal" aria-hidden="true"></i> <?= e($p['difficulty']) ?></span><span><i class="fa-solid fa-sun" aria-hidden="true"></i> <?= e($p['season']) ?></span></div>
+                <div class="package-tags"><span class="tag-from"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Pickup &amp; drop</span><span><i class="fa-solid fa-signal" aria-hidden="true"></i> <?= e($p['difficulty']) ?></span><span><i class="fa-solid fa-sun" aria-hidden="true"></i> <?= e($p['season']) ?></span></div>
                 <a class="package-link" href="<?= e(package_url($slug)) ?>">See day-by-day plan <span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span></a>
               </div>
             </article>

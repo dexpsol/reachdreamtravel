@@ -66,7 +66,7 @@ $related = array_slice($related, 0, 3, true);
                   <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Private vehicle with experienced driver</li>
                   <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Hotel, cottage, homestay or camp stays</li>
                   <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Sightseeing as per the trip plan</li>
-                  <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Pickup and drop anywhere in Amritsar</li>
+                  <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Pickup and drop at your home or hotel</li>
                 </ul>
               </div>
               <div>
@@ -88,10 +88,14 @@ $related = array_slice($related, 0, 3, true);
               <p>Tell us your dates and group size — we will send you a full plan and price.</p>
               <form class="trip-form" aria-label="Enquire about <?= e($package['title']) ?>" novalidate>
                 <input type="hidden" name="destination" value="<?= e($package['title']) ?>">
+                <label class="field"><span>Your name</span><input type="text" name="name" autocomplete="name" placeholder="Full name" required></label>
+                <label class="field"><span>Phone</span><input type="tel" name="phone" autocomplete="tel" placeholder="+91" required></label>
                 <label class="field"><span>Travel date</span><input type="date" name="date"></label>
                 <label class="field"><span>Travellers</span><input type="number" name="travellers" min="1" max="40" value="2" inputmode="numeric"></label>
                 <label class="field"><span>Vehicle</span><select name="vehicle"><?php vehicle_select_options(); ?></select></label>
-                <button class="btn btn-gold w-100" type="submit">Enquire on WhatsApp <i class="fa-brands fa-whatsapp" aria-hidden="true"></i></button>
+                <input class="visually-hidden" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+                <button class="btn btn-gold w-100" type="submit">Send enquiry <i class="fa-brands fa-whatsapp" aria-hidden="true"></i></button>
+                <p class="form-status" role="status" aria-live="polite" hidden></p>
               </form>
               <div class="pd-card-foot">
                 <a href="tel:<?= e($site['phoneLink']) ?>"><i class="fa-solid fa-phone" aria-hidden="true"></i> <?= e($site['phone']) ?></a>

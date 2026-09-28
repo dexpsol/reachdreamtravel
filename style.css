@@ -6459,8 +6459,8 @@ a.package-image {
   overflow-wrap: anywhere
 }
 
-/* ---- Trips from Amritsar (drive times) ---- */
-.from-amritsar {
+/* ---- Road times ---- */
+.drive-times {
   background: var(--paper)
 }
 
@@ -6579,4 +6579,22 @@ a.package-image {
   .drive-body b {
     font-size: 16px
   }
+}
+
+/* ---- Enquiry form status ---- */
+.form-status {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #14532d;
+  background: #dcfce7;
+  border: 1px solid #86efac
+}
+
+.form-status.is-error {
+  color: #7f1d1d;
+  background: #fee2e2;
+  border-color: #fca5a5
 }

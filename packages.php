@@ -7,9 +7,9 @@ $pageHero = [
     'crumb'   => 'Packages',
     'eyebrow' => 'Tour packages',
     'title'   => 'Journeys across Himachal',
-    'lead'    => 'Every trip starts and ends in Amritsar. Car, driver and hotels are included in the plan, and you can change the days to suit you.',
+    'lead'    => 'Every trip includes pickup and drop. Car, driver and hotels are included in the plan, and you can change the days to suit you.',
     'image'   => img('spiti-key-sunset'),
-    'meta'    => [['fa-route', count($packages) . ' signature routes'], ['fa-location-dot', 'Pickup from Amritsar'], ['fa-sliders', 'Fully customisable']],
+    'meta'    => [['fa-route', count($packages) . ' signature routes'], ['fa-location-dot', 'Pickup and drop'], ['fa-sliders', 'Fully customisable']],
 ];
 require __DIR__ . '/includes/header.php';
 ?>
