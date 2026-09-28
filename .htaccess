@@ -1,0 +1,6 @@
+# Show the custom page for missing URLs. If the site moves to the domain root,
+# change this to: ErrorDocument 404 /404.php
+ErrorDocument 404 /reach/404.php
+
+# Don't list folder contents.
+Options -Indexes
