@@ -9,7 +9,7 @@ $pageHero = [
     'title'   => 'Vehicles for every road',
     'lead'    => 'Every car comes with an experienced hill driver. We pick you up and bring you back.',
     'image'   => img('road-van'),
-    'meta'    => [['fa-car-side', '6 vehicle types'], ['fa-id-card', 'Driver included'], ['fa-headset', '24/7 support']],
+    'meta'    => [['fa-car-side', count($vehicles) . ' vehicle types'], ['fa-id-card', 'Driver included'], ['fa-headset', '24/7 support']],
 ];
 require __DIR__ . '/includes/header.php';
 
@@ -56,7 +56,7 @@ $slugify = fn(string $name): string => trim(strtolower(preg_replace('/[^a-z0-9]+
       <span class="bg-word" data-drift="0.2" aria-hidden="true">THE FLEET</span>
       <div class="container" data-showroom>
         <div class="section-heading split">
-          <div><span class="eyebrow">Choose your ride</span><h2>Six ways to see the mountains.</h2><p>Pick a vehicle to see the details, or filter by how many of you are travelling.</p></div>
+          <div><span class="eyebrow">Choose your ride</span><h2><?= count($vehicles) ?> ways to see the mountains.</h2><p>Pick a vehicle to see the details, or filter by how many of you are travelling.</p></div>
         </div>
 <?php filter_bar($groupSizes, '.showroom-tab', 'Filter vehicles by group size'); ?>
         <div class="showroom">

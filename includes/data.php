@@ -105,6 +105,22 @@ $packages = [
             ['Return journey', 'Relaxed breakfast, then drive back home.'],
         ],
     ],
+    'shakti-peeths-himachal' => [
+        'title' => 'Famous Shakti Peeths & Goddess Temples', 'label' => 'A sacred Himachal circuit', 'cat' => 'heritage',
+        'duration' => '5 days · 4 nights', 'short' => '5D · 4N', 'popular' => false,
+        'image' => 'hidimba', 'difficulty' => 'Easy', 'season' => 'All year',
+        'start' => 'Your home or hotel', 'end' => 'Your home or hotel',
+        'route' => 'Kangra · Bankhandi · Chintpurni · Naina Devi',
+        'overview' => 'Visit six revered goddess temples across Kangra, Una and Bilaspur. See Jwalamukhi’s natural flame, hilltop Naina Devi and the historic shrines of Kangra on a flexible pilgrimage route.',
+        'highlights' => ['Jwalamukhi Temple’s naturally burning flame', 'Naina Devi Temple overlooking the valley', 'Historic Bajreshwari Devi Temple', 'Chamunda Devi Temple beside the Baner River', 'Chintpurni Temple in Una', 'Maa Baglamukhi Temple in Bankhandi'],
+        'days' => [
+            ['Arrive in Kangra', 'Pickup from your home or hotel and travel to Kangra. Visit Bajreshwari Devi Temple, an ancient shrine rebuilt after an earthquake.'],
+            ['Jwalamukhi & Chamunda', 'Visit Jwalamukhi Temple, famed for its blue flame emerging from the rock, then continue to Chamunda Devi Temple on the banks of the Baner River.'],
+            ['Maa Baglamukhi', 'Travel to Bankhandi village, around 40 km from Kangra, to visit the highly revered Maa Baglamukhi Temple.'],
+            ['Chintpurni', 'Continue to Una and visit Chintpurni Temple, where devotees pray for relief from worries and grief.'],
+            ['Naina Devi & return', 'Visit hilltop Naina Devi Temple in Bilaspur, traditionally believed to mark the place where Sati’s eyes fell, then begin your return journey.'],
+        ],
+    ],
     'kinnaur-chitkul' => [
         'title' => 'Kinnaur & Chitkul', 'label' => 'Villages near the Tibet border', 'cat' => 'road',
         'duration' => '6 days · 5 nights', 'short' => '6D · 5N', 'popular' => false,
@@ -200,6 +216,10 @@ $packages = [
         ],
     ],
 ];
+
+$defaultPackages = $packages;
+require_once __DIR__ . '/package-store.php';
+$packages = package_catalog($packages);
 
 /* ---------------------------------------------------------------------------
  * Destinations (destinations.php, footer and about page).
@@ -328,6 +348,13 @@ $vehicles = [
 ];
 
 $groupSizes = ['all' => 'Any group size', 'small' => '1–4 travellers', 'medium' => '5–7 travellers', 'large' => '8–17 travellers'];
+
+$defaultVehicles = $vehicles;
+require_once __DIR__ . '/database.php';
+$databaseVehicles = app_db_catalog('taxis');
+if ($databaseVehicles !== null) {
+    $vehicles = array_values($databaseVehicles);
+}
 
 /* ---------------------------------------------------------------------------
  * Gallery photos. 'cat' drives the gallery filters.
