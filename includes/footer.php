@@ -48,7 +48,7 @@ $footerPackages = array_slice($packages, 0, 4, true);
 
       <div class="footer-main">
         <div class="footer-about">
-          <a class="brand footer-brand" href="index.php"><span class="brand-mark">RD</span><span>Reach Dream<small>TRAVEL · HIMACHAL</small></span></a>
+          <a class="brand footer-brand" href="index.php"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="48" height="48"></span><span>Reach Dream<small>TRAVEL · HIMACHAL</small></span></a>
           <p>Himachal trips — car with driver, hotels and sightseeing in one booking.</p>
           <p class="footer-address"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <?= e($site['address']) ?></p>
           <div class="social-links">

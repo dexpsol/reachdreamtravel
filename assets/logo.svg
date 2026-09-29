@@ -1,0 +1,21 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Reach Dream Travel logo">
+  <defs>
+    <linearGradient id="RDGold" x1="18" y1="12" x2="100" y2="106" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE29A"/>
+      <stop offset="0.52" stop-color="#F8C95E"/>
+      <stop offset="1" stop-color="#D99A12"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="10" y="10" width="100" height="100" rx="28" fill="#0B1F33"/>
+  <circle cx="88" cy="31" r="8" fill="url(#RDGold)" opacity="0.9"/>
+
+  <path d="M25 80L46 45L58 59L72 33L95 80H25Z" fill="url(#RDGold)" opacity="0.9"/>
+
+  <path d="M32 80V34H49C60 34 67 40 67 49C67 58 60 64 49 64H32M32 34L56 80" stroke="#FFF4D3" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M70 36H79C94 36 102 44 102 59C102 74 94 82 79 82H70V36Z" stroke="url(#RDGold)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M70 36V82" stroke="url(#RDGold)" stroke-width="6" stroke-linecap="round"/>
+
+  <path d="M30 88H90" stroke="#F3C559" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+</svg>
