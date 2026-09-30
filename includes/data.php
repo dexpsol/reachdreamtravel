@@ -44,19 +44,32 @@ function wa_link(string $message = 'Hello Reach Dream Travel, I would like to pl
 /** Resolve a photo to its category folder and optional thumbnail. */
 function img(string $name, bool $small = false): string
 {
+    $fileName = basename($name);
+    $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+    $baseName = $extension !== '' ? pathinfo($fileName, PATHINFO_FILENAME) : $fileName;
     $stayPrefixes = ['camping', 'cottage', 'hotel-', 'kinnaur-camps', 'room-', 'tent-', 'tents-'];
     $isStay = false;
     foreach ($stayPrefixes as $prefix) {
-        if (str_starts_with($name, $prefix)) {
+        if (str_starts_with($baseName, $prefix)) {
             $isStay = true;
             break;
         }
     }
-    $folder = $name === 'road-van' ? 'car' : ($isStay ? 'stays' : 'destinations');
-    $imagePath = 'assets/images/' . $folder . '/' . $name . '.jpg';
+    $folder = $baseName === 'road-van' ? 'car' : ($isStay ? 'stays' : 'destinations');
+    $absoluteFolder = dirname(__DIR__) . '/assets/images/' . $folder;
+    if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+        $extension = 'jpg';
+        foreach (['jpg', 'jpeg', 'png', 'webp'] as $candidate) {
+            if (is_file($absoluteFolder . '/' . $baseName . '.' . $candidate)) {
+                $extension = $candidate;
+                break;
+            }
+        }
+    }
+    $imagePath = 'assets/images/' . $folder . '/' . $baseName . '.' . $extension;
     if ($small) {
-        $thumbnailPath = 'assets/images/' . $folder . '/' . $name . '-sm.jpg';
-        if (is_file(dirname(__DIR__) . '/' . $thumbnailPath)) {
+        $thumbnailPath = 'assets/images/' . $folder . '/' . $baseName . '-sm.jpg';
+        if (is_file($absoluteFolder . '/' . $baseName . '-sm.jpg')) {
             return $thumbnailPath;
         }
     }
@@ -188,7 +201,7 @@ $packages = [
     'golden-triangle-delhi-agra-jaipur' => [
         'title' => 'Golden Triangle', 'label' => 'Classic India loop', 'cat' => 'heritage',
         'duration' => '4 days · 3 nights', 'short' => '4D · 3N', 'popular' => true,
-        'image' => 'road-van', 'difficulty' => 'Easy', 'season' => 'All year',
+        'image' => 'taj-mahal-agra', 'difficulty' => 'Easy', 'season' => 'All year',
         'start' => 'Delhi airport or hotel', 'end' => 'Delhi airport or hotel',
         'route' => 'Delhi · Agra · Jaipur',
         'overview' => 'A compact India circuit with the capital, a Mughal masterpiece and a royal Rajasthani city. You see the key monuments without the long travel fatigue.',
@@ -203,7 +216,7 @@ $packages = [
     'rajasthan-heritage-trail' => [
         'title' => 'Rajasthan Heritage Trail', 'label' => 'Palaces, forts & desert nights', 'cat' => 'heritage',
         'duration' => '6 days · 5 nights', 'short' => '6D · 5N', 'popular' => false,
-        'image' => 'road-van', 'difficulty' => 'Easy', 'season' => 'October – March',
+        'image' => 'hawa-mahal-jaipur', 'difficulty' => 'Easy', 'season' => 'October – March',
         'start' => 'Delhi airport or hotel', 'end' => 'Delhi airport or hotel',
         'route' => 'Jaipur · Jodhpur · Jaisalmer · Udaipur',
         'overview' => 'A royal route through Rajasthan’s forts, havelis and desert towns. The trip balances heritage sightseeing with relaxed evenings and local food.',
@@ -220,7 +233,7 @@ $packages = [
     'delhi-agra-weekend' => [
         'title' => 'Delhi & Agra Weekend', 'label' => 'Quick cultural escape', 'cat' => 'city',
         'duration' => '3 days · 2 nights', 'short' => '3D · 2N', 'popular' => false,
-        'image' => 'road-van', 'difficulty' => 'Easy', 'season' => 'All year',
+        'image' => 'taj-mahal-agra', 'difficulty' => 'Easy', 'season' => 'All year',
         'start' => 'Delhi airport or hotel', 'end' => 'Delhi airport or hotel',
         'route' => 'Delhi · Agra',
         'overview' => 'A smooth short trip for couples, families or friends who want a fast cultural getaway with iconic monuments, great food and no complicated planning.',
@@ -242,7 +255,7 @@ $routeImages = [
     'rajasthan-heritage-trail' => 'hawa-mahal-jaipur',
 ];
 foreach ($routeImages as $slug => $image) {
-    if (isset($packages[$slug])) {
+    if (isset($packages[$slug]) && empty($packages[$slug]['image_customized'])) {
         $packages[$slug]['image'] = $image;
     }
 }

@@ -13,8 +13,15 @@ if ($db) {
     $setupNeeded = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn() === 0;
 }
 $categories = ['road' => 'Long road trips', 'hills' => 'Hill stations', 'nature' => 'Nature & adventure', 'heritage' => 'Heritage & culture', 'city' => 'City escapes'];
-$imageFiles = array_merge(glob($root . '/assets/images/destinations/*.jpg') ?: [], glob($root . '/assets/images/stays/*.jpg') ?: []);
-$imageNames = array_values(array_unique(array_map(static fn($path) => basename($path, '.jpg'), $imageFiles)));
+$imageFiles = [];
+foreach (['destinations', 'stays'] as $imageFolder) {
+    foreach (['jpg', 'jpeg', 'png', 'webp'] as $imageExtension) {
+        $imageFiles = array_merge($imageFiles, glob($root . '/assets/images/' . $imageFolder . '/*.' . $imageExtension) ?: []);
+    }
+}
+$imageNames = array_values(array_unique(array_map(static fn($path) => pathinfo($path, PATHINFO_FILENAME), $imageFiles)));
+$imagePaths = [];
+foreach ($imageFiles as $imageFile) $imagePaths[pathinfo($imageFile, PATHINFO_FILENAME)] = '../assets/images/' . basename(dirname($imageFile)) . '/' . basename($imageFile);
 $taxiImages = array_values(array_map(static fn($path) => 'assets/images/car/' . basename($path), glob($root . '/assets/images/car/fleet-*.jpg') ?: []));
 $message = (string) ($_SESSION['notice'] ?? '');
 $error = '';
@@ -38,6 +45,28 @@ function admin_lines(string $value): array
 function admin_slug(string $value): string
 {
     return trim(strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $value)), '-');
+}
+function admin_upload_package_image(array $upload, string $slug, string $root): string
+{
+    if (($upload['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return '';
+    if (($upload['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) throw new RuntimeException('The image upload did not finish. Please try again.');
+    if (($upload['size'] ?? 0) < 1 || $upload['size'] > 10 * 1024 * 1024) throw new RuntimeException('Choose an image smaller than 10 MB.');
+
+    $imageInfo = @getimagesize((string) ($upload['tmp_name'] ?? ''));
+    $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+    $mime = $imageInfo['mime'] ?? '';
+    if (!$imageInfo || !isset($extensions[$mime])) throw new RuntimeException('Upload a valid JPEG, PNG or WebP image.');
+    if ($imageInfo[0] < 600 || $imageInfo[1] < 350 || $imageInfo[0] * $imageInfo[1] > 25000000) {
+        throw new RuntimeException('Use an image at least 600 x 350 pixels and no larger than 25 megapixels.');
+    }
+
+    $directory = $root . '/assets/images/destinations';
+    if (!is_dir($directory) || !is_writable($directory)) throw new RuntimeException('The destinations image folder is not writable.');
+    $fileName = 'package-' . substr($slug, 0, 70) . '-' . bin2hex(random_bytes(5)) . '.' . $extensions[$mime];
+    if (!move_uploaded_file((string) $upload['tmp_name'], $directory . '/' . $fileName)) {
+        throw new RuntimeException('Could not store the uploaded image. Check folder permissions.');
+    }
+    return pathinfo($fileName, PATHINFO_FILENAME);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -125,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $category = (string) ($_POST['cat'] ?? 'heritage');
                     $image = (string) ($_POST['image'] ?? '');
-                    if (!isset($categories[$category]) || !in_array($image, $imageNames, true)) throw new RuntimeException('Choose a valid category and image.');
+                    if (!isset($categories[$category])) throw new RuntimeException('Choose a valid package category.');
                     $highlights = admin_lines((string) ($_POST['highlights'] ?? ''));
                     $days = [];
                     foreach (admin_lines((string) ($_POST['days'] ?? '')) as $line) {
@@ -133,10 +162,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (count($parts) === 2 && trim($parts[0]) !== '' && trim($parts[1]) !== '') $days[] = [trim($parts[0]), trim($parts[1])];
                     }
                     if (!$highlights || !$days) throw new RuntimeException('Add at least one highlight and one day formatted as “Title | details”.');
+                    $uploadedImage = admin_upload_package_image($_FILES['package_image'] ?? [], $slug, $root);
+                    if ($uploadedImage !== '') {
+                        $image = $uploadedImage;
+                    } elseif (!in_array($image, $imageNames, true)) {
+                        throw new RuntimeException('Upload a package image or choose one from the image library.');
+                    }
                     $record = [
                         'title' => $name, 'label' => trim((string) ($_POST['label'] ?? '')), 'cat' => $category,
                         'duration' => trim((string) ($_POST['duration'] ?? '')), 'short' => trim((string) ($_POST['short'] ?? '')),
-                        'popular' => !empty($_POST['popular']), 'image' => $image, 'difficulty' => trim((string) ($_POST['difficulty'] ?? 'Easy')),
+                        'popular' => !empty($_POST['popular']), 'image' => $image, 'image_customized' => true, 'difficulty' => trim((string) ($_POST['difficulty'] ?? 'Easy')),
                         'season' => trim((string) ($_POST['season'] ?? 'All year')), 'start' => trim((string) ($_POST['start'] ?? 'Your home or hotel')),
                         'end' => trim((string) ($_POST['end'] ?? 'Your home or hotel')), 'route' => trim((string) ($_POST['route'] ?? '')),
                         'overview' => trim((string) ($_POST['overview'] ?? '')), 'highlights' => $highlights, 'days' => $days,
@@ -180,6 +215,7 @@ $dbReady = app_db() !== null && !empty($dbPackages) && !empty($dbTaxis);
   <link rel="stylesheet" href="../style.css">
   <style>
     body{background:#f5f6f3;color:#24313a}.dash-header{background:#123b3a;color:#fff;padding:16px 24px}.dash-head-inner{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:18px}.dash-brand{color:#fff;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:11px}.dash-brand img{display:block;width:44px;height:44px}.dash-brand small{display:block;font-size:12px;font-weight:400;opacity:.76}.dash-main{max-width:1200px;margin:28px auto;padding:0 18px}.dash-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:20px}.dash-top h1{font-size:30px;margin:0}.dash-top p{margin:5px 0 0;color:#68756f}.dash-status{padding:12px 15px;background:#fff;border:1px solid #dce2df;border-radius:5px;margin-bottom:18px}.dash-status.good{border-left:4px solid #25805e}.dash-status.bad{border-left:4px solid #bd483f}.dash-tabs{display:flex;gap:8px;border-bottom:1px solid #d7dfdb;margin-bottom:20px}.dash-tabs a{padding:12px 16px;text-decoration:none;color:#51605b;border-bottom:3px solid transparent;font-weight:600}.dash-tabs a.active{color:#146553;border-color:#cf9a3c}.dash-panel{background:#fff;border:1px solid #dce2df;border-radius:6px;padding:22px;margin-bottom:22px}.dash-panel h2{font-size:21px;margin:0 0 18px}.dash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.dash-grid label{display:block;font-size:13px;font-weight:600;color:#44534d}.dash-grid input,.dash-grid textarea,.dash-grid select{margin-top:5px;width:100%;border:1px solid #cbd4d0;border-radius:4px;padding:10px;color:#24313a;background:#fff}.dash-grid textarea{min-height:96px}.dash-wide{grid-column:1/-1}.dash-list{border-top:1px solid #e5e9e7}.dash-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid #e5e9e7}.dash-row-main{display:flex;align-items:center;gap:13px;min-width:0}.dash-thumb{width:68px;height:52px;object-fit:cover;border-radius:3px;background:#eee}.dash-row small{display:block;color:#74817b;margin-top:2px}.dash-actions{display:flex;gap:7px;flex-shrink:0}.dash-actions form{margin:0}.dash-actions .btn{border-radius:4px}.dash-note{color:#69766f;font-size:13px}.dash-empty{padding:16px 0;color:#69766f}.setup-box{max-width:520px;margin:70px auto}.dash-section-title{display:flex;justify-content:space-between;align-items:center;gap:14px}@media(max-width:720px){.dash-top{display:block}.dash-top .btn{margin-top:14px}.dash-grid{grid-template-columns:1fr}.dash-wide{grid-column:auto}.dash-row{align-items:flex-start;flex-direction:column}.dash-actions{flex-wrap:wrap}.dash-tabs a{padding:10px 12px}.dash-header{padding:14px}.dash-panel{padding:17px}}
+    .dash-grid input::placeholder,.dash-grid textarea::placeholder{color:#89948f;opacity:1}.dash-grid input[type=file]{padding:8px;background:#fafbf9}.dash-image-preview-wrap{min-height:0}.dash-package-preview{display:block;width:min(100%,520px);max-height:270px;aspect-ratio:16/9;object-fit:cover;border:1px solid #dce2df;border-radius:4px;background:#f3f5f3}.dash-package-preview[hidden]{display:none}.dash-note{display:block;margin-top:5px}
   </style>
 </head>
 <body>
@@ -197,22 +233,25 @@ $dbReady = app_db() !== null && !empty($dbPackages) && !empty($dbTaxis);
   <nav class="dash-tabs" aria-label="Content types"><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a></nav>
   <?php if ($selectedTab === 'packages'): ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $packageForm ? 'Update package' : 'Add package' ?></h2><?php if ($packageForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=packages">New package</a><?php endif; ?></div>
-      <form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="save"><div class="dash-grid">
-        <input type="hidden" name="old_slug" value="<?= admin_h($editingKind === 'package' ? $editingSlug : '') ?>"><label>Package title<input name="title" required value="<?= admin_h($packageForm['title'] ?? '') ?>"></label>
-        <label>URL slug<input name="slug" value="<?= admin_h($editingKind === 'package' ? $editingSlug : '') ?>" placeholder="made-from-title"></label>
-        <label>Card label<input name="label" value="<?= admin_h($packageForm['label'] ?? '') ?>"></label>
-        <label>Category<select name="cat"><?php foreach ($categories as $key => $label): ?><option value="<?= admin_h($key) ?>"<?= ($packageForm['cat'] ?? 'heritage') === $key ? ' selected' : '' ?>><?= admin_h($label) ?></option><?php endforeach; ?></select></label>
-        <label>Duration<input name="duration" value="<?= admin_h($packageForm['duration'] ?? '') ?>" placeholder="5 days · 4 nights"></label>
-        <label>Short duration<input name="short" value="<?= admin_h($packageForm['short'] ?? '') ?>" placeholder="5D · 4N"></label>
-        <label>Difficulty<input name="difficulty" value="<?= admin_h($packageForm['difficulty'] ?? 'Easy') ?>"></label>
-        <label>Best season<input name="season" value="<?= admin_h($packageForm['season'] ?? 'All year') ?>"></label>
-        <label>Package image<select name="image"><?php foreach ($imageNames as $image): ?><option value="<?= admin_h($image) ?>"<?= ($packageForm['image'] ?? 'hidimba') === $image ? ' selected' : '' ?>><?= admin_h($image) ?></option><?php endforeach; ?></select></label>
-        <label>Route<input name="route" value="<?= admin_h($packageForm['route'] ?? '') ?>"></label>
-        <label>Starts at<input name="start" value="<?= admin_h($packageForm['start'] ?? 'Your home or hotel') ?>"></label>
-        <label>Ends at<input name="end" value="<?= admin_h($packageForm['end'] ?? 'Your home or hotel') ?>"></label>
-        <label class="dash-wide">Overview<textarea name="overview" required><?= admin_h($packageForm['overview'] ?? '') ?></textarea></label>
-        <label class="dash-wide">Highlights<textarea name="highlights" required><?= admin_h(implode("\n", $packageForm['highlights'] ?? [])) ?></textarea><span class="dash-note">One highlight per line.</span></label>
-        <label class="dash-wide">Day-by-day plan<textarea name="days" required><?= admin_h(implode("\n", array_map(static fn($day) => $day[0] . ' | ' . $day[1], $packageForm['days'] ?? []))) ?></textarea><span class="dash-note">One day per line: Day title | Day description</span></label>
+      <form method="post" enctype="multipart/form-data" data-package-form><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="save"><div class="dash-grid">
+        <input type="hidden" name="old_slug" value="<?= admin_h($editingKind === 'package' ? $editingSlug : '') ?>">
+        <label>Package title<input name="title" required value="<?= admin_h($packageForm['title'] ?? '') ?>" placeholder="e.g. Jaipur & Jaisalmer Heritage Trail"></label>
+        <label>URL slug<input name="slug" data-package-slug value="<?= admin_h($editingKind === 'package' ? $editingSlug : '') ?>" placeholder="Generated from package title"></label>
+        <label>Card label<input name="label" value="<?= admin_h($packageForm['label'] ?? '') ?>" placeholder="e.g. Desert & heritage"></label>
+        <label>Category<select name="cat" required><option value="" disabled<?= empty($packageForm['cat']) ? ' selected' : '' ?>>Choose a category</option><?php foreach ($categories as $key => $label): ?><option value="<?= admin_h($key) ?>"<?= ($packageForm['cat'] ?? '') === $key ? ' selected' : '' ?>><?= admin_h($label) ?></option><?php endforeach; ?></select></label>
+        <label>Duration<input name="duration" value="<?= admin_h($packageForm['duration'] ?? '') ?>" placeholder="e.g. 5 days · 4 nights"></label>
+        <label>Short duration<input name="short" value="<?= admin_h($packageForm['short'] ?? '') ?>" placeholder="e.g. 5D · 4N"></label>
+        <label>Difficulty<input name="difficulty" value="<?= admin_h($packageForm['difficulty'] ?? 'Easy') ?>" placeholder="Easy, moderate or challenging"></label>
+        <label>Best season<input name="season" value="<?= admin_h($packageForm['season'] ?? 'All year') ?>" placeholder="e.g. October to March"></label>
+        <label>Package image<select name="image" data-package-image><option value="">Choose an image from the library</option><?php foreach ($imageNames as $image): ?><option value="<?= admin_h($image) ?>"<?= ($packageForm['image'] ?? '') === $image ? ' selected' : '' ?>><?= admin_h($image) ?></option><?php endforeach; ?></select></label>
+        <label>Upload package image<input type="file" name="package_image" accept="image/jpeg,image/png,image/webp" data-package-upload><span class="dash-note">JPEG, PNG or WebP. Minimum 600 × 350 px; maximum 10 MB. Upload overrides the library selection.</span></label>
+        <div class="dash-wide dash-image-preview-wrap"><img class="dash-package-preview" data-package-preview src="<?= $packageForm ? admin_h('../' . img($packageForm['image'], true)) : '' ?>" alt="Current package image preview"<?= $packageForm ? '' : ' hidden' ?>></div>
+        <label>Route<input name="route" value="<?= admin_h($packageForm['route'] ?? '') ?>" placeholder="e.g. Jaipur · Jodhpur · Jaisalmer"></label>
+        <label>Starts at<input name="start" value="<?= admin_h($packageForm['start'] ?? 'Your home or hotel') ?>" placeholder="e.g. Jaipur airport or hotel"></label>
+        <label>Ends at<input name="end" value="<?= admin_h($packageForm['end'] ?? 'Your home or hotel') ?>" placeholder="e.g. Jaipur airport or hotel"></label>
+        <label class="dash-wide">Overview<textarea name="overview" required placeholder="Describe the feel of the trip, who it suits and what guests can expect."><?= admin_h($packageForm['overview'] ?? '') ?></textarea></label>
+        <label class="dash-wide">Highlights<textarea name="highlights" required placeholder="Amber Fort at opening time&#10;Old-city food walk&#10;Sunset over the dunes"><?= admin_h(implode("\n", $packageForm['highlights'] ?? [])) ?></textarea><span class="dash-note">One highlight per line.</span></label>
+        <label class="dash-wide">Day-by-day plan<textarea name="days" required placeholder="Day 1: Arrival | Airport pickup and hotel check-in&#10;Day 2: Jaipur | Fort visit and old-city walk"><?= admin_h(implode("\n", array_map(static fn($day) => $day[0] . ' | ' . $day[1], $packageForm['days'] ?? []))) ?></textarea><span class="dash-note">One day per line: Day title | day description</span></label>
         <label><span><input type="checkbox" name="popular" value="1"<?= !empty($packageForm['popular']) ? ' checked' : '' ?>> Mark as popular</span></label>
       </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save package</button></p></form>
     </section>
@@ -243,4 +282,37 @@ $dbReady = app_db() !== null && !empty($dbPackages) && !empty($dbTaxis);
   <?php endif; ?>
 <?php endif; ?>
 </main>
+<?php if ($selectedTab === 'packages'): ?>
+<script>
+(() => {
+  const form = document.querySelector('[data-package-form]');
+  if (!form) return;
+  const title = form.querySelector('[name="title"]');
+  const slug = form.querySelector('[data-package-slug]');
+  const imageSelect = form.querySelector('[data-package-image]');
+  const upload = form.querySelector('[data-package-upload]');
+  const preview = form.querySelector('[data-package-preview]');
+  const images = <?= json_encode($imagePaths, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+  let slugWasEdited = false;
+
+  const makeSlug = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  slug.addEventListener('input', () => { slugWasEdited = true; });
+  title.addEventListener('input', () => { if (!slugWasEdited) slug.value = makeSlug(title.value); });
+
+  const showPreview = (src) => {
+    if (!src) { preview.hidden = true; preview.removeAttribute('src'); return; }
+    preview.src = src;
+    preview.hidden = false;
+  };
+  imageSelect.addEventListener('change', () => {
+    upload.value = '';
+    showPreview(images[imageSelect.value] || '');
+  });
+  upload.addEventListener('change', () => {
+    if (!upload.files.length) { showPreview(images[imageSelect.value] || ''); return; }
+    showPreview(URL.createObjectURL(upload.files[0]));
+  });
+})();
+</script>
+<?php endif; ?>
 </body></html>
