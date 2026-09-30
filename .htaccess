@@ -4,3 +4,8 @@ ErrorDocument 404 /reach/404.php
 
 # Don't list folder contents.
 Options -Indexes
+
+# Keep environment files and backend implementation private.
+<FilesMatch "^\.env(?:\..*)?$">
+  Require all denied
+</FilesMatch>

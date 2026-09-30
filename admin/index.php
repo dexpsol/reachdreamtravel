@@ -3,7 +3,7 @@ declare(strict_types=1);
 session_set_cookie_params(['httponly' => true, 'secure' => !empty($_SERVER['HTTPS']), 'samesite' => 'Strict']);
 session_start();
 require_once dirname(__DIR__) . '/includes/data.php';
-require_once dirname(__DIR__) . '/includes/database.php';
+require_once dirname(__DIR__) . '/backend/database.php';
 
 $root = dirname(__DIR__);
 $db = app_db();

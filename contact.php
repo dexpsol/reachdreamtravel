@@ -38,29 +38,36 @@ $faqs = [
         <div class="row g-4 g-lg-5 align-items-stretch">
           <div class="col-12 col-lg-7">
             <div class="contact-form-wrap">
-              <span class="eyebrow">Trip enquiry</span>
-              <h2 class="contact-title">Let us help you plan.</h2>
-              <p class="contact-lead">Fill in what you know — the rest we can work out together. Your enquiry is emailed to us and also opens in WhatsApp so you can send it straight to our phone.</p>
-              <form class="trip-form contact-form" aria-label="Trip enquiry" novalidate>
+              <span class="eyebrow">Build your own trip</span>
+              <h2 class="contact-title">Customized package</h2>
+              <p class="contact-lead">Tell us what you have in mind. We will help shape the trip around your dates, group and stay. Your request opens in WhatsApp, ready to send.</p>
+              <form class="trip-form contact-form" aria-label="Customized package enquiry" novalidate>
                 <div class="field-row">
                   <label class="field"><span>Your name</span><input type="text" name="name" autocomplete="name" placeholder="Full name" required></label>
                   <label class="field"><span>Phone</span><input type="tel" name="phone" autocomplete="tel" placeholder="+91" required></label>
                 </div>
+                <label class="field"><span>Email</span><input type="email" name="email" autocomplete="email" placeholder="you@example.com"></label>
                 <div class="field-row">
-                  <label class="field"><span>Destination</span>
-                    <select name="destination"><?php trip_select_options(); ?></select>
-                  </label>
-                  <label class="field"><span>Travel date</span><input type="date" name="date"></label>
+                  <label class="field"><span>What would you like the package for?</span><input type="text" name="purpose" placeholder="Places, occasion or experience"></label>
+                  <label class="field"><span>Arrival date</span><input type="date" name="arrival"></label>
+                </div>
+                <div class="field-row" data-guest-count>
+                  <label class="field"><span>Departure date</span><input type="date" name="departure"></label>
+                  <label class="field"><span>Adults</span><input type="number" name="adults" min="1" max="40" value="2" inputmode="numeric"></label>
+                  <label class="field"><span>Kids</span><input type="number" name="kids" min="0" max="40" value="0" inputmode="numeric"></label>
                 </div>
                 <div class="field-row">
-                  <label class="field"><span>Travellers</span><input type="number" name="travellers" min="1" max="40" value="2" inputmode="numeric"></label>
-                  <label class="field"><span>Vehicle</span>
-                    <select name="vehicle"><?php vehicle_select_options(); ?></select>
-                  </label>
+                  <label class="field"><span>Room required</span><select name="room_required"><option value="Yes">Yes</option><option value="No">No</option></select></label>
+                  <label class="field"><span>Room type</span><select name="room_type"><option value="Standard">Standard</option><option value="Deluxe">Deluxe</option><option value="Family room">Family room</option></select></label>
                 </div>
+                <div class="field-row">
+                  <label class="field"><span>Meal plan</span><select name="meal_plan"><option value="No preference">No preference</option><option value="Room only">Room only</option><option value="Breakfast">Breakfast</option><option value="Breakfast and dinner">Breakfast and dinner</option><option value="All meals">All meals</option></select></label>
+                  <label class="field"><span>Transportation</span><select name="transportation" data-transport-choice><option value="Yes, include transportation">Yes, include transportation</option><option value="No thanks">No thanks</option></select></label>
+                </div>
+                <label class="field" data-vehicle-field><span>Vehicle type</span><select name="vehicle"><?php vehicle_select_options(); ?></select></label>
                 <label class="field"><span>Anything else?</span><textarea name="message" rows="4" placeholder="Hotel category, special requests, pickup point…"></textarea></label>
                 <input class="visually-hidden" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-                <button class="btn btn-gold" type="submit">Send enquiry <i class="fa-brands fa-whatsapp" aria-hidden="true"></i></button>
+                <button class="btn btn-gold" type="submit">Send package request <i class="fa-brands fa-whatsapp" aria-hidden="true"></i></button>
                 <p class="form-status" role="status" aria-live="polite" hidden></p>
               </form>
             </div>

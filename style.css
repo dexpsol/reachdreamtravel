@@ -1707,6 +1707,10 @@ h3 {
   color: var(--navy-2)
 }
 
+.contact-form [data-guest-count] {
+  grid-template-columns: repeat(3, minmax(0, 1fr))
+}
+
 .contact-form .btn {
   justify-self: start;
   margin-top: 4px

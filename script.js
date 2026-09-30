@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const whatsappNumber = '919888351723'; // Keep in sync with $site['whatsapp'] in includes/data.php.
+  const whatsappNumber = '919780434402'; // Keep in sync with $site['whatsapp'] in includes/data.php.
   const waLink = text => `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const siteHeader = document.querySelector('.site-header');
@@ -243,12 +243,22 @@
 
   // Each vehicle card opens WhatsApp with the vehicle already named.
   document.querySelectorAll('[data-vehicle]').forEach(link => {
-    link.href = waLink(`Hello Reach Dream Travel, I would like to book a ${link.dataset.vehicle} for my Himachal trip.`);
+    link.href = waLink(`Hello Reach Dream Travel, I would like to book a ${link.dataset.vehicle} for my trip.`);
   });
 
-  // Trip enquiry forms: the details are emailed to us (send-enquiry.php) and a
-  // WhatsApp chat opens with the same details ready to send.
-  const labels = { name: 'Name', phone: 'Phone', destination: 'Trip', date: 'Travel date', travellers: 'Travellers', vehicle: 'Vehicle', message: 'Notes' };
+  // Trip enquiry forms open WhatsApp with the submitted details ready to send.
+  const labels = { name: 'Name', phone: 'Phone', email: 'Email', destination: 'Trip', date: 'Travel date', travellers: 'Travellers', purpose: 'Package for', arrival: 'Arrival date', departure: 'Departure date', adults: 'Adults', kids: 'Kids', room_required: 'Room required', room_type: 'Room type', meal_plan: 'Meal plan', transportation: 'Transportation', vehicle: 'Vehicle type', message: 'Notes' };
+  document.querySelectorAll('[data-transport-choice]').forEach(choice => {
+    const vehicleField = choice.form.querySelector('[data-vehicle-field]');
+    const vehicleSelect = vehicleField.querySelector('select');
+    const updateVehicle = () => {
+      const showVehicle = choice.value.startsWith('Yes');
+      vehicleField.hidden = !showVehicle;
+      vehicleSelect.disabled = !showVehicle;
+    };
+    choice.addEventListener('change', updateVehicle);
+    updateVehicle();
+  });
   document.querySelectorAll('.trip-form').forEach(form => form.addEventListener('submit', event => {
     event.preventDefault();
     const status = form.querySelector('.form-status');
@@ -266,13 +276,28 @@
     }
 
     const data = new FormData(form);
-    const lines = ['Hello Reach Dream Travel, I would like a quote for a Himachal trip.'];
+    const lines = ['Hello Reach Dream Travel, I would like a quote for a trip.'];
     data.forEach((value, key) => {
       const text = String(value).trim();
       if (text && labels[key]) lines.push(`${labels[key]}: ${text}`);
     });
     // Open WhatsApp straight away (inside the click) so pop-up blockers allow it.
     window.open(waLink(lines.join('\n')), '_blank', 'noopener');
+
+    if (form.matches('[aria-label="Customized package enquiry"]')) {
+      const button = form.querySelector('[type="submit"]');
+      if (button) button.disabled = true;
+      showStatus('Sending your request by email… WhatsApp is open with your message ready.', false);
+      fetch('backend/send-enquiry.php', { method: 'POST', body: data })
+        .then(response => response.json())
+        .then(result => {
+          showStatus(result.message, !result.ok);
+          if (result.ok) form.reset();
+        })
+        .catch(() => showStatus('Email could not be sent. Your request is ready in WhatsApp; please tap Send.', true))
+        .finally(() => { if (button) button.disabled = false; });
+      return;
+    }
 
     const button = form.querySelector('[type="submit"]');
     if (button) button.disabled = true;
@@ -375,6 +400,6 @@
 
   // Keep every remaining WhatsApp link pointed at the configurable business number.
   document.querySelectorAll('a[href*="wa.me"]').forEach(link => {
-    if (!link.href.includes('?text=')) link.href = waLink('Hello Reach Dream Travel, I would like to plan a Himachal trip.');
+    if (!link.href.includes('?text=')) link.href = waLink('Hello Reach Dream Travel, I would like to plan a trip.');
   });
 })();

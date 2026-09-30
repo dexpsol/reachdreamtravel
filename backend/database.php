@@ -1,13 +1,42 @@
 <?php
+function app_load_env(): void
+{
+    static $loaded = false;
+    if ($loaded) return;
+    $loaded = true;
+    $path = dirname(__DIR__) . '/.env';
+    if (!is_readable($path)) return;
+    foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [] as $line) {
+        $line = trim($line);
+        if ($line === '' || $line[0] === '#' || !str_contains($line, '=')) continue;
+        [$key, $value] = explode('=', $line, 2);
+        $key = trim($key);
+        $value = trim($value);
+        if ($key === '' || getenv($key) !== false) continue;
+        if (strlen($value) >= 2 && (($value[0] === '"' && str_ends_with($value, '"')) || ($value[0] === "'" && str_ends_with($value, "'")))) {
+            $value = substr($value, 1, -1);
+        }
+        putenv($key . '=' . $value);
+        $_ENV[$key] = $value;
+        $_SERVER[$key] = $value;
+    }
+}
+
+app_load_env();
+
 function app_db(bool $serverOnly = false, bool $refresh = false): ?PDO
 {
     static $connections = [];
     $key = $serverOnly ? 'server' : 'database';
     if (!$refresh && array_key_exists($key, $connections)) return $connections[$key];
-    $host = getenv('REACH_DB_HOST') ?: '127.0.0.1';
-    $name = getenv('REACH_DB_NAME') ?: 'reach_travel';
-    $user = getenv('REACH_DB_USER') ?: 'root';
-    $password = getenv('REACH_DB_PASSWORD') ?: '';
+    $host = getenv('REACH_DB_HOST');
+    $name = getenv('REACH_DB_NAME');
+    $user = getenv('REACH_DB_USER');
+    $password = getenv('REACH_DB_PASSWORD');
+    if ($host === false || $name === false || $user === false || $password === false) {
+        $connections[$key] = null;
+        return null;
+    }
     try {
         $dsn = 'mysql:host=' . $host . ';charset=utf8mb4' . ($serverOnly ? '' : ';dbname=' . $name);
         $connections[$key] = new PDO($dsn, $user, $password, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false]);
@@ -19,7 +48,8 @@ function app_db(bool $serverOnly = false, bool $refresh = false): ?PDO
 
 function app_db_initialize(array $packages, array $vehicles): string
 {
-    $name = getenv('REACH_DB_NAME') ?: 'reach_travel';
+    $name = getenv('REACH_DB_NAME');
+    if ($name === false || $name === '') return 'Set REACH_DB_NAME in the .env file.';
     $server = app_db(true);
     if (!$server) return 'Cannot connect to MySQL. Check the REACH_DB_* settings and start MySQL.';
     $quotedName = '`' . str_replace('`', '``', $name) . '`';

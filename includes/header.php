@@ -29,7 +29,6 @@ $nav = [
     'packages'     => ['Packages', 'packages.php'],
     'destinations' => ['Destinations', 'destinations.php'],
     'vehicles'     => ['Vehicles', 'vehicles.php'],
-    'stays'        => ['Stays', 'stays.php'],
     'gallery'      => ['Gallery', 'gallery.php'],
     'contact'      => ['Contact', 'contact.php'],
 ];

@@ -1,0 +1,4 @@
+Require all denied
+<Files "send-enquiry.php">
+  Require all granted
+</Files>

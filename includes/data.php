@@ -11,7 +11,7 @@ $site = [
     'name'      => 'Reach Dream Travel',
     'phone'     => '+91 98883 51723',
     'phoneLink' => '+919888351723',
-    'whatsapp'  => '919888351723', // Also update whatsappNumber in script.js.
+    'whatsapp'  => '919780434402', // Also update whatsappNumber in script.js.
     'email'     => 'reachdreamtravel@gmail.com',
     'address'   => 'Amritsar, Punjab, India',
 ];
@@ -35,7 +35,7 @@ function e($value): string
 }
 
 /** WhatsApp link with a prefilled message. */
-function wa_link(string $message = 'Hello Reach Dream Travel, I would like to plan a Himachal trip.'): string
+function wa_link(string $message = 'Hello Reach Dream Travel, I would like to plan a trip.'): string
 {
     global $site;
     return 'https://wa.me/' . $site['whatsapp'] . '?text=' . rawurlencode($message);
@@ -218,7 +218,7 @@ $packages = [
 ];
 
 $defaultPackages = $packages;
-require_once __DIR__ . '/package-store.php';
+require_once dirname(__DIR__) . '/backend/package-store.php';
 $packages = package_catalog($packages);
 
 /* ---------------------------------------------------------------------------
@@ -350,7 +350,7 @@ $vehicles = [
 $groupSizes = ['all' => 'Any group size', 'small' => '1–4 travellers', 'medium' => '5–7 travellers', 'large' => '8–17 travellers'];
 
 $defaultVehicles = $vehicles;
-require_once __DIR__ . '/database.php';
+require_once dirname(__DIR__) . '/backend/database.php';
 $databaseVehicles = app_db_catalog('taxis');
 if ($databaseVehicles !== null) {
     $vehicles = array_values($databaseVehicles);
