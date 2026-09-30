@@ -99,6 +99,31 @@ $footerPackages = array_slice($packages, 0, 4, true);
   <a class="back-to-top" href="#top" aria-label="Back to top"><svg viewBox="0 0 48 48" aria-hidden="true"><circle class="ring-track" cx="24" cy="24" r="22"/><circle class="ring-fill" cx="24" cy="24" r="22"/></svg><i class="fa-solid fa-arrow-up" aria-hidden="true"></i></a>
   <a class="whatsapp-float" href="<?= e(wa_link()) ?>" target="_blank" rel="noopener" aria-label="Chat with <?= e($site['name']) ?> on WhatsApp"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i><span>Chat with us</span></a>
 
+  <dialog class="callback-dialog" id="callback-dialog" aria-labelledby="callback-title">
+    <div class="callback-dialog-head"><div><span class="eyebrow">Talk through your plans</span><h2 id="callback-title"><?= $isHome ? 'Plan your trip' : 'Request a callback' ?></h2></div><button class="callback-close" type="button" aria-label="Close callback form"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+<?php if ($isHome): ?>
+    <div class="callback-form-slot" data-callback-form-slot></div>
+<?php else: ?>
+    <p class="callback-copy" data-callback-copy>Share a few trip details and our team will get back to you.</p>
+    <form class="trip-form callback-form" aria-label="Request a travel callback" novalidate>
+      <input type="hidden" name="message" data-callback-message>
+      <div class="field-row">
+        <label class="field"><span>Your name</span><input type="text" name="name" autocomplete="name" placeholder="Full name" required></label>
+        <label class="field"><span>Phone</span><input type="tel" name="phone" autocomplete="tel" placeholder="+91" required></label>
+      </div>
+      <label class="field"><span>Where to?</span><select name="destination"><?php trip_select_options(); ?></select></label>
+      <div class="field-row">
+        <label class="field"><span>Travel date</span><input type="date" name="date" placeholder="Select travel date"></label>
+        <label class="field"><span>Travellers</span><input type="number" name="travellers" min="1" max="40" value="2" inputmode="numeric" placeholder="Number of travellers"></label>
+      </div>
+      <label class="field"><span>Vehicle</span><select name="vehicle"><?php vehicle_select_options(); ?></select></label>
+      <input class="visually-hidden" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <button class="btn btn-gold w-100" type="submit">Request a callback <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+      <p class="form-status" role="status" aria-live="polite" hidden></p>
+    </form>
+<?php endif; ?>
+  </dialog>
+
   <dialog class="lightbox" id="lightbox" aria-label="Photo viewer"><button class="lightbox-close" aria-label="Close gallery"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button><button class="lightbox-prev" aria-label="Previous image"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button><img alt="Himachal scenery"><button class="lightbox-next" aria-label="Next image"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button><div class="lightbox-caption"><b></b><small></small></div><span class="lightbox-count"></span></dialog>
 
   <script src="assets/bootstrap/bootstrap.bundle.min.js" defer></script>

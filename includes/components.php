@@ -10,6 +10,7 @@ function package_url(string $slug): string
 /** Tour package card (homepage and packages page). */
 function package_card(string $slug, array $p): void
 {
+    global $site;
     ?>
             <article class="package-card" data-type="<?= e($p['cat']) ?>">
               <a class="package-image" href="<?= e(package_url($slug)) ?>" tabindex="-1" aria-hidden="true"><img src="<?= e(img($p['image'], true)) ?>" alt="" loading="lazy" width="900" height="600"><?php if ($p['popular']): ?><span class="ribbon"><i class="fa-solid fa-route" aria-hidden="true"></i> Featured itinerary</span><?php endif; ?><span class="duration-badge"><i class="fa-solid fa-clock" aria-hidden="true"></i> <?= e($p['short']) ?></span></a>
@@ -19,6 +20,11 @@ function package_card(string $slug, array $p): void
                 <p class="route"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <?= e($p['route']) ?></p>
                 <div class="package-tags"><span class="tag-from"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Pickup &amp; drop</span><span><i class="fa-solid fa-signal" aria-hidden="true"></i> <?= e($p['difficulty']) ?></span><span><i class="fa-solid fa-sun" aria-hidden="true"></i> <?= e($p['season']) ?></span></div>
                 <a class="package-link" href="<?= e(package_url($slug)) ?>">See day-by-day plan <span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span></a>
+                <div class="package-contact-actions" aria-label="Contact us about <?= e($p['title']) ?>">
+                  <a class="package-contact-icon package-call" href="tel:<?= e($site['phoneLink']) ?>" aria-label="Call about <?= e($p['title']) ?>" title="Call us"><i class="fa-solid fa-phone" aria-hidden="true"></i></a>
+                  <a class="package-contact-icon package-whatsapp" href="<?= e(wa_link('Hello Reach Dream Travel, I would like to know more about ' . $p['title'] . '.')) ?>" target="_blank" rel="noopener" aria-label="WhatsApp about <?= e($p['title']) ?>" title="WhatsApp"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></a>
+                  <button class="package-callback" type="button" data-callback-trigger data-package-title="<?= e($p['title']) ?>" aria-haspopup="dialog" aria-controls="callback-dialog"><i class="fa-solid fa-phone-volume" aria-hidden="true"></i> Request callback</button>
+                </div>
               </div>
             </article>
 <?php

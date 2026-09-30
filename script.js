@@ -246,6 +246,71 @@
     link.href = waLink(`Hello Reach Dream Travel, I would like to book a ${link.dataset.vehicle} for my trip.`);
   });
 
+  const callbackDialog = document.querySelector('#callback-dialog');
+  if (callbackDialog) {
+    const heroForm = document.querySelector('.hero-form');
+    const formSlot = callbackDialog.querySelector('[data-callback-form-slot]');
+    const isHomeCallback = Boolean(heroForm && formSlot);
+    const callbackForm = isHomeCallback ? heroForm : callbackDialog.querySelector('.callback-form');
+    const callbackDestination = callbackForm.querySelector('[name="destination"]');
+    const callbackMessage = callbackForm.querySelector('[data-callback-message]');
+    const callbackCopy = callbackDialog.querySelector('[data-callback-copy]');
+    let originalParent;
+    let originalNextSibling;
+    let originalDestination;
+    let callbackPackageMessage;
+    let originalSubmitLabel;
+    const restoreHeroForm = () => {
+      if (!isHomeCallback || !originalParent) return;
+      if (originalNextSibling?.parentNode === originalParent) originalParent.insertBefore(heroForm, originalNextSibling);
+      else originalParent.appendChild(heroForm);
+      if (callbackPackageMessage) callbackPackageMessage.remove();
+      callbackPackageMessage = null;
+      callbackForm.querySelector('[name="destination"]').value = originalDestination;
+      const submit = callbackForm.querySelector('button[type="submit"]');
+      if (submit && originalSubmitLabel) submit.firstChild.textContent = originalSubmitLabel;
+      originalParent = null;
+    };
+    document.querySelectorAll('[data-callback-trigger]').forEach(button => button.addEventListener('click', () => {
+      const packageTitle = button.dataset.packageTitle || 'your trip';
+      const previousStatus = callbackForm.querySelector('.form-status');
+      if (previousStatus) {
+        previousStatus.hidden = true;
+        previousStatus.classList.remove('is-error');
+      }
+      if (isHomeCallback) {
+        originalParent = heroForm.parentNode;
+        originalNextSibling = heroForm.nextSibling;
+        originalDestination = callbackForm.querySelector('[name="destination"]').value;
+        originalSubmitLabel = callbackForm.querySelector('button[type="submit"]').firstChild.textContent;
+        const destination = callbackForm.querySelector('[name="destination"]');
+        const matchingOption = [...destination.options].find(option => option.textContent.trim().toLowerCase() === packageTitle.toLowerCase());
+        if (matchingOption) destination.value = matchingOption.value;
+        callbackPackageMessage = document.createElement('input');
+        callbackPackageMessage.type = 'hidden';
+        callbackPackageMessage.name = 'message';
+        callbackPackageMessage.value = `Please call me back about ${packageTitle}.`;
+        callbackForm.appendChild(callbackPackageMessage);
+        const submit = callbackForm.querySelector('button[type="submit"]');
+        submit.firstChild.textContent = 'Request a callback ';
+        formSlot.appendChild(heroForm);
+      } else {
+        callbackForm.reset();
+        const matchingOption = [...callbackDestination.options].find(option => option.textContent.trim().toLowerCase() === packageTitle.toLowerCase());
+        if (matchingOption) callbackDestination.value = matchingOption.value;
+        callbackMessage.value = `Please call me back about ${packageTitle}.`;
+        callbackCopy.textContent = `Share a few trip details and our team will get back to you about ${packageTitle}.`;
+      }
+      callbackDialog.showModal();
+      callbackForm.querySelector('[name="name"]').focus();
+    }));
+    callbackDialog.querySelector('.callback-close').addEventListener('click', () => callbackDialog.close());
+    callbackDialog.addEventListener('close', restoreHeroForm);
+    callbackDialog.addEventListener('click', event => {
+      if (event.target === callbackDialog) callbackDialog.close();
+    });
+  }
+
   // Trip enquiry forms open WhatsApp with the submitted details ready to send.
   const labels = { name: 'Name', phone: 'Phone', email: 'Email', destination: 'Trip', date: 'Travel date', travellers: 'Travellers', purpose: 'Package for', arrival: 'Arrival date', departure: 'Departure date', adults: 'Adults', kids: 'Kids', room_required: 'Room required', room_type: 'Room type', meal_plan: 'Meal plan', transportation: 'Transportation', vehicle: 'Vehicle type', message: 'Notes' };
   document.querySelectorAll('[data-transport-choice]').forEach(choice => {
