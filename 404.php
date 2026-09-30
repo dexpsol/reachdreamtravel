@@ -22,7 +22,7 @@ require __DIR__ . '/includes/header.php';
           <a class="btn btn-glass" href="packages.php">Browse packages</a>
         </div>
         <nav class="notfound-links" aria-label="Popular pages">
-          <a href="destinations.php">Destinations</a><a href="vehicles.php">Vehicles</a><a href="stays.php">Stays</a><a href="gallery.php">Gallery</a><a href="contact.php">Contact</a>
+          <a href="destinations.php">Destinations</a><a href="vehicles.php">Vehicles</a><a href="gallery.php">Gallery</a><a href="contact.php">Contact</a>
         </nav>
       </div>
     </section>

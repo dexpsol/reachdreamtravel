@@ -2,12 +2,12 @@
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'about';
 $pageTitle = 'About Us';
-$pageDescription = 'Reach Dream Travel is a Himachal travel company. We plan Himachal trips with car, driver, hotels and sightseeing — with pickup and drop.';
+$pageDescription = 'Based in Amritsar, Reach Dream Travel arranges private road trips through Himachal and selected North India routes, with vehicles, drivers and stays.';
 $pageHero = [
     'crumb'   => 'About',
     'eyebrow' => 'Who we are',
     'title'   => 'About Reach Dream Travel',
-    'lead'    => 'A travel team taking families, friends and groups to the Himachal mountains.',
+    'lead'    => 'Based in Amritsar, we plan private road trips through Himachal and selected North India routes.',
     'image'   => img('kinnaur-autumn'),
 ];
 require __DIR__ . '/includes/header.php';
@@ -29,9 +29,9 @@ require __DIR__ . '/includes/header.php';
           </div>
           <div class="col-12 col-lg-6 about-copy">
             <span class="eyebrow">Our story</span>
-            <h2>Mountain trips made easy.</h2>
-            <p>Many people love the Himachal mountains, but planning the trip — the car, the hotels, the route — takes time. Reach Dream Travel does it for you.</p>
-            <p>We pick you up from your home or hotel, take you to the mountains and bring you back. Our drivers know the hill roads well, and we are always one call away.</p>
+            <h2>Private road trips, planned with care.</h2>
+            <p>Based in Amritsar, Reach Dream Travel arranges private road trips through Himachal and selected North India routes, bringing transport and stays into one plan.</p>
+            <p>We coordinate the route, vehicle and stays before you travel. For hill routes, the vehicle and pace are planned around the roads and your group.</p>
             <ul class="about-list list-unstyled">
               <li><i class="fa-solid fa-route" aria-hidden="true"></i> Pickup and drop at your door</li>
               <li><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Car, hotels &amp; sightseeing together</li>
@@ -49,14 +49,14 @@ require __DIR__ . '/includes/header.php';
       <div class="container">
         <div class="section-heading center">
           <span class="eyebrow">What we stand for</span>
-          <h2>Our four promises.</h2>
-          <p>For a short Shimla trip or a long Spiti trip — this is how we work.</p>
+          <h2>What goes into the plan.</h2>
+          <p>Route, vehicle and stay options are discussed before you confirm the trip.</p>
         </div>
         <div class="value-grid">
-          <article class="value-card"><span class="value-no">01</span><span class="value-icon fi-amber"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i></span><h3>We know the roads</h3><p>Which roads are open, the best places to stop, and how long each drive really takes.</p></article>
+          <article class="value-card"><span class="value-no">01</span><span class="value-icon fi-amber"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i></span><h3>Route first</h3><p>We discuss drive times, stops and road conditions while shaping the itinerary.</p></article>
           <article class="value-card"><span class="value-no">02</span><span class="value-icon fi-green"><i class="fa-solid fa-person-walking-luggage" aria-hidden="true"></i></span><h3>Your own trip</h3><p>Only your group in the car. Stop for photos or tea whenever you like.</p></article>
-          <article class="value-card"><span class="value-no">03</span><span class="value-icon fi-blue"><i class="fa-solid fa-handshake" aria-hidden="true"></i></span><h3>Clear prices</h3><p>We tell you exactly what is included. No hidden charges and no pressure to book.</p></article>
-          <article class="value-card"><span class="value-no">04</span><span class="value-icon fi-rose"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i></span><h3>Safety first</h3><p>Good drivers, well-kept cars, and help by phone at any time.</p></article>
+          <article class="value-card"><span class="value-no">03</span><span class="value-icon fi-blue"><i class="fa-solid fa-handshake" aria-hidden="true"></i></span><h3>Know what’s included</h3><p>Your quote lists the vehicle, stays and other confirmed costs before you book.</p></article>
+          <article class="value-card"><span class="value-no">04</span><span class="value-icon fi-rose"><i class="fa-solid fa-shield-heart" aria-hidden="true"></i></span><h3>Vehicle for the route</h3><p>Choose from cars, 4x4s and group vehicles based on your route and party size.</p></article>
         </div>
       </div>
     </section>
@@ -69,9 +69,11 @@ require __DIR__ . '/includes/header.php';
           <a class="text-link" href="destinations.php">All destinations <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
         <div class="dest-grid">
-<?php $i = 0; foreach ($destinations as $destSlug => $d): ?>
-          <a class="dest-card<?= $i === 0 ? ' dest-wide' : '' ?>" href="destinations.php#<?= e($destSlug) ?>">
+<?php $i = 0; foreach ($destinations as $destSlug => $d): $hasScenicPhoto = !in_array($destSlug, ['delhi', 'agra', 'rajasthan'], true); ?>
+          <a class="dest-card<?= $i === 0 ? ' dest-wide' : '' ?><?= $hasScenicPhoto ? '' : ' is-text-only' ?>" href="destinations.php#<?= e($destSlug) ?>">
+<?php if ($hasScenicPhoto): ?>
             <img src="<?= e(img($d['image'], true)) ?>" alt="" loading="lazy">
+<?php endif; ?>
             <div class="dest-body"><span class="dest-no"><?= sprintf('%02d', ++$i) ?></span><h3><?= e($d['name']) ?></h3><p><?= e($d['tagline']) ?> · <?= e($d['drive']) ?></p></div>
           </a>
 <?php endforeach; ?>
@@ -88,9 +90,9 @@ require __DIR__ . '/includes/header.php';
             <h2 id="planTitle">Booking is easy.</h2>
             <p>Tell us where you want to go. We plan everything and pick you up from your door.</p>
             <div class="counter-grid">
-              <div class="counter-item"><strong><span data-counter="7">0</span><i>+</i></strong><small>Vehicle choices</small></div>
-              <div class="counter-item"><strong><span data-counter="24">0</span><i>/7</i></strong><small>Booking support</small></div>
-              <div class="counter-item"><strong><span data-counter="6">0</span></strong><small>Regions covered</small></div>
+              <div class="counter-item"><strong><?= count($vehicles) ?></strong><small>Vehicle options</small></div>
+              <div class="counter-item"><strong><?= count($destinations) ?></strong><small>Destinations</small></div>
+              <div class="counter-item"><strong><?= count($packages) ?></strong><small>Sample itineraries</small></div>
             </div>
           </div>
           <div class="col-12 col-lg-7">
@@ -116,7 +118,7 @@ require __DIR__ . '/includes/header.php';
               <li><i class="fa-solid fa-car-side" aria-hidden="true"></i><div><b>The right car for your trip</b><span>Small cars, 7-seaters, 4×4s for Spiti and mini buses for groups.</span></div></li>
               <li><i class="fa-solid fa-hotel" aria-hidden="true"></i><div><b>Hotels for your budget</b><span>Standard, deluxe or premium — you choose.</span></div></li>
               <li><i class="fa-solid fa-sliders" aria-hidden="true"></i><div><b>Change the plan any time</b><span>Add a day, skip a place, or add a new stop.</span></div></li>
-              <li><i class="fa-solid fa-headset" aria-hidden="true"></i><div><b>Help 24/7</b><span>Call or WhatsApp us at any time during your trip.</span></div></li>
+              <li><i class="fa-solid fa-comments" aria-hidden="true"></i><div><b>Talk through the details</b><span>Contact our team about your route, pickup and any changes to the plan.</span></div></li>
             </ul>
             <div class="btn-row"><a class="btn btn-dark" href="contact.php">Start planning <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a><a class="text-link" href="vehicles.php">View our vehicles <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
           </div>

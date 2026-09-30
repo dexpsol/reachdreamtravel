@@ -2,14 +2,14 @@
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'vehicles';
 $pageTitle = 'Our Vehicles';
-$pageDescription = 'Hatchbacks, MUVs, 4×4s and group coaches with experienced hill drivers for your Himachal trip — Swift, Ertiga, Innova Crysta, Jimny, Tempo Traveller and Force Urbania.';
+$pageDescription = 'Compare private cars, 4x4s and group vehicles with drivers for Himachal routes and North India road trips.';
 $pageHero = [
     'crumb'   => 'Vehicles',
     'eyebrow' => 'Our fleet',
     'title'   => 'Vehicles for every road',
     'lead'    => 'Every car comes with an experienced hill driver. We pick you up and bring you back.',
     'image'   => img('road-van'),
-    'meta'    => [['fa-car-side', count($vehicles) . ' vehicle types'], ['fa-id-card', 'Driver included'], ['fa-headset', '24/7 support']],
+    'meta'    => [['fa-car-side', count($vehicles) . ' vehicle types'], ['fa-id-card', 'Driver included'], ['fa-users', 'Options for groups']],
 ];
 require __DIR__ . '/includes/header.php';
 
@@ -25,7 +25,7 @@ $includes = [
     ['fa-location-crosshairs', 'Doorstep pickup', 'From your home, hotel, airport or railway station.'],
     ['fa-camera', 'Photo & chai stops', 'Stop wherever you like for photos or tea.'],
     ['fa-file-invoice', 'Clear, upfront quote', 'Tolls, parking, permits and driver allowance listed before you book.'],
-    ['fa-headset', '24/7 support', 'A call or WhatsApp away for the whole journey.'],
+    ['fa-comments', 'Trip assistance', 'Contact our team if plans need to change.'],
 ];
 
 $faqs = [
@@ -46,7 +46,7 @@ $slugify = fn(string $name): string => trim(strtolower(preg_replace('/[^a-z0-9]+
           <div class="feature"><span class="feature-icon fi-amber"><i class="fa-solid fa-id-card" aria-hidden="true"></i></span><div><b>Experienced drivers</b><small>Years of mountain driving</small></div></div>
           <div class="feature"><span class="feature-icon fi-green"><i class="fa-solid fa-spray-can-sparkles" aria-hidden="true"></i></span><div><b>Clean &amp; well-kept</b><small>Checked before every trip</small></div></div>
           <div class="feature"><span class="feature-icon fi-blue"><i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i></span><div><b>Doorstep pickup</b><small>Home, hotel, airport or station</small></div></div>
-          <div class="feature"><span class="feature-icon fi-rose"><i class="fa-solid fa-headset" aria-hidden="true"></i></span><div><b>24/7 support</b><small>We are a call away</small></div></div>
+          <div class="feature"><span class="feature-icon fi-rose"><i class="fa-solid fa-comments" aria-hidden="true"></i></span><div><b>Trip assistance</b><small>Call or message our team</small></div></div>
         </div>
       </div>
     </section>

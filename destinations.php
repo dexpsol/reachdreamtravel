@@ -27,12 +27,14 @@ require __DIR__ . '/includes/header.php';
     <section class="section dest-list-section">
       <div class="container">
         <div class="dest-list">
-<?php $n = 0; foreach ($destinations as $slug => $d): $n++; ?>
-          <article class="dest-row<?= $n % 2 === 0 ? ' is-flipped' : '' ?>" id="<?= e($slug) ?>">
+<?php $n = 0; foreach ($destinations as $slug => $d): $n++; $hasScenicPhoto = !in_array($slug, ['delhi', 'agra', 'rajasthan'], true); ?>
+          <article class="dest-row<?= $n % 2 === 0 ? ' is-flipped' : '' ?><?= $hasScenicPhoto ? '' : ' is-text-only' ?>" id="<?= e($slug) ?>">
+<?php if ($hasScenicPhoto): ?>
             <div class="dr-media">
-              <img src="<?= e(img($d['image'], true)) ?>" srcset="<?= e(img($d['image'], true)) ?> 900w, <?= e(img($d['image'])) ?> 2000w" sizes="(min-width: 992px) 600px, 100vw" alt="<?= e($d['name']) ?>, Himachal Pradesh" loading="lazy">
+              <img src="<?= e(img($d['image'], true)) ?>" srcset="<?= e(img($d['image'], true)) ?> 900w, <?= e(img($d['image'])) ?> 2000w" sizes="(min-width: 992px) 600px, 100vw" alt="" loading="lazy">
               <span class="dr-no" aria-hidden="true"><?= sprintf('%02d', $n) ?></span>
             </div>
+<?php endif; ?>
             <div class="dr-body">
               <span class="eyebrow"><?= e($d['tagline']) ?></span>
               <h2><?= e($d['name']) ?></h2>

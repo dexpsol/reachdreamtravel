@@ -26,6 +26,9 @@ $fields = [
     'name' => 'Name',
     'phone' => 'Phone',
     'email' => 'Email',
+    'destination' => 'Destination',
+    'date' => 'Travel date',
+    'travellers' => 'Travellers',
     'purpose' => 'Package for',
     'arrival' => 'Arrival date',
     'departure' => 'Departure date',
@@ -60,7 +63,9 @@ if ($mail['smtp_host'] === '' || $mail['smtp_user'] === '' || $mail['smtp_passwo
     enquiry_response(500, false, 'SMTP settings are incomplete. Please contact us on WhatsApp.');
 }
 
-$body = "New customized package request\n\n";
+$customPackage = isset($_POST['purpose']) || isset($_POST['arrival']) || isset($_POST['departure']);
+$subject = $customPackage ? 'Customized package request' : 'Trip enquiry';
+$body = $subject . "\n\n";
 foreach ($fields as $key => $label) {
     if (($values[$key] ?? '') !== '') $body .= $label . ': ' . $values[$key] . "\n";
 }
@@ -69,7 +74,7 @@ try {
     smtp_send_message(
         $mail,
         $mail['to'],
-        'Customized package request',
+        $subject,
         $body,
         ($values['email'] ?? '') !== '' ? $values['email'] : null
     );

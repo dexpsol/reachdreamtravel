@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'home';
-$pageTitle = 'Discover Himachal';
+$pageTitle = 'Private Trips Across India';
+$pageDescription = 'Plan a private road trip with Reach Dream Travel. Explore Himachal, Spiti, the Golden Triangle and Rajasthan with a driver, stays and a route shaped around your group.';
 require __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/components.php';
 ?>
@@ -9,21 +10,20 @@ require_once __DIR__ . '/includes/components.php';
     <section class="hero" id="home" aria-labelledby="heroTitle">
       <div class="hero-image" aria-hidden="true"></div>
       <div class="hero-overlay" aria-hidden="true"></div>
-      <div class="hero-orbs" aria-hidden="true"><span class="orb orb-1"></span><span class="orb orb-2"></span><span class="orb orb-3"></span></div>
       <div class="container hero-content">
         <div class="row align-items-center g-5">
           <div class="col-12 col-lg-7 hero-copy">
-            <p class="hero-kicker"><span class="pulse-dot" aria-hidden="true"></span> Himachal & India journeys made easy</p>
-            <h1 id="heroTitle">From your door<br>to the <em>mountains & monuments.</em></h1>
-            <p class="hero-lead">We plan complete trips across Himachal and India — car with driver, stays and sightseeing. We pick you up and bring you back home.</p>
+            <p class="hero-kicker">Private trips from Amritsar across India</p>
+            <h1 id="heroTitle">Road trips planned around you.</h1>
+            <p class="hero-lead">Choose a route and set your pace. We arrange the driver, vehicle and stays, from Himachal’s mountain roads to North India’s heritage circuits.</p>
             <div class="hero-actions">
               <a class="btn btn-gold" href="packages.php">Explore packages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
               <a class="btn btn-glass" href="<?= e(wa_link()) ?>" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Plan on WhatsApp</a>
             </div>
             <ul class="hero-points list-unstyled">
-              <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Pickup and drop</li>
-              <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Car + hotel + sightseeing</li>
-              <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Help 24/7</li>
+              <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Private cars and group vehicles</li>
+              <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Stays arranged along your route</li>
+              <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Pickup and drop by arrangement</li>
             </ul>
           </div>
           <div class="col-12 col-lg-5 hero-form-col">
@@ -67,8 +67,8 @@ require_once __DIR__ . '/includes/components.php';
         <div class="feature-panel">
           <div class="feature"><span class="feature-icon fi-amber"><i class="fa-solid fa-hotel" aria-hidden="true"></i></span><div><b>Hotels for every budget</b><small>Standard, deluxe &amp; premium</small></div></div>
           <div class="feature"><span class="feature-icon fi-green"><i class="fa-solid fa-car-side" aria-hidden="true"></i></span><div><b>Doorstep pickup</b><small>Home, hotel, airport or station</small></div></div>
-          <div class="feature"><span class="feature-icon fi-blue"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span><div><b>Safe hill drivers</b><small>Years of mountain driving</small></div></div>
-          <div class="feature"><span class="feature-icon fi-rose"><i class="fa-solid fa-headset" aria-hidden="true"></i></span><div><b>Help any time</b><small>Call or WhatsApp 24/7</small></div></div>
+          <div class="feature"><span class="feature-icon fi-blue"><i class="fa-solid fa-id-card" aria-hidden="true"></i></span><div><b>Experienced drivers</b><small>Matched to your route</small></div></div>
+          <div class="feature"><span class="feature-icon fi-rose"><i class="fa-solid fa-comments" aria-hidden="true"></i></span><div><b>Talk to our team</b><small>Call or WhatsApp to plan</small></div></div>
         </div>
       </div>
     </section>
@@ -104,7 +104,7 @@ require_once __DIR__ . '/includes/components.php';
       <span class="bg-word" data-drift="0.25" aria-hidden="true">HIMACHAL</span>
       <div class="container">
         <div class="section-heading split">
-          <div><span class="eyebrow">Popular packages</span><h2>Pick your trip.</h2><p>From Himalayan escapes to royal Rajasthan and the Golden Triangle, we design journeys for every kind of traveller.</p></div>
+          <div><span class="eyebrow">Sample itineraries</span><h2>Choose a starting point.</h2><p>Browse mountain routes, heritage circuits and short city breaks. Each itinerary can be adjusted around your dates.</p></div>
           <a class="text-link" href="contact.php">Plan a custom trip <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
         <div class="row g-4">
@@ -124,19 +124,15 @@ require_once __DIR__ . '/includes/components.php';
       <div class="container">
         <div class="section-heading split">
           <div>
-            <span class="eyebrow">India signature escapes</span>
-            <h2>Classic routes, modern comfort.</h2>
-            <p>Thoughtful itineraries for travellers who want iconic landmarks, heritage stays and easy, well-paced travel.</p>
+            <span class="eyebrow">Beyond Himachal</span>
+            <h2>North India, by road.</h2>
+            <p>Three sample routes beyond Himachal, with the route and duration shown up front. Each can be adjusted around your dates.</p>
           </div>
           <a class="text-link" href="packages.php">Browse all packages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
 
         <div class="india-journeys-grid">
-          <article class="india-journey-card india-journey-card-featured">
-            <div class="india-journey-media">
-              <img src="<?= e(img('shimla-city', true)) ?>" alt="Delhi and Agra heritage route" loading="lazy">
-              <span class="india-journey-badge">Best seller</span>
-            </div>
+          <article class="india-journey-card">
             <div class="india-journey-body">
               <span class="india-route-label">North India</span>
               <h3>Golden Triangle</h3>
@@ -154,9 +150,6 @@ require_once __DIR__ . '/includes/components.php';
           </article>
 
           <article class="india-journey-card">
-            <div class="india-journey-media">
-              <img src="<?= e(img('manali-valley', true)) ?>" alt="Rajasthan palace route" loading="lazy">
-            </div>
             <div class="india-journey-body">
               <span class="india-route-label">Royal Rajasthan</span>
               <h3>Heritage Trail</h3>
@@ -174,9 +167,6 @@ require_once __DIR__ . '/includes/components.php';
           </article>
 
           <article class="india-journey-card">
-            <div class="india-journey-media">
-              <img src="<?= e(img('shimla-church', true)) ?>" alt="Quick Delhi Agra getaway" loading="lazy">
-            </div>
             <div class="india-journey-body">
               <span class="india-route-label">Quick getaway</span>
               <h3>Delhi & Agra</h3>
@@ -222,9 +212,9 @@ require_once __DIR__ . '/includes/components.php';
             <h2 id="journeyTitle">Booking is easy.</h2>
             <p>Tell us where you want to go. We plan everything and pick you up from your door.</p>
             <div class="counter-grid">
-              <div class="counter-item"><strong><span data-counter="7">0</span><i>+</i></strong><small>Vehicle choices</small></div>
-              <div class="counter-item"><strong><span data-counter="24">0</span><i>/7</i></strong><small>Booking support</small></div>
-              <div class="counter-item"><strong><span data-counter="3">0</span></strong><small>Signature journeys</small></div>
+              <div class="counter-item"><strong><?= count($vehicles) ?></strong><small>Vehicle options</small></div>
+              <div class="counter-item"><strong><?= count($destinations) ?></strong><small>Destinations</small></div>
+              <div class="counter-item"><strong><?= count($packages) ?></strong><small>Sample itineraries</small></div>
             </div>
           </div>
           <div class="col-12 col-lg-7">
@@ -252,14 +242,14 @@ require_once __DIR__ . '/includes/components.php';
           </div>
           <div class="col-12 col-lg-6 about-copy">
             <span class="eyebrow">About Reach Dream Travel</span>
-            <h2>Your Himachal trip, fully planned.</h2>
+            <h2>One plan for the road ahead.</h2>
             <p>Reach Dream Travel takes families, friends and groups to the Himachal mountains — Shimla, Manali, Kasol, Kinnaur and Spiti.</p>
-            <p>You get one booking for everything: the car and driver, the hotels and the sightseeing. You just enjoy the trip.</p>
+            <p>Share your dates, group size and preferred pace. We’ll help put together the route, vehicle and stays before you decide.</p>
             <ul class="about-list list-unstyled">
-              <li><i class="fa-solid fa-route" aria-hidden="true"></i> Pickup and drop at your door</li>
-              <li><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Car, hotels &amp; sightseeing in one booking</li>
-              <li><i class="fa-solid fa-binoculars" aria-hidden="true"></i> Trip plans changed to suit you</li>
-              <li><i class="fa-solid fa-user-shield" aria-hidden="true"></i> Safe, experienced hill drivers</li>
+              <li><i class="fa-solid fa-route" aria-hidden="true"></i> Pickup and drop arranged around your route</li>
+              <li><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Vehicle, stays and sightseeing planned together</li>
+              <li><i class="fa-solid fa-binoculars" aria-hidden="true"></i> Itinerary shaped around your dates</li>
+              <li><i class="fa-solid fa-user-shield" aria-hidden="true"></i> Driver and vehicle matched to the journey</li>
             </ul>
             <div class="btn-row"><a class="btn btn-dark" href="contact.php">Let us plan your trip <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a><a class="text-link" href="about.php">More about us <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
           </div>
@@ -271,7 +261,7 @@ require_once __DIR__ . '/includes/components.php';
     <section class="section stay-section" id="stays">
       <div class="container">
         <div class="stay-panel">
-          <div class="stay-photo"><img src="assets/images/hotel.jpg" alt="Mountain stay with warm lights and a cosy atmosphere" loading="lazy"><span class="stay-badge"><i class="fa-solid fa-star" aria-hidden="true"></i> Handpicked stays</span></div>
+          <div class="stay-photo"><img src="assets/images/stays/hotel.jpg" alt="Mountain stay with warm lights and a cosy atmosphere" loading="lazy"><span class="stay-badge"><i class="fa-solid fa-star" aria-hidden="true"></i> Handpicked stays</span></div>
           <div class="stay-copy">
             <span class="eyebrow">Hotel &amp; stay</span>
             <h2>Good hotels for every budget.</h2>
@@ -282,7 +272,7 @@ require_once __DIR__ . '/includes/components.php';
               <div><i class="fa-solid fa-mountain-sun" aria-hidden="true"></i><b>Premium</b><small>Best hotels &amp; resorts</small></div>
             </div>
             <p class="stay-note">Price and availability depend on the season and hotel type.</p>
-            <a class="text-link" href="stays.php">Explore stays <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <a class="text-link" href="contact.php">Add a stay to your trip <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
           </div>
         </div>
       </div>
@@ -308,13 +298,13 @@ require_once __DIR__ . '/includes/components.php';
       <div class="container">
         <div class="cta-card">
           <div class="cta-quote">
-            <span class="quote-mark"><i class="fa-solid fa-quote-left" aria-hidden="true"></i></span>
-            <p>Just tell us where you want to go. We will plan the rest and pick you up from your door.</p>
-            <small>Reach Dream Travel</small>
+            <span class="eyebrow eyebrow-light">A clear first step</span>
+            <p>Share your dates, group size and the places you have in mind. We’ll come back with a route and options to discuss.</p>
+            <small>No obligation to book</small>
           </div>
           <div class="cta-copy">
-            <span class="eyebrow eyebrow-light">Your mountains are waiting</span>
-            <h2>Ready for the mountains?</h2>
+            <span class="eyebrow eyebrow-light">Start with your travel dates</span>
+            <h2>Let’s plan the route.</h2>
             <div class="cta-actions">
               <a class="btn btn-gold" href="<?= e(wa_link()) ?>" target="_blank" rel="noopener">Book your trip <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
               <a class="btn btn-glass" href="tel:<?= e($site['phoneLink']) ?>"><i class="fa-solid fa-phone" aria-hidden="true"></i> Call us</a>

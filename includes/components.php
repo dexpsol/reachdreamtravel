@@ -12,7 +12,7 @@ function package_card(string $slug, array $p): void
 {
     ?>
             <article class="package-card" data-type="<?= e($p['cat']) ?>">
-              <a class="package-image" href="<?= e(package_url($slug)) ?>" tabindex="-1" aria-hidden="true"><img src="<?= e(img($p['image'], true)) ?>" alt="" loading="lazy" width="900" height="600"><?php if ($p['popular']): ?><span class="ribbon"><i class="fa-solid fa-fire" aria-hidden="true"></i> Most popular</span><?php endif; ?><span class="duration-badge"><i class="fa-solid fa-clock" aria-hidden="true"></i> <?= e($p['short']) ?></span></a>
+              <a class="package-image" href="<?= e(package_url($slug)) ?>" tabindex="-1" aria-hidden="true"><img src="<?= e(img($p['image'], true)) ?>" alt="" loading="lazy" width="900" height="600"><?php if ($p['popular']): ?><span class="ribbon"><i class="fa-solid fa-route" aria-hidden="true"></i> Featured itinerary</span><?php endif; ?><span class="duration-badge"><i class="fa-solid fa-clock" aria-hidden="true"></i> <?= e($p['short']) ?></span></a>
               <div class="package-content">
                 <span class="package-label"><?= e($p['label']) ?></span>
                 <h3><a href="<?= e(package_url($slug)) ?>"><?= e($p['title']) ?></a></h3>

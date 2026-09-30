@@ -284,25 +284,10 @@
     // Open WhatsApp straight away (inside the click) so pop-up blockers allow it.
     window.open(waLink(lines.join('\n')), '_blank', 'noopener');
 
-    if (form.matches('[aria-label="Customized package enquiry"]')) {
-      const button = form.querySelector('[type="submit"]');
-      if (button) button.disabled = true;
-      showStatus('Sending your request by email… WhatsApp is open with your message ready.', false);
-      fetch('backend/send-enquiry.php', { method: 'POST', body: data })
-        .then(response => response.json())
-        .then(result => {
-          showStatus(result.message, !result.ok);
-          if (result.ok) form.reset();
-        })
-        .catch(() => showStatus('Email could not be sent. Your request is ready in WhatsApp; please tap Send.', true))
-        .finally(() => { if (button) button.disabled = false; });
-      return;
-    }
-
     const button = form.querySelector('[type="submit"]');
     if (button) button.disabled = true;
-    showStatus('Sending your enquiry…', false);
-    fetch('send-enquiry.php', { method: 'POST', body: data })
+    showStatus('Sending your enquiry by email… WhatsApp is open with your message ready.', false);
+    fetch('backend/send-enquiry.php', { method: 'POST', body: data })
       .then(response => response.json())
       .then(result => {
         showStatus(result.message, !result.ok);

@@ -3,7 +3,7 @@
  * Shared site content: contact details, packages, destinations, vehicles and gallery.
  * Edit values here once and every page picks them up.
  *
- * All photos in assets/images/free/ and the fleet-*.jpg vehicle photos are free to use
+ * Photos in assets/images/ and the fleet-*.jpg vehicle photos are free to use
  * without attribution (Unsplash licence or public domain).
  */
 
@@ -41,10 +41,26 @@ function wa_link(string $message = 'Hello Reach Dream Travel, I would like to pl
     return 'https://wa.me/' . $site['whatsapp'] . '?text=' . rawurlencode($message);
 }
 
-/** Full-size and thumbnail paths for a photo in assets/images/free/. */
+/** Resolve a photo to its category folder and optional thumbnail. */
 function img(string $name, bool $small = false): string
 {
-    return 'assets/images/free/' . $name . ($small ? '-sm' : '') . '.jpg';
+    $stayPrefixes = ['camping', 'cottage', 'hotel-', 'kinnaur-camps', 'room-', 'tent-', 'tents-'];
+    $isStay = false;
+    foreach ($stayPrefixes as $prefix) {
+        if (str_starts_with($name, $prefix)) {
+            $isStay = true;
+            break;
+        }
+    }
+    $folder = $name === 'road-van' ? 'car' : ($isStay ? 'stays' : 'destinations');
+    $imagePath = 'assets/images/' . $folder . '/' . $name . '.jpg';
+    if ($small) {
+        $thumbnailPath = 'assets/images/' . $folder . '/' . $name . '-sm.jpg';
+        if (is_file(dirname(__DIR__) . '/' . $thumbnailPath)) {
+            return $thumbnailPath;
+        }
+    }
+    return $imagePath;
 }
 
 /* ---------------------------------------------------------------------------
@@ -79,7 +95,7 @@ $packages = [
         'image' => 'solang', 'difficulty' => 'Easy', 'season' => 'All year (snow Dec – Feb)',
         'start' => 'Your home or hotel', 'end' => 'Your home or hotel',
         'route' => 'Shimla · Kufri · Kullu · Manali · Solang · Atal Tunnel',
-        'overview' => 'The most popular Himachal trip for families. Two days in Shimla, then on to Manali for snow, rivers and the Atal Tunnel. Easy roads the whole way.',
+        'overview' => 'A family-friendly loop with time in Shimla and Manali, mountain scenery, rivers and a drive through the Atal Tunnel.',
         'highlights' => ['Mall Road and the Ridge in Shimla', 'Kufri hills', 'River rafting stop in Kullu', 'Hidimba Temple and Old Manali', 'Solang Valley snow', 'Drive through the Atal Tunnel'],
         'days' => [
             ['Drive to Shimla', 'Pickup from your home or hotel. About 7–8 hours by road. Evening free in Shimla.'],
@@ -172,7 +188,7 @@ $packages = [
     'golden-triangle-delhi-agra-jaipur' => [
         'title' => 'Golden Triangle', 'label' => 'Classic India loop', 'cat' => 'heritage',
         'duration' => '4 days · 3 nights', 'short' => '4D · 3N', 'popular' => true,
-        'image' => 'shimla-city', 'difficulty' => 'Easy', 'season' => 'All year',
+        'image' => 'road-van', 'difficulty' => 'Easy', 'season' => 'All year',
         'start' => 'Delhi airport or hotel', 'end' => 'Delhi airport or hotel',
         'route' => 'Delhi · Agra · Jaipur',
         'overview' => 'A compact India circuit with the capital, a Mughal masterpiece and a royal Rajasthani city. You see the key monuments without the long travel fatigue.',
@@ -187,7 +203,7 @@ $packages = [
     'rajasthan-heritage-trail' => [
         'title' => 'Rajasthan Heritage Trail', 'label' => 'Palaces, forts & desert nights', 'cat' => 'heritage',
         'duration' => '6 days · 5 nights', 'short' => '6D · 5N', 'popular' => false,
-        'image' => 'shimla-lodge', 'difficulty' => 'Easy', 'season' => 'October – March',
+        'image' => 'road-van', 'difficulty' => 'Easy', 'season' => 'October – March',
         'start' => 'Delhi airport or hotel', 'end' => 'Delhi airport or hotel',
         'route' => 'Jaipur · Jodhpur · Jaisalmer · Udaipur',
         'overview' => 'A royal route through Rajasthan’s forts, havelis and desert towns. The trip balances heritage sightseeing with relaxed evenings and local food.',
@@ -204,7 +220,7 @@ $packages = [
     'delhi-agra-weekend' => [
         'title' => 'Delhi & Agra Weekend', 'label' => 'Quick cultural escape', 'cat' => 'city',
         'duration' => '3 days · 2 nights', 'short' => '3D · 2N', 'popular' => false,
-        'image' => 'manali-mall', 'difficulty' => 'Easy', 'season' => 'All year',
+        'image' => 'road-van', 'difficulty' => 'Easy', 'season' => 'All year',
         'start' => 'Delhi airport or hotel', 'end' => 'Delhi airport or hotel',
         'route' => 'Delhi · Agra',
         'overview' => 'A smooth short trip for couples, families or friends who want a fast cultural getaway with iconic monuments, great food and no complicated planning.',
@@ -220,6 +236,16 @@ $packages = [
 $defaultPackages = $packages;
 require_once dirname(__DIR__) . '/backend/package-store.php';
 $packages = package_catalog($packages);
+$routeImages = [
+    'delhi-agra-weekend' => 'taj-mahal-agra',
+    'golden-triangle-delhi-agra-jaipur' => 'taj-mahal-agra',
+    'rajasthan-heritage-trail' => 'hawa-mahal-jaipur',
+];
+foreach ($routeImages as $slug => $image) {
+    if (isset($packages[$slug])) {
+        $packages[$slug]['image'] = $image;
+    }
+}
 
 /* ---------------------------------------------------------------------------
  * Destinations (destinations.php, footer and about page).
@@ -287,7 +313,7 @@ $destinations = [
 $vehicles = [
     [
         'name' => 'Maruti Swift', 'type' => 'car', 'tag' => 'Hatchback', 'group' => 'small',
-        'image' => 'assets/images/fleet-swift.jpg', 'alt' => 'White Maruti Suzuki Swift hatchback',
+        'image' => 'assets/images/car/fleet-swift.jpg', 'alt' => 'White Maruti Suzuki Swift hatchback',
         'summary' => 'Small car for 1–4 people. Dzire sedan & Alto also available.',
         'details' => 'A small, comfortable car that is easy on fuel. Good for couples and small families on normal highway and hill roads. Ask for the Dzire if you need more boot space.',
         'seats' => '4', 'bags' => '2 bags', 'extra' => ['fa-snowflake', 'AC'],
@@ -297,7 +323,7 @@ $vehicles = [
     ],
     [
         'name' => 'Maruti Ertiga', 'type' => 'suv', 'tag' => 'MUV', 'group' => 'medium',
-        'image' => 'assets/images/fleet-ertiga.jpg', 'alt' => 'White Maruti Suzuki Ertiga MPV',
+        'image' => 'assets/images/car/fleet-ertiga.jpg', 'alt' => 'White Maruti Suzuki Ertiga MPV',
         'summary' => 'Seven-seater for families of 5–6 people.',
         'details' => 'Three rows of seats, so the whole family travels together. Smooth and comfortable on long drives and on hill roads.',
         'seats' => '6', 'bags' => '3 bags', 'extra' => ['fa-snowflake', 'AC'],
@@ -307,7 +333,7 @@ $vehicles = [
     ],
     [
         'name' => 'Toyota Innova Crysta', 'type' => 'suv', 'tag' => 'Premium MUV', 'group' => 'medium',
-        'image' => 'assets/images/fleet-innova.jpg', 'alt' => 'White Toyota Innova Crysta',
+        'image' => 'assets/images/car/fleet-innova.jpg', 'alt' => 'White Toyota Innova Crysta',
         'summary' => 'Big, powerful and very comfortable — best for long trips.',
         'details' => 'Our most booked vehicle for long trips. Comfortable seats, a strong engine and a smooth ride make long days on mountain roads much easier.',
         'seats' => '6–7', 'bags' => '4 bags', 'extra' => ['fa-snowflake', 'AC'],
@@ -317,7 +343,7 @@ $vehicles = [
     ],
     [
         'name' => 'Suzuki Jimny 4×4', 'type' => 'suv', 'tag' => '4×4', 'group' => 'small',
-        'image' => 'assets/images/fleet-jimny-4x4.jpg', 'alt' => 'Suzuki Jimny 4x4 with roof rack on a hillside',
+        'image' => 'assets/images/car/fleet-jimny-4x4.jpg', 'alt' => 'Suzuki Jimny 4x4 with roof rack on a hillside',
         'summary' => 'Small 4×4 for rough roads in Spiti and Chandratal.',
         'details' => 'A real 4×4. Where the good road ends — near Kaza, Chandratal or far Kinnaur villages — the Jimny keeps going.',
         'seats' => '4', 'bags' => '2 bags', 'extra' => ['fa-mountain', '4WD'],
@@ -327,7 +353,7 @@ $vehicles = [
     ],
     [
         'name' => 'Tempo Traveller', 'type' => 'group', 'tag' => 'Mini coach', 'group' => 'large',
-        'image' => 'assets/images/fleet-traveller.jpg', 'alt' => 'White Force Tempo Traveller on a Himalayan mountain road',
+        'image' => 'assets/images/car/fleet-traveller.jpg', 'alt' => 'White Force Tempo Traveller on a Himalayan mountain road',
         'summary' => 'Mini bus for groups of 12–17 people.',
         'details' => 'The usual choice for group trips. Push-back seats, a high roof and a roof carrier, so everyone and all the bags go in one vehicle.',
         'seats' => '12–17', 'bags' => 'Roof carrier', 'extra' => ['fa-snowflake', 'AC'],
@@ -337,7 +363,7 @@ $vehicles = [
     ],
     [
         'name' => 'Force Urbania', 'type' => 'group', 'tag' => 'Luxury van', 'group' => 'large',
-        'image' => 'assets/images/fleet-urbania-van.jpg', 'alt' => 'Premium passenger van in a Himalayan valley',
+        'image' => 'assets/images/car/fleet-urbania-van.jpg', 'alt' => 'Premium passenger van in a Himalayan valley',
         'summary' => 'Premium van for groups who want extra comfort.',
         'details' => 'A newer, more comfortable group van: big windows, reclining seats and a quieter ride.',
         'seats' => '10–17', 'bags' => 'Large boot', 'extra' => ['fa-snowflake', 'AC'],
@@ -354,6 +380,13 @@ require_once dirname(__DIR__) . '/backend/database.php';
 $databaseVehicles = app_db_catalog('taxis');
 if ($databaseVehicles !== null) {
     $vehicles = array_values($databaseVehicles);
+    foreach ($vehicles as &$vehicle) {
+        $imageFile = basename((string) ($vehicle['image'] ?? ''));
+        if (preg_match('/^(?:fleet|car)-.+\.jpg$/i', $imageFile)) {
+            $vehicle['image'] = 'assets/images/car/' . $imageFile;
+        }
+    }
+    unset($vehicle);
 }
 
 /* ---------------------------------------------------------------------------

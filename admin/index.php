@@ -13,8 +13,9 @@ if ($db) {
     $setupNeeded = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn() === 0;
 }
 $categories = ['road' => 'Long road trips', 'hills' => 'Hill stations', 'nature' => 'Nature & adventure', 'heritage' => 'Heritage & culture', 'city' => 'City escapes'];
-$imageNames = array_values(array_filter(array_map(static fn($path) => basename($path, '.jpg'), glob($root . '/assets/images/free/*.jpg') ?: [])));
-$taxiImages = array_values(array_filter(array_map(static fn($path) => 'assets/images/' . basename($path), glob($root . '/assets/images/fleet-*.jpg') ?: [])));
+$imageFiles = array_merge(glob($root . '/assets/images/destinations/*.jpg') ?: [], glob($root . '/assets/images/stays/*.jpg') ?: []);
+$imageNames = array_values(array_unique(array_map(static fn($path) => basename($path, '.jpg'), $imageFiles)));
+$taxiImages = array_values(array_map(static fn($path) => 'assets/images/car/' . basename($path), glob($root . '/assets/images/car/fleet-*.jpg') ?: []));
 $message = (string) ($_SESSION['notice'] ?? '');
 $error = '';
 unset($_SESSION['notice']);

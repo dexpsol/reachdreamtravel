@@ -14,8 +14,8 @@ require_once __DIR__ . '/data.php';
 require_once __DIR__ . '/components.php';
 
 $pageKey         = $pageKey ?? 'home';
-$pageTitle       = $pageTitle ?? 'Discover Himachal';
-$pageDescription = $pageDescription ?? 'Reach Dream Travel — Himachal tour packages with pickup and drop. Shimla, Manali, Kasol, Kinnaur and Spiti trips with car, driver and hotels.';
+$pageTitle       = $pageTitle ?? 'Travel Made Personal';
+$pageDescription = $pageDescription ?? 'Private road trips planned around your dates and group, with vehicles, drivers and stays arranged across Himachal and selected North India routes.';
 $pageHero        = $pageHero ?? null;
 $breadcrumbs     = $breadcrumbs ?? [];
 $isHome          = $pageKey === 'home';
@@ -48,11 +48,11 @@ $nav = [
   <meta property="og:description" content="<?= e($pageDescription) ?>">
   <meta property="og:type" content="website">
   <link rel="preload" href="assets/fonts/montserrat.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="preload" href="<?= e($pageHero['image'] ?? 'assets/images/hero-himachal.jpg') ?>" as="image">
+  <link rel="preload" href="<?= e($pageHero['image'] ?? 'assets/images/destinations/hero-himachal.jpg') ?>" as="image">
   <link rel="stylesheet" href="assets/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="style.css">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TravelAgency","name":"<?= e($site['name']) ?>","description":"Himachal tour packages with car, driver and hotels","address":{"@type":"PostalAddress","addressLocality":"Amritsar","addressRegion":"Punjab","addressCountry":"IN"},"areaServed":"Himachal Pradesh, India","telephone":"<?= e($site['phone']) ?>"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TravelAgency","name":"<?= e($site['name']) ?>","description":"Private road trips with vehicles, drivers and stays arranged around each traveller's route.","address":{"@type":"PostalAddress","addressLocality":"Amritsar","addressRegion":"Punjab","addressCountry":"IN"},"areaServed":["Himachal Pradesh","North India"],"telephone":"<?= e($site['phone']) ?>"}</script>
 </head>
 <body class="page-<?= e($pageKey) ?>">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -81,7 +81,6 @@ $nav = [
     <section class="page-hero" aria-labelledby="pageTitle">
       <div class="page-hero-bg" style="background-image:url('<?= e($pageHero['image']) ?>')" aria-hidden="true"></div>
       <div class="page-hero-overlay" aria-hidden="true"></div>
-      <div class="hero-orbs" aria-hidden="true"><span class="orb orb-1"></span><span class="orb orb-2"></span></div>
       <div class="container page-hero-content">
         <nav class="crumbs" aria-label="Breadcrumb">
           <ol>

@@ -17,8 +17,8 @@ $footerPackages = array_slice($packages, 0, 4, true);
 <?php if (!$isHome): ?>
       <div class="footer-cta">
         <div>
-          <h2>Planning a trip to the mountains?</h2>
-          <p>Tell us your dates and group size, and we will suggest a route, stay and vehicle.</p>
+          <h2>Planning a road trip?</h2>
+          <p>Share your dates and group size. We’ll help shape a route and arrange the vehicle and stays.</p>
         </div>
         <div class="footer-cta-actions">
           <a class="btn btn-gold" href="<?= e(wa_link()) ?>" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Chat on WhatsApp</a>
@@ -36,7 +36,7 @@ $footerPackages = array_slice($packages, 0, 4, true);
         </a>
         <a class="fc-card" href="<?= e(wa_link()) ?>" target="_blank" rel="noopener">
           <span class="fc-icon fc-green"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></span>
-          <span class="fc-text"><small>WhatsApp · 24/7</small><b>Chat with us</b></span>
+          <span class="fc-text"><small>WhatsApp</small><b>Chat with us</b></span>
           <i class="fa-solid fa-arrow-right fc-arrow" aria-hidden="true"></i>
         </a>
         <a class="fc-card" href="mailto:<?= e($site['email']) ?>">
@@ -48,8 +48,8 @@ $footerPackages = array_slice($packages, 0, 4, true);
 
       <div class="footer-main">
         <div class="footer-about">
-          <a class="brand footer-brand" href="index.php"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="48" height="48"></span><span>Reach Dream<small>TRAVEL · HIMACHAL</small></span></a>
-          <p>Himachal trips — car with driver, hotels and sightseeing in one booking.</p>
+          <a class="brand footer-brand" href="index.php"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="48" height="48"></span><span>Reach Dream<small>TRAVEL &amp; TOURS</small></span></a>
+          <p>Private road trips with a driver, vehicle and stays arranged around your route.</p>
           <p class="footer-address"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <?= e($site['address']) ?></p>
           <div class="social-links">
             <a class="s-instagram" href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
@@ -66,7 +66,6 @@ $footerPackages = array_slice($packages, 0, 4, true);
           <a href="packages.php">Tour packages</a>
           <a href="destinations.php">Destinations</a>
           <a href="vehicles.php">Vehicles</a>
-          <a href="stays.php">Hotels &amp; stays</a>
           <a href="gallery.php">Gallery</a>
           <a href="contact.php">Contact</a>
         </nav>
@@ -91,7 +90,7 @@ $footerPackages = array_slice($packages, 0, 4, true);
 
       <div class="footer-bottom">
         <span>© <?= date('Y') ?> <?= e($site['name']) ?>. All rights reserved.</span>
-        <!-- <nav class="footer-legal" aria-label="Legal"><a href="privacy.php">Privacy policy</a><a href="terms.php">Terms &amp; conditions</a></nav> -->
+        <nav class="footer-legal" aria-label="Legal"><a href="privacy.php">Privacy</a><a href="terms.php">Terms</a></nav>
         <!-- <span class="footer-made">Made with <i class="fa-solid fa-heart" aria-hidden="true"></i><span class="visually-hidden">love</span> in the Himalaya</span> -->
       </div>
     </div>
