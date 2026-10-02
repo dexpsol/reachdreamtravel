@@ -2,15 +2,31 @@
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'contact';
 $pageTitle = 'Contact Us';
-$pageDescription = 'Contact Reach Dream Travel to plan a private road trip across Himachal and North India. Ask about routes, vehicles, stays and custom packages.';
+$pageDescription = 'Contact Reach Dream Travel to plan a private North India tour. Ask about Himachal, Kashmir, Uttarakhand, Rajasthan, vehicles, stays and custom itineraries.';
 $pageHero = [
     'crumb'   => 'Contact',
     'eyebrow' => 'Get in touch',
     'title'   => 'Contact Us',
     'lead'    => 'Tell us where you want to go. We will come back with a route, a stay and the right vehicle.',
-    'image'   => img('shimla-city'),
+    'image'   => img('taj-mahal-agra'),
 ];
 require __DIR__ . '/includes/header.php';
+
+$travelGroups = ['Couple', 'Family', 'Friends', 'Solo', 'Seniors'];
+$travelGroup = is_string($_GET['travelling'] ?? null) ? $_GET['travelling'] : '';
+$purpose = in_array($travelGroup, $travelGroups, true) ? $travelGroup . ' trip' : '';
+$tripInterests = [
+    'holiday' => 'Holiday tour',
+    'temple' => 'Temple darshan',
+    'adventure' => 'Trekking and camping',
+    'activities' => 'Games and activities',
+    'special' => 'Special-interest trip',
+    'solo' => 'Solo trip',
+    'new-year' => 'New Year plan',
+    'group' => 'Group tour',
+];
+$interest = is_string($_GET['interest'] ?? null) ? $_GET['interest'] : '';
+if (isset($tripInterests[$interest])) $purpose = $tripInterests[$interest];
 
 $faqs = [
     ['How soon should I book?', 'For peak season (May–June, October and the winter holidays) we suggest booking a few weeks ahead. For the rest of the year, a few days is often enough — just ask.'],
@@ -48,7 +64,7 @@ $faqs = [
                 </div>
                 <label class="field"><span>Email</span><input type="email" name="email" autocomplete="email" placeholder="you@example.com"></label>
                 <div class="field-row">
-                  <label class="field"><span>What would you like the package for?</span><input type="text" name="purpose" placeholder="Places, occasion or experience"></label>
+                  <label class="field"><span>What would you like the package for?</span><input type="text" name="purpose" value="<?= e($purpose) ?>" placeholder="Places, occasion or experience"></label>
                   <label class="field"><span>Arrival date</span><input type="date" name="arrival"></label>
                 </div>
                 <div class="field-row" data-guest-count>
@@ -74,11 +90,11 @@ $faqs = [
           </div>
           <div class="col-12 col-lg-5">
             <div class="map-card">
-              <iframe title="Map showing Himachal Pradesh" src="https://www.google.com/maps?q=Himachal%20Pradesh&amp;z=7&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+              <iframe title="Map showing India" src="https://www.google.com/maps?q=India&amp;z=4&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
               <div class="map-info">
-                <b><i class="fa-solid fa-mountain-sun" aria-hidden="true"></i> Trips all over Himachal</b>
-                <p>We pick you up from your home, hotel, airport or railway station — and drop you back after the trip.</p>
-                <a class="text-link" href="https://www.google.com/maps/search/?api=1&amp;query=Himachal%20Pradesh" target="_blank" rel="noopener">Open in Google Maps <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
+                <b><i class="fa-solid fa-route" aria-hidden="true"></i> Trips across North India</b>
+                <p>Pickup and drop-off points are arranged to suit your route and confirmed before you travel.</p>
+                <a class="text-link" href="https://www.google.com/maps/search/?api=1&amp;query=India" target="_blank" rel="noopener">Explore destinations <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
               </div>
             </div>
           </div>

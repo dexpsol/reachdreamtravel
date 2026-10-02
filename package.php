@@ -85,6 +85,7 @@ $related = array_slice($related, 0, 3, true);
             <div class="pd-card">
               <span class="eyebrow">Plan this trip</span>
               <h2>Get a free quote</h2>
+<?php package_price($package); ?>
               <p>Tell us your dates and group size — we will send you a full plan and price.</p>
               <form class="trip-form" aria-label="Enquire about <?= e($package['title']) ?>" novalidate>
                 <input type="hidden" name="destination" value="<?= e($package['title']) ?>">

@@ -11,7 +11,7 @@ $footerPackages = array_slice($packages, 0, 4, true);
       <svg class="peaks-mid" viewBox="0 0 1440 160" preserveAspectRatio="none"><path d="M0 160v-40l90-40 70 26 110-58 90 46 60-18 120 62 80-34 90 28 110-66 80 40 90-20 100 50 90-36 80 26 90-30 40 12 50-10v58z"/></svg>
       <svg class="peaks-front" viewBox="0 0 1440 160" preserveAspectRatio="none"><path d="M0 160v-22l110-26 90 16 120-34 100 30 90-10 130 26 110-30 120 22 100-18 110 20 120-28 90 16 100-12 50 8v62z"/></svg>
     </div>
-    <span class="footer-watermark" aria-hidden="true">HIMACHAL</span>
+    <span class="footer-watermark" aria-hidden="true">NORTH INDIA</span>
 
     <div class="container">
 <?php if (!$isHome): ?>
@@ -48,9 +48,8 @@ $footerPackages = array_slice($packages, 0, 4, true);
 
       <div class="footer-main">
         <div class="footer-about">
-          <a class="brand footer-brand" href="index.php"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="48" height="48"></span><span>Reach Dream<small>TRAVEL &amp; TOURS</small></span></a>
+          <a class="brand footer-brand" href="index.php"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="170px" height="auto"></span></a>
           <p>Private road trips with a driver, vehicle and stays arranged around your route.</p>
-          <p class="footer-address"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <?= e($site['address']) ?></p>
           <div class="social-links">
             <a class="s-instagram" href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
             <a class="s-facebook" href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>

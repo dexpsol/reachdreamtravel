@@ -298,23 +298,17 @@ h3 {
 }
 
 .brand-mark {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(255, 226, 154, .18), rgba(245, 183, 59, .12));
-  box-shadow: inset 0 0 0 1px rgba(245, 183, 59, .35), 0 8px 22px rgba(11, 31, 51, .16);
-  overflow: hidden
+  width: 170px;
+  height: auto;
 }
 
-.brand-mark img {
+/* .brand-mark img {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .12))
-}
+} */
 
 .site-menu .navbar-nav {
   gap: 4px
@@ -514,7 +508,7 @@ h3 {
 }
 
 .hero-image {
-  background: url('assets/images/destinations/hero-himachal.jpg') center 45%/cover no-repeat;
+  background: url('assets/images/destinations/taj-mahal-agra.jpg') center 45%/cover no-repeat;
   transform: scale(1.06);
   animation: hero-zoom 18s ease-out both;
   will-change: transform
@@ -936,6 +930,34 @@ h3 {
   margin: 6px 0 10px;
   font: 800 22px/1.25 Montserrat, sans-serif;
   letter-spacing: -.02em
+}
+
+.package-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 10px 0 12px;
+  color: var(--navy)
+}
+
+.package-price span {
+  width: 100%;
+  color: var(--muted);
+  font-size: 12px
+}
+
+.package-price strong {
+  font: 700 18px Montserrat, sans-serif
+}
+
+.package-price del {
+  color: var(--muted);
+  font-size: 13px
+}
+
+.pd-card .package-price {
+  margin: 4px 0 16px
 }
 
 .route {
@@ -4784,6 +4806,57 @@ a.package-image {
   margin-bottom: 40px
 }
 
+.group-travel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 28px;
+  padding: 20px 0;
+  margin: -12px 0 28px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line)
+}
+
+.group-travel-copy h2 {
+  margin: 0 0 4px;
+  font: 700 17px Montserrat, sans-serif;
+  color: var(--navy)
+}
+
+.group-travel-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px
+}
+
+.group-travel-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px
+}
+
+.group-travel-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color .2s ease, background .2s ease, border-color .2s ease
+}
+
+.group-travel-links a:hover,
+.group-travel-links a:focus-visible {
+  border-color: var(--navy);
+  background: var(--navy);
+  color: #fff
+}
+
 /* ---- Package detail ---- */
 .pd-layout {
   display: grid;
@@ -5077,6 +5150,17 @@ a.package-image {
 
 .dest-jump a:hover img {
   transform: scale(1.1)
+}
+
+.dest-jump a.is-text-only {
+  display: flex;
+  align-items: flex-end;
+  background: #174846;
+  border: 1px solid rgba(255, 255, 255, .18)
+}
+
+.dest-jump a.is-text-only:after {
+  background: linear-gradient(0deg, rgba(8, 22, 38, .45), transparent)
 }
 
 .dest-list {

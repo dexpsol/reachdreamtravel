@@ -15,7 +15,7 @@ require_once __DIR__ . '/components.php';
 
 $pageKey         = $pageKey ?? 'home';
 $pageTitle       = $pageTitle ?? 'Travel Made Personal';
-$pageDescription = $pageDescription ?? 'Private road trips planned around your dates and group, with vehicles, drivers and stays arranged across Himachal and selected North India routes.';
+$pageDescription = $pageDescription ?? 'Plan a private North India tour with Reach Dream Travel. Choose a route across the Himalayas, Kashmir, Uttarakhand, Rajasthan and the Golden Triangle.';
 $pageHero        = $pageHero ?? null;
 $breadcrumbs     = $breadcrumbs ?? [];
 $isHome          = $pageKey === 'home';
@@ -48,11 +48,11 @@ $nav = [
   <meta property="og:description" content="<?= e($pageDescription) ?>">
   <meta property="og:type" content="website">
   <link rel="preload" href="assets/fonts/montserrat.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="preload" href="<?= e($pageHero['image'] ?? 'assets/images/destinations/hero-himachal.jpg') ?>" as="image">
+  <link rel="preload" href="<?= e($pageHero['image'] ?? 'assets/images/destinations/taj-mahal-agra.jpg') ?>" as="image">
   <link rel="stylesheet" href="assets/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="style.css">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TravelAgency","name":"<?= e($site['name']) ?>","description":"Private road trips with vehicles, drivers and stays arranged around each traveller's route.","address":{"@type":"PostalAddress","addressLocality":"Amritsar","addressRegion":"Punjab","addressCountry":"IN"},"areaServed":["Himachal Pradesh","North India"],"telephone":"<?= e($site['phone']) ?>"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TravelAgency","name":"<?= e($site['name']) ?>","description":"Private North India tours and road trips with routes, drivers, vehicles and stays planned around each traveller.","areaServed":["Himachal Pradesh","Jammu and Kashmir","Uttarakhand","Rajasthan","Delhi","Agra"],"telephone":"<?= e($site['phone']) ?>"}</script>
 </head>
 <body class="page-<?= e($pageKey) ?>">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -60,7 +60,7 @@ $nav = [
 
   <header class="site-header" id="top">
     <nav class="navbar navbar-expand-xl container site-nav" aria-label="Main navigation">
-      <a class="navbar-brand brand" href="<?= e($nav['home'][1]) ?>" aria-label="<?= e($site['name']) ?> home"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="48" height="48"></span><span>Reach Dream<small>TRAVEL &amp; TOURS</small></span></a>
+      <a class="navbar-brand brand" href="<?= e($nav['home'][1]) ?>" aria-label="<?= e($site['name']) ?> home"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="100%" height="auto"></span></a>
       <button class="navbar-toggler menu-toggle ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#siteMenu" aria-controls="siteMenu" aria-expanded="false" aria-label="Open navigation"><span class="toggle-lines"></span></button>
       <div class="offcanvas offcanvas-xl offcanvas-start site-menu" tabindex="-1" id="siteMenu" aria-labelledby="siteMenuLabel">
         <div class="offcanvas-header d-xl-none"><a class="navbar-brand brand" href="<?= e($nav['home'][1]) ?>" id="siteMenuLabel"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="44" height="44"></span><span>Reach Dream<small>TRAVEL &amp; TOURS</small></span></a><button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close navigation"></button></div>

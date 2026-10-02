@@ -35,7 +35,26 @@ function package_catalog(array $defaults): array
 {
     require_once __DIR__ . '/database.php';
     $databaseCatalog = app_db_catalog('packages');
-    if ($databaseCatalog !== null) return $databaseCatalog;
+    if ($databaseCatalog !== null) {
+        $db = app_db();
+        if (!$db) return $databaseCatalog;
+        $db->exec('CREATE TABLE IF NOT EXISTS hidden_packages (slug VARCHAR(190) PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+        $hidden = $db->query('SELECT slug FROM hidden_packages')->fetchAll(PDO::FETCH_COLUMN);
+        $hiddenMap = array_fill_keys($hidden, true);
+        $newSlugs = ['nainital', 'mussoorie', 'rishikesh', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'dalhousie-khajjiar', 'jammu-katra-patnitop'];
+        $insert = $db->prepare('INSERT IGNORE INTO packages (slug, payload) VALUES (?, ?)');
+        foreach ($newSlugs as $slug) {
+            if (isset($defaults[$slug]) && !isset($databaseCatalog[$slug]) && !isset($hiddenMap[$slug])) {
+                $package = $defaults[$slug];
+                $insert->execute([$slug, json_encode($package, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
+                $databaseCatalog[$slug] = $package;
+            }
+        }
+        foreach ($databaseCatalog as $slug => $package) {
+            if (isset($hiddenMap[$slug])) unset($databaseCatalog[$slug]);
+        }
+        return $databaseCatalog;
+    }
     $saved = package_store_read();
     foreach ($saved['deleted'] as $slug) {
         unset($defaults[$slug]);

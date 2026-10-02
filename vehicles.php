@@ -2,12 +2,12 @@
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'vehicles';
 $pageTitle = 'Our Vehicles';
-$pageDescription = 'Compare private cars, 4x4s and group vehicles with drivers for Himachal routes and North India road trips.';
+$pageDescription = 'Compare private cars, 4x4s and group vehicles for North India tours, with a driver and vehicle matched to your route and group size.';
 $pageHero = [
     'crumb'   => 'Vehicles',
     'eyebrow' => 'Our fleet',
     'title'   => 'Vehicles for every road',
-    'lead'    => 'Every car comes with an experienced hill driver. We pick you up and bring you back.',
+    'lead'    => 'Choose a vehicle for your route and group. A driver is included, with pickup and drop-off arranged for your trip.',
     'image'   => img('road-van'),
     'meta'    => [['fa-car-side', count($vehicles) . ' vehicle types'], ['fa-id-card', 'Driver included'], ['fa-users', 'Options for groups']],
 ];
@@ -20,7 +20,7 @@ $routeGuide = [
 ];
 
 $includes = [
-    ['fa-id-card', 'Experienced hill driver', 'Local drivers who know mountain roads, weather and the best stops.'],
+    ['fa-id-card', 'Experienced route drivers', 'Drivers matched to your route, with local knowledge of roads and worthwhile stops.'],
     ['fa-spray-can-sparkles', 'Clean, checked vehicle', 'Cleaned and inspected before every trip.'],
     ['fa-location-crosshairs', 'Doorstep pickup', 'From your home, hotel, airport or railway station.'],
     ['fa-camera', 'Photo & chai stops', 'Stop wherever you like for photos or tea.'],
@@ -29,10 +29,10 @@ $includes = [
 ];
 
 $faqs = [
-    ['Does every vehicle come with a driver?', 'Yes. All our vehicles are chauffeur-driven by experienced drivers who know Himachal’s mountain roads well.'],
+    ['Does every vehicle come with a driver?', 'Yes. Our vehicles are chauffeur-driven, with drivers selected for the route and trip requirements.'],
     ['Which vehicle is best for Spiti Valley?', 'For the full Spiti circuit we recommend the Toyota Innova Crysta for comfort or the Suzuki Jimny 4×4 for rough, unpaved sections such as Chandratal. We will suggest the best option for your dates and group.'],
     ['What is included in the vehicle price?', 'Your quote clearly lists what is included — typically the vehicle, driver and fuel for the planned route. Tolls, parking, permits and driver allowance are confirmed in your quote before you book.'],
-    ['Can I book only a car, without a package?', 'Yes. You can book just the car and driver — for a Himachal trip, a day trip, or an airport or station transfer.'],
+    ['Can I book only a car, without a package?', 'Yes. Ask about a vehicle and driver for your tour, day trip, or airport and station transfer.'],
     ['Can we change the plan during the trip?', 'Small changes to stops and timings are usually fine. For route changes that add distance or days, just call us and we will adjust the plan.'],
 ];
 
@@ -56,7 +56,7 @@ $slugify = fn(string $name): string => trim(strtolower(preg_replace('/[^a-z0-9]+
       <span class="bg-word" data-drift="0.2" aria-hidden="true">THE FLEET</span>
       <div class="container" data-showroom>
         <div class="section-heading split">
-          <div><span class="eyebrow">Choose your ride</span><h2><?= count($vehicles) ?> ways to see the mountains.</h2><p>Pick a vehicle to see the details, or filter by how many of you are travelling.</p></div>
+          <div><span class="eyebrow">Choose your ride</span><h2><?= count($vehicles) ?> ways to travel.</h2><p>Compare comfort, luggage space and group size to find a vehicle that suits your itinerary.</p></div>
         </div>
 <?php filter_bar($groupSizes, '.showroom-tab', 'Filter vehicles by group size'); ?>
         <div class="showroom">
@@ -115,7 +115,7 @@ $slugify = fn(string $name): string => trim(strtolower(preg_replace('/[^a-z0-9]+
         <div class="section-heading center">
           <span class="eyebrow">Route guide</span>
           <h2>The right vehicle for the road.</h2>
-          <p>Himachal’s roads change a lot between the valleys and the high passes. Here is what we usually recommend.</p>
+          <p>These Himachal routes show how road conditions can shape your vehicle choice. For other destinations, we can recommend an option to suit your itinerary.</p>
         </div>
         <div class="route-grid">
 <?php foreach ($routeGuide as $i => [$title, $text, $photo, $picks]): ?>

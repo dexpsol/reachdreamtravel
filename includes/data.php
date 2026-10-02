@@ -13,7 +13,6 @@ $site = [
     'phoneLink' => '+919888351723',
     'whatsapp'  => '919780434402', // Also update whatsappNumber in script.js.
     'email'     => 'reachdreamtravel@gmail.com',
-    'address'   => 'Amritsar, Punjab, India',
 ];
 
 /*
@@ -32,6 +31,11 @@ $driveTimes = [
 function e($value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
+function format_price($amount): string
+{
+    return '₹' . number_format((int) $amount, 0, '.', ',');
 }
 
 /** WhatsApp link with a prefilled message. */
@@ -80,7 +84,18 @@ function img(string $name, bool $small = false): string
  * Tour packages. Every package includes pickup and drop.
  * 'cat' drives the filters on packages.php.
  * ------------------------------------------------------------------------- */
-$packageCategories = ['all' => 'All packages', 'road' => 'Long road trips', 'hills' => 'Hill stations', 'nature' => 'Nature & adventure', 'heritage' => 'Heritage & culture', 'city' => 'City escapes'];
+$packageCategories = ['all' => 'All packages', 'road' => 'Long road trips', 'hills' => 'Hill stations', 'nature' => 'Nature & adventure', 'heritage' => 'Heritage & culture', 'city' => 'City escapes', 'north' => 'Northern India'];
+
+$customRoute = static function (string $title, string $label, string $category, string $season, string $route, string $overview, array $highlights, string $image): array {
+    return [
+        'title' => $title, 'label' => $label, 'cat' => $category,
+        'duration' => 'Custom duration', 'short' => 'Flexible', 'popular' => false,
+        'image' => $image, 'difficulty' => 'Planned around your group', 'season' => $season,
+        'start' => 'Pickup point by arrangement', 'end' => 'Drop-off point by arrangement',
+        'route' => $route, 'overview' => $overview, 'highlights' => $highlights,
+        'days' => [['Plan your trip', 'Share your dates, group size and interests. We’ll suggest a route and pace that fit your plans and the season.']],
+    ];
+};
 
 $packages = [
     'shimla-spiti-kinnaur' => [
@@ -246,6 +261,18 @@ $packages = [
     ],
 ];
 
+$packages += [
+    'nainital' => $customRoute('Nainital Holiday', 'Lake views & easy hill walks', 'north', 'March–June, September–November', 'Naini Lake · Mall Road · Naina Devi Temple', 'A relaxed Kumaon hill break centred on Naini Lake, with time for boating, Mall Road and a visit to Naina Devi Temple.', ['Boating on Naini Lake', 'Walk along Mall Road', 'Visit Naina Devi Temple'], 'manali-valley'),
+    'mussoorie' => $customRoute('Mussoorie Holiday', 'The Queen of Hills', 'north', 'September–June', 'Kempty Falls · Gun Hill · Mall Road', 'Take in Mussoorie’s mountain viewpoints and waterfalls, with scenic walks and unhurried time on Mall Road.', ['Kempty Falls', 'Gun Hill viewpoint', 'Scenic walks along Mall Road'], 'shimla-city'),
+    'rishikesh' => $customRoute('Rishikesh Getaway', 'River, yoga & adventure', 'north', 'February–May, August–October', 'Ganges · Laxman Jhula · Ganga Aarti', 'A riverside escape with spiritual landmarks and optional adventure activities. Rafting and other activities depend on season and local conditions.', ['White-water rafting, when available', 'Laxman Jhula', 'Evening Ganga Aarti'], 'forest-river'),
+    'auli' => $customRoute('Auli Snow & Ski Escape', 'High Himalayan views', 'nature', 'November–March for snow and skiing', 'Auli · Himalayan viewpoints', 'A winter trip to Auli, with the option to plan around snow conditions, ski activities and cable car visits.', ['Skiing, subject to snow and operations', 'Cable car ride, subject to operations', 'Views of snow-covered Himalayan peaks'], 'snow-peaks'),
+    'jim-corbett' => $customRoute('Jim Corbett Wildlife Trip', 'Forest & wildlife', 'nature', 'November–June; safari zones vary', 'Jim Corbett National Park · Kosi River', 'Plan a wildlife-focused break around available safari zones, park rules and your travel dates.', ['Jeep safari, subject to permits and zone availability', 'Wildlife spotting', 'Kosi River scenery'], 'forest-river'),
+    'kashmir-valley' => $customRoute('Kashmir & Jammu Tour', 'Lakes, gardens & mountain valleys', 'north', 'April–October for sightseeing; November–February for snow', 'Srinagar · Gulmarg · Pahalgam · Sonamarg · Jammu · Patnitop', 'Build a Kashmir and Jammu journey around Srinagar’s lake and gardens, mountain scenery and the places that interest you most. Winter activities depend on weather and local operations.', ['Dal Lake houseboats and Shikara rides', 'Mughal Gardens in Srinagar', 'Gulmarg meadows and cable car', 'Pahalgam and the Lidder River', 'Sonamarg glaciers and trekking routes', 'Add Patnitop to your route'], 'snow-peaks'),
+    'dharamshala-mcleodganj' => $customRoute('Dharamshala & McLeod Ganj', 'Tibetan culture & pine forests', 'hills', 'Plan around your dates', 'Dharamshala · McLeod Ganj', 'A flexible Himachal stay for Tibetan culture, pine-forest walks and time in the mountain town of McLeod Ganj.', ['Tibetan art and culture', 'McLeod Ganj', 'Pine-forest surroundings'], 'manali-valley'),
+    'dalhousie-khajjiar' => $customRoute('Dalhousie & Khajjiar', 'Colonial charm & open meadows', 'hills', 'Plan around your dates', 'Dalhousie · Khajjiar', 'Pair Dalhousie’s colonial-era character with a visit to Khajjiar’s broad green meadows.', ['Dalhousie town walks', 'Khajjiar meadows', 'Views across the Dhauladhar range'], 'meadow'),
+    'jammu-katra-patnitop' => $customRoute('Jammu, Katra & Patnitop', 'Pilgrimage & mountain air', 'heritage', 'Plan around your dates and local conditions', 'Jammu City · Katra · Vaishno Devi · Patnitop', 'Combine time in Jammu with a visit to Katra and the Vaishno Devi shrine, then add a relaxing stay in Patnitop.', ['Jammu City', 'Katra and Vaishno Devi shrine visit', 'Patnitop hill-station break'], 'snow-peaks'),
+];
+
 $defaultPackages = $packages;
 require_once dirname(__DIR__) . '/backend/package-store.php';
 $packages = package_catalog($packages);
@@ -318,6 +345,19 @@ $destinations = [
         'see' => ['Jaipur', 'Jodhpur', 'Jaisalmer', 'Udaipur', 'Desert camps'],
         'packages' => ['rajasthan-heritage-trail', 'golden-triangle-delhi-agra-jaipur'],
     ],
+    'nainital' => ['name' => 'Nainital', 'tagline' => 'A hill town around a lake', 'altitude' => 'Varies by route', 'best' => 'March–June, September–November', 'drive' => 'Route planned around pickup', 'text' => 'Spend time by Naini Lake, browse Mall Road and visit Naina Devi Temple on a relaxed Kumaon hill-station break.', 'see' => ['Boating on Naini Lake', 'Mall Road', 'Naina Devi Temple'], 'packages' => ['nainital']],
+    'mussoorie' => ['name' => 'Mussoorie', 'tagline' => 'The Queen of Hills', 'altitude' => 'Varies by route', 'best' => 'September–June', 'drive' => 'Route planned around pickup', 'text' => 'Waterfalls, viewpoints and scenic walks make Mussoorie an easy-going hill escape.', 'see' => ['Kempty Falls', 'Gun Hill viewpoint', 'Mall Road'], 'packages' => ['mussoorie']],
+    'rishikesh' => ['name' => 'Rishikesh', 'tagline' => 'The Ganges, yoga & adventure', 'altitude' => 'Varies by route', 'best' => 'February–May, August–October', 'drive' => 'Route planned around pickup', 'text' => 'A riverside town known for yoga, spiritual landmarks and adventure activities that vary with the season.', 'see' => ['White-water rafting, when available', 'Laxman Jhula', 'Evening Ganga Aarti'], 'packages' => ['rishikesh']],
+    'auli' => ['name' => 'Auli', 'tagline' => 'Snow slopes & Himalayan views', 'altitude' => 'Varies by route', 'best' => 'November–March for snow and skiing', 'drive' => 'Route planned around pickup', 'text' => 'A high-altitude mountain destination for winter scenery and skiing when snow and local operations allow.', 'see' => ['Ski slopes', 'Cable car, subject to operations', 'Himalayan viewpoints'], 'packages' => ['auli']],
+    'jim-corbett' => ['name' => 'Jim Corbett National Park', 'tagline' => 'Forest & wildlife', 'altitude' => 'Varies by zone', 'best' => 'November–June; zone access varies', 'drive' => 'Route planned around pickup', 'text' => 'Plan a park visit around available safari zones, permits and current local conditions.', 'see' => ['Jeep safaris, subject to permits', 'Wildlife spotting', 'Kosi River scenery'], 'packages' => ['jim-corbett']],
+    'srinagar' => ['name' => 'Srinagar', 'tagline' => 'Lakes, houseboats & gardens', 'altitude' => 'Varies by route', 'best' => 'April–October for sightseeing', 'drive' => 'Route planned around pickup', 'text' => 'Discover Dal Lake, traditional houseboats, Shikara rides and Srinagar’s historic Mughal Gardens.', 'see' => ['Dal Lake', 'Houseboats and Shikara rides', 'Mughal Gardens'], 'packages' => ['kashmir-valley']],
+    'gulmarg' => ['name' => 'Gulmarg', 'tagline' => 'Alpine meadows & winter sports', 'altitude' => 'Varies by route', 'best' => 'April–October for meadows; winter for snow', 'drive' => 'Route planned around pickup', 'text' => 'Visit for mountain meadows and seasonal snow activities, with cable-car access dependent on operations.', 'see' => ['Gulmarg meadows', 'Skiing in winter', 'Gondola, subject to operations'], 'packages' => ['kashmir-valley']],
+    'pahalgam' => ['name' => 'Pahalgam', 'tagline' => 'Pine forests & the Lidder River', 'altitude' => 'Varies by route', 'best' => 'April–October', 'drive' => 'Route planned around pickup', 'text' => 'Explore the wooded valleys and river scenery of Pahalgam, also a base for the Amarnath Yatra.', 'see' => ['Lidder River', 'Pine forests', 'Amarnath Yatra base area'], 'packages' => ['kashmir-valley']],
+    'sonamarg' => ['name' => 'Sonamarg', 'tagline' => 'Glaciers & high mountain trails', 'altitude' => 'Varies by route', 'best' => 'April–October', 'drive' => 'Route planned around pickup', 'text' => 'A scenic mountain stop known for glaciers, trout fishing and trekking routes to high-altitude lakes.', 'see' => ['Glacier views', 'Trout fishing', 'High-altitude lake trekking routes'], 'packages' => ['kashmir-valley']],
+    'jammu-katra' => ['name' => 'Jammu City & Katra', 'tagline' => 'A gateway for pilgrimage', 'altitude' => 'Varies by route', 'best' => 'Plan around your dates', 'drive' => 'Route planned around pickup', 'text' => 'Visit Jammu and Katra, the starting point for pilgrims travelling to the Vaishno Devi shrine.', 'see' => ['Jammu City', 'Katra', 'Vaishno Devi shrine'], 'packages' => ['jammu-katra-patnitop']],
+    'patnitop' => ['name' => 'Patnitop', 'tagline' => 'A quiet Jammu hill escape', 'altitude' => 'Varies by route', 'best' => 'Plan around your dates', 'drive' => 'Route planned around pickup', 'text' => 'Add a restorative mountain stay in Patnitop to a Jammu and Katra pilgrimage or holiday route.', 'see' => ['Mountain scenery', 'Easy walks', 'A relaxed stop after Katra'], 'packages' => ['jammu-katra-patnitop']],
+    'dharamshala-mcleodganj' => ['name' => 'Dharamshala & McLeod Ganj', 'tagline' => 'Tibetan culture & pine forests', 'altitude' => 'Varies by route', 'best' => 'Plan around your dates', 'drive' => 'Route planned around pickup', 'text' => 'Explore the cultural centre of McLeod Ganj and the pine-forested mountain setting around Dharamshala.', 'see' => ['Tibetan art and culture', 'McLeod Ganj', 'Pine forests'], 'packages' => ['dharamshala-mcleodganj']],
+    'dalhousie-khajjiar' => ['name' => 'Dalhousie & Khajjiar', 'tagline' => 'Colonial town & open meadows', 'altitude' => 'Varies by route', 'best' => 'Plan around your dates', 'drive' => 'Route planned around pickup', 'text' => 'Pair Dalhousie’s colonial-era character with the broad green meadows of Khajjiar.', 'see' => ['Dalhousie town walks', 'Khajjiar meadows', 'Dhauladhar views'], 'packages' => ['dalhousie-khajjiar']],
 ];
 
 /* ---------------------------------------------------------------------------

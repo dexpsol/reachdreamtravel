@@ -2,13 +2,13 @@
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'about';
 $pageTitle = 'About Us';
-$pageDescription = 'Based in Amritsar, Reach Dream Travel arranges private road trips through Himachal and selected North India routes, with vehicles, drivers and stays.';
+$pageDescription = 'Reach Dream Travel plans private North India tours across Himachal, Kashmir, Uttarakhand, Rajasthan and the Golden Triangle, with routes, drivers and stays arranged for you.';
 $pageHero = [
     'crumb'   => 'About',
     'eyebrow' => 'Who we are',
     'title'   => 'About Reach Dream Travel',
-    'lead'    => 'Based in Amritsar, we plan private road trips through Himachal and selected North India routes.',
-    'image'   => img('kinnaur-autumn'),
+    'lead'    => 'Private trips across North India, with the route, driver and stays planned around your travel dates.',
+    'image'   => img('taj-mahal-agra'),
 ];
 require __DIR__ . '/includes/header.php';
 
@@ -21,22 +21,22 @@ require __DIR__ . '/includes/header.php';
         <div class="row align-items-center g-5">
           <div class="col-12 col-lg-6 about-visual">
             <div class="about-collage">
-              <img class="about-main" src="<?= e(img('kinnaur-sangla', true)) ?>" srcset="<?= e(img('kinnaur-sangla', true)) ?> 900w, <?= e(img('kinnaur-sangla')) ?> 2000w" sizes="(min-width: 992px) 560px, 100vw" alt="Sangla valley in Kinnaur" loading="lazy">
+              <img class="about-main" src="<?= e(img('taj-mahal-agra', true)) ?>" srcset="<?= e(img('taj-mahal-agra', true)) ?> 900w, <?= e(img('taj-mahal-agra')) ?> 2000w" sizes="(min-width: 992px) 560px, 100vw" alt="Taj Mahal in Agra" loading="lazy">
               <img class="about-sub" data-depth="-0.12" src="<?= e(img('spiti-key', true)) ?>" alt="Key Monastery in Spiti" loading="lazy">
               <div class="about-stamp" data-depth="0.18"><b>RD</b><small>YOUR JOURNEY<br>OUR PASSION</small></div>
-              <div class="about-chip" data-depth="0.08"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><b>Trips all over Himachal</b><small>Door-to-door pickup</small></span></div>
+              <div class="about-chip" data-depth="0.08"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><b>Trips across North India</b><small>Pickup by arrangement</small></span></div>
             </div>
           </div>
           <div class="col-12 col-lg-6 about-copy">
             <span class="eyebrow">Our story</span>
             <h2>Private road trips, planned with care.</h2>
-            <p>Based in Amritsar, Reach Dream Travel arranges private road trips through Himachal and selected North India routes, bringing transport and stays into one plan.</p>
-            <p>We coordinate the route, vehicle and stays before you travel. For hill routes, the vehicle and pace are planned around the roads and your group.</p>
+            <p>Reach Dream Travel brings your route, private vehicle, driver and stays together in one plan. Choose a Himalayan escape, a Kashmir holiday, a Rajasthan circuit or a classic Delhi–Agra tour.</p>
+            <p>Share your dates, group size and the places you have in mind. We’ll shape the itinerary around your pace, route conditions and preferred style of stay.</p>
             <ul class="about-list list-unstyled">
               <li><i class="fa-solid fa-route" aria-hidden="true"></i> Pickup and drop at your door</li>
               <li><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Car, hotels &amp; sightseeing together</li>
               <li><i class="fa-solid fa-binoculars" aria-hidden="true"></i> Trip plan changed to suit you</li>
-              <li><i class="fa-solid fa-user-shield" aria-hidden="true"></i> Safe, experienced hill drivers</li>
+              <li><i class="fa-solid fa-user-shield" aria-hidden="true"></i> Experienced drivers suited to your route</li>
             </ul>
           </div>
         </div>

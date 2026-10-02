@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'stays';
 $pageTitle = 'Hotels & Stays';
-$pageDescription = 'Hotels, cottages, homestays and camps across Himachal — standard, deluxe and premium stays arranged along your route by Reach Dream Travel.';
+$pageDescription = 'Explore hotel, cottage, homestay and camp options for North India trips. Reach Dream Travel can help arrange available stays to suit your route and budget.';
 $pageHero = [
     'crumb'   => 'Stays',
     'eyebrow' => 'Hotels & stays',
@@ -57,7 +57,7 @@ $faqs = [
                 <li><i class="fa-solid fa-check" aria-hidden="true"></i> <?= e($feature) ?></li>
 <?php endforeach; ?>
               </ul>
-              <a class="btn <?= $i === 1 ? 'btn-gold' : 'btn-outline' ?> w-100" href="<?= e(wa_link('Hello Reach Dream Travel, I am looking for ' . strtolower($name) . ' stays for my Himachal trip.')) ?>" target="_blank" rel="noopener">Ask about <?= e(strtolower($name)) ?> stays</a>
+              <a class="btn <?= $i === 1 ? 'btn-gold' : 'btn-outline' ?> w-100" href="<?= e(wa_link('Hello Reach Dream Travel, I am looking for ' . strtolower($name) . ' stays for my trip.')) ?>" target="_blank" rel="noopener">Ask about <?= e(strtolower($name)) ?> stays</a>
             </div>
           </article>
 <?php endforeach; ?>

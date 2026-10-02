@@ -7,6 +7,24 @@ function package_url(string $slug): string
     return 'package.php?slug=' . rawurlencode($slug);
 }
 
+/** Optional package price shown consistently on cards and detail pages. */
+function package_price(array $p): void
+{
+    $regular = (int) ($p['price_regular'] ?? 0);
+    $discount = (int) ($p['price_discount'] ?? 0);
+    if ($regular < 1 && $discount < 1) return;
+    $shown = $discount > 0 ? $discount : $regular;
+    ?>
+              <div class="package-price">
+                <span><?= $discount > 0 ? 'Discount price' : 'Package price' ?></span>
+                <strong><?= e(format_price($shown)) ?></strong>
+<?php if ($discount > 0 && $regular > 0): ?>
+                <del>Regular <?= e(format_price($regular)) ?></del>
+<?php endif; ?>
+              </div>
+<?php
+}
+
 /** Tour package card (homepage and packages page). */
 function package_card(string $slug, array $p): void
 {
@@ -18,6 +36,7 @@ function package_card(string $slug, array $p): void
                 <span class="package-label"><?= e($p['label']) ?></span>
                 <h3><a href="<?= e(package_url($slug)) ?>"><?= e($p['title']) ?></a></h3>
                 <p class="route"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <?= e($p['route']) ?></p>
+<?php package_price($p); ?>
                 <div class="package-tags"><span class="tag-from"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Pickup &amp; drop</span><span><i class="fa-solid fa-signal" aria-hidden="true"></i> <?= e($p['difficulty']) ?></span><span><i class="fa-solid fa-sun" aria-hidden="true"></i> <?= e($p['season']) ?></span></div>
                 <a class="package-link" href="<?= e(package_url($slug)) ?>">See day-by-day plan <span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span></a>
                 <div class="package-contact-actions" aria-label="Contact us about <?= e($p['title']) ?>">

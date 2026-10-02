@@ -1,13 +1,13 @@
 <?php
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'packages';
-$pageTitle = 'Tour Packages';
-$pageDescription = 'Private Himachal and India tour packages — Spiti, Shimla, Rajasthan, Delhi, Agra and the Golden Triangle, with stays and transport arranged.';
+$pageTitle = 'North India Tour Packages';
+$pageDescription = 'Plan private North India tours across Himachal, Kashmir, Uttarakhand, Rajasthan, Delhi and Agra, with flexible routes, transport and stays.';
 $pageHero = [
     'crumb'   => 'Packages',
     'eyebrow' => 'Tour packages',
-    'title'   => 'Journeys across Himachal & India',
-    'lead'    => 'Every trip includes pickup and drop. Car, driver and hotels are included in the plan, and you can change the days to suit you.',
+    'title'   => 'North India tours, shaped around you',
+    'lead'    => 'Explore mountain, heritage and wildlife routes with an itinerary shaped around your dates. Ask us to arrange a vehicle, driver and stays for your trip.',
     'image'   => img('spiti-key-sunset'),
     'meta'    => [['fa-route', count($packages) . ' signature routes'], ['fa-location-dot', 'Pickup and drop'], ['fa-sliders', 'Fully customisable']],
 ];
@@ -19,6 +19,35 @@ require __DIR__ . '/includes/header.php';
         <div class="gallery-toolbar">
 <?php filter_bar($packageCategories, '.packages-page .package-card', 'Filter packages'); ?>
           <a class="text-link" href="contact.php">Plan a custom trip <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
+        <div class="group-travel" aria-labelledby="groupTravelTitle">
+          <div class="group-travel-copy">
+            <h2 id="groupTravelTitle">Who are you travelling with?</h2>
+            <p>We’ll help shape the trip around your group.</p>
+          </div>
+          <nav class="group-travel-links" aria-label="Choose your travel group">
+            <a href="contact.php?travelling=Couple">Couple</a>
+            <a href="contact.php?travelling=Family">Family</a>
+            <a href="contact.php?travelling=Friends">Friends</a>
+            <a href="contact.php?travelling=Solo">Solo</a>
+            <a href="contact.php?travelling=Seniors">Seniors</a>
+          </nav>
+        </div>
+        <div class="group-travel group-travel-interests" aria-labelledby="tripStyleTitle">
+          <div class="group-travel-copy">
+            <h2 id="tripStyleTitle">Looking for something in particular?</h2>
+            <p>Choose an interest to start a tailored enquiry.</p>
+          </div>
+          <nav class="group-travel-links" aria-label="Choose a trip interest">
+            <a href="contact.php?interest=holiday">Holiday tour</a>
+            <a href="contact.php?interest=temple">Temple darshan</a>
+            <a href="contact.php?interest=adventure">Trek &amp; camping</a>
+            <a href="contact.php?interest=activities">Games &amp; activities</a>
+            <a href="contact.php?interest=special">Special interests</a>
+            <a href="contact.php?interest=solo">Solo trip</a>
+            <a href="contact.php?interest=new-year">New Year plan</a>
+            <a href="contact.php?interest=group">Group tour</a>
+          </nav>
         </div>
         <div class="package-grid">
 <?php foreach ($packages as $slug => $package) { package_card($slug, $package); } ?>

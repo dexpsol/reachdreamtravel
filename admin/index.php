@@ -12,7 +12,7 @@ if ($db) {
     $db->exec('CREATE TABLE IF NOT EXISTS users (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL, role VARCHAR(32) NOT NULL DEFAULT \'admin\', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
     $setupNeeded = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn() === 0;
 }
-$categories = ['road' => 'Long road trips', 'hills' => 'Hill stations', 'nature' => 'Nature & adventure', 'heritage' => 'Heritage & culture', 'city' => 'City escapes'];
+$categories = ['road' => 'Long road trips', 'hills' => 'Hill stations', 'nature' => 'Nature & adventure', 'heritage' => 'Heritage & culture', 'city' => 'City escapes', 'north' => 'Northern India'];
 $imageFiles = [];
 foreach (['destinations', 'stays'] as $imageFolder) {
     foreach (['jpg', 'jpeg', 'png', 'webp'] as $imageExtension) {
@@ -131,6 +131,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $db = app_db();
                 if (!$db) throw new RuntimeException('Start MySQL and use Initialize database before saving records.');
                 if ($action === 'delete') {
+                    if ($table === 'packages') {
+                        $db->exec('CREATE TABLE IF NOT EXISTS hidden_packages (slug VARCHAR(190) PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+                        $hide = $db->prepare('INSERT IGNORE INTO hidden_packages (slug) VALUES (?)');
+                        $hide->execute([$slug]);
+                    }
                     $statement = $db->prepare('DELETE FROM `' . $table . '` WHERE slug = ?');
                     $statement->execute([$slug]);
                     $_SESSION['notice'] = ucfirst($kind) . ' deleted.';
@@ -154,6 +159,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $category = (string) ($_POST['cat'] ?? 'heritage');
                     $image = (string) ($_POST['image'] ?? '');
+                    $previousSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
+                    $previousPackage = $packages[$previousSlug] ?? $packages[$slug] ?? [];
                     if (!isset($categories[$category])) throw new RuntimeException('Choose a valid package category.');
                     $highlights = admin_lines((string) ($_POST['highlights'] ?? ''));
                     $days = [];
@@ -162,6 +169,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (count($parts) === 2 && trim($parts[0]) !== '' && trim($parts[1]) !== '') $days[] = [trim($parts[0]), trim($parts[1])];
                     }
                     if (!$highlights || !$days) throw new RuntimeException('Add at least one highlight and one day formatted as “Title | details”.');
+                    $regularPriceInput = trim((string) ($_POST['price_regular'] ?? ''));
+                    $discountPriceInput = trim((string) ($_POST['price_discount'] ?? ''));
+                    foreach (['Regular price' => $regularPriceInput, 'Discount price' => $discountPriceInput] as $priceLabel => $priceInput) {
+                        if ($priceInput !== '' && !preg_match('/^\d{1,10}$/', $priceInput)) {
+                            throw new RuntimeException($priceLabel . ' must be a whole amount in INR, or left blank.');
+                        }
+                    }
+                    $regularPrice = $regularPriceInput === '' ? null : (int) $regularPriceInput;
+                    $discountPrice = $discountPriceInput === '' ? null : (int) $discountPriceInput;
+                    if ($discountPrice !== null && $regularPrice === null) {
+                        throw new RuntimeException('Enter a regular price before adding a discount price.');
+                    }
+                    if ($regularPrice !== null && $discountPrice !== null && $discountPrice >= $regularPrice) {
+                        throw new RuntimeException('Discount price must be lower than regular price.');
+                    }
                     $uploadedImage = admin_upload_package_image($_FILES['package_image'] ?? [], $slug, $root);
                     if ($uploadedImage !== '') {
                         $image = $uploadedImage;
@@ -170,8 +192,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                     $record = [
                         'title' => $name, 'label' => trim((string) ($_POST['label'] ?? '')), 'cat' => $category,
-                        'duration' => trim((string) ($_POST['duration'] ?? '')), 'short' => trim((string) ($_POST['short'] ?? '')),
-                        'popular' => !empty($_POST['popular']), 'image' => $image, 'image_customized' => true, 'difficulty' => trim((string) ($_POST['difficulty'] ?? 'Easy')),
+                        'duration' => $previousPackage['duration'] ?? 'Custom duration', 'short' => $previousPackage['short'] ?? 'Flexible',
+                        'popular' => !empty($_POST['popular']), 'image' => $image, 'image_customized' => true, 'difficulty' => $previousPackage['difficulty'] ?? 'Planned around your group',
+                        'price_regular' => $regularPrice, 'price_discount' => $discountPrice,
                         'season' => trim((string) ($_POST['season'] ?? 'All year')), 'start' => trim((string) ($_POST['start'] ?? 'Your home or hotel')),
                         'end' => trim((string) ($_POST['end'] ?? 'Your home or hotel')), 'route' => trim((string) ($_POST['route'] ?? '')),
                         'overview' => trim((string) ($_POST['overview'] ?? '')), 'highlights' => $highlights, 'days' => $days,
@@ -179,8 +202,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $oldSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
                 if ($oldSlug !== '' && $oldSlug !== $slug) {
+                    if ($kind === 'package') {
+                        $db->exec('CREATE TABLE IF NOT EXISTS hidden_packages (slug VARCHAR(190) PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+                        $hide = $db->prepare('INSERT IGNORE INTO hidden_packages (slug) VALUES (?)');
+                        $hide->execute([$oldSlug]);
+                    }
                     $removeOld = $db->prepare('DELETE FROM `' . $table . '` WHERE slug = ?');
                     $removeOld->execute([$oldSlug]);
+                }
+                if ($kind === 'package') {
+                    $db->exec('CREATE TABLE IF NOT EXISTS hidden_packages (slug VARCHAR(190) PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+                    $unhide = $db->prepare('DELETE FROM hidden_packages WHERE slug = ?');
+                    $unhide->execute([$slug]);
                 }
                 $statement = $db->prepare('INSERT INTO `' . $table . '` (slug, payload) VALUES (?, ?) ON DUPLICATE KEY UPDATE payload = VALUES(payload)');
                 $statement->execute([$slug, json_encode($record, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
@@ -204,6 +237,7 @@ $selectedTab = $editingKind === 'taxi' ? 'taxis' : $activeTab;
 $dbPackages = app_db_catalog('packages');
 $dbTaxis = app_db_catalog('taxis');
 $dbReady = app_db() !== null && !empty($dbPackages) && !empty($dbTaxis);
+$loginView = !$setupNeeded && !$authenticated;
 ?>
 <!doctype html>
 <html lang="en">
@@ -216,19 +250,47 @@ $dbReady = app_db() !== null && !empty($dbPackages) && !empty($dbTaxis);
   <style>
     body{background:#f5f6f3;color:#24313a}.dash-header{background:#123b3a;color:#fff;padding:16px 24px}.dash-head-inner{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:18px}.dash-brand{color:#fff;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:11px}.dash-brand img{display:block;width:44px;height:44px}.dash-brand small{display:block;font-size:12px;font-weight:400;opacity:.76}.dash-main{max-width:1200px;margin:28px auto;padding:0 18px}.dash-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:20px}.dash-top h1{font-size:30px;margin:0}.dash-top p{margin:5px 0 0;color:#68756f}.dash-status{padding:12px 15px;background:#fff;border:1px solid #dce2df;border-radius:5px;margin-bottom:18px}.dash-status.good{border-left:4px solid #25805e}.dash-status.bad{border-left:4px solid #bd483f}.dash-tabs{display:flex;gap:8px;border-bottom:1px solid #d7dfdb;margin-bottom:20px}.dash-tabs a{padding:12px 16px;text-decoration:none;color:#51605b;border-bottom:3px solid transparent;font-weight:600}.dash-tabs a.active{color:#146553;border-color:#cf9a3c}.dash-panel{background:#fff;border:1px solid #dce2df;border-radius:6px;padding:22px;margin-bottom:22px}.dash-panel h2{font-size:21px;margin:0 0 18px}.dash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.dash-grid label{display:block;font-size:13px;font-weight:600;color:#44534d}.dash-grid input,.dash-grid textarea,.dash-grid select{margin-top:5px;width:100%;border:1px solid #cbd4d0;border-radius:4px;padding:10px;color:#24313a;background:#fff}.dash-grid textarea{min-height:96px}.dash-wide{grid-column:1/-1}.dash-list{border-top:1px solid #e5e9e7}.dash-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid #e5e9e7}.dash-row-main{display:flex;align-items:center;gap:13px;min-width:0}.dash-thumb{width:68px;height:52px;object-fit:cover;border-radius:3px;background:#eee}.dash-row small{display:block;color:#74817b;margin-top:2px}.dash-actions{display:flex;gap:7px;flex-shrink:0}.dash-actions form{margin:0}.dash-actions .btn{border-radius:4px}.dash-note{color:#69766f;font-size:13px}.dash-empty{padding:16px 0;color:#69766f}.setup-box{max-width:520px;margin:70px auto}.dash-section-title{display:flex;justify-content:space-between;align-items:center;gap:14px}@media(max-width:720px){.dash-top{display:block}.dash-top .btn{margin-top:14px}.dash-grid{grid-template-columns:1fr}.dash-wide{grid-column:auto}.dash-row{align-items:flex-start;flex-direction:column}.dash-actions{flex-wrap:wrap}.dash-tabs a{padding:10px 12px}.dash-header{padding:14px}.dash-panel{padding:17px}}
     .dash-grid input::placeholder,.dash-grid textarea::placeholder{color:#89948f;opacity:1}.dash-grid input[type=file]{padding:8px;background:#fafbf9}.dash-image-preview-wrap{min-height:0}.dash-package-preview{display:block;width:min(100%,520px);max-height:270px;aspect-ratio:16/9;object-fit:cover;border:1px solid #dce2df;border-radius:4px;background:#f3f5f3}.dash-package-preview[hidden]{display:none}.dash-note{display:block;margin-top:5px}
+    .login-page{min-height:100vh;background:#f1f4f1;color:#203331}.login-page .dash-header{display:none}.login-main{display:grid;place-items:center;width:100%;max-width:none;min-height:100vh;margin:0;padding:32px}.login-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(380px,.85fr);width:min(1120px,100%);min-height:min(700px,calc(100vh - 64px));overflow:hidden;background:#fff;border:1px solid #e0e7e2;border-radius:8px;box-shadow:0 24px 70px rgba(22,55,47,.12)}.login-visual{position:relative;isolation:isolate;min-height:640px;overflow:hidden;background:#17413b;color:#fff}.login-visual>img{position:absolute;z-index:-2;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}.login-visual:after{position:absolute;z-index:-1;inset:0;background:rgba(9,38,35,.58);content:''}.login-visual-content{display:flex;flex-direction:column;justify-content:space-between;min-height:inherit;padding:38px 42px}.login-brand{display:inline-flex;align-items:center;gap:14px;width:max-content;color:#fff;text-decoration:none;font:700 18px/1.25 Montserrat,sans-serif}.login-brand img{flex:0 0 auto}.login-brand small{display:block;margin-top:6px;color:#e6c781;font:600 11px/1.4 'DM Sans',sans-serif}.login-intro{max-width:440px;margin-bottom:30px}.login-intro>span,.login-eyebrow{color:#a6c3b1;font-size:12px;font-weight:700}.login-intro h1{margin:14px 0;font:700 34px/1.2 Montserrat,sans-serif;color:#fff}.login-intro p{max-width:330px;margin:0;color:#e5eee9;font-size:16px;line-height:1.6}.login-panel{display:grid;place-items:center;padding:48px}.login-form-wrap{width:min(100%,360px)}.login-mark{display:grid;place-items:center;width:44px;height:44px;margin-bottom:30px;border-radius:6px;background:#edf3ef;color:#17604d;font-size:18px}.login-eyebrow{margin:0 0 8px;color:#497562}.login-panel h2{margin:0;color:#203331;font:700 30px/1.2 Montserrat,sans-serif}.login-copy{margin:10px 0 30px;color:#697973;font-size:15px;line-height:1.5}.login-form{display:grid;gap:9px}.login-form label{margin-top:8px;color:#31433e;font-size:13px;font-weight:700}.login-form .form-control{min-height:48px;border-color:#cad6cf;border-radius:4px;padding:11px 13px;color:#203331}.login-form .form-control:focus{border-color:#26725e;box-shadow:0 0 0 3px rgba(38,114,94,.14)}.login-submit{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin-top:14px;border:0;border-radius:4px;background:#174f43;color:#fff;font-weight:700}.login-submit:hover,.login-submit:focus-visible{background:#103d34;color:#fff}.login-back{display:inline-flex;align-items:center;gap:8px;margin-top:28px;color:#526a60;font-size:13px;font-weight:600;text-decoration:none}.login-back:hover{color:#174f43}.login-notice,.login-error{margin:0 0 18px;padding:11px 12px;border:1px solid #cde2d6;border-radius:4px;background:#f1f8f3;color:#275b40;font-size:13px}.login-error{border-color:#ebcbc7;background:#fff5f3;color:#993e36}@media(max-width:760px){.login-main{padding:14px}.login-layout{grid-template-columns:1fr;min-height:0}.login-visual{min-height:250px}.login-visual-content{min-height:250px;padding:24px}.login-intro{margin:30px 0 2px}.login-intro h1{font-size:26px;margin:8px 0}.login-intro p{font-size:14px}.login-brand img{width:44px;height:44px}.login-panel{padding:36px 24px 32px}.login-mark{margin-bottom:20px}.login-copy{margin-bottom:22px}}@media(max-width:420px){.login-visual{min-height:220px}.login-visual-content{min-height:220px;padding:20px}.login-intro{margin-top:24px}.login-panel{padding:30px 20px}}
   </style>
 </head>
-<body>
-<header class="dash-header"><div class="dash-head-inner"><a class="dash-brand" href="../index.php"><img src="../assets/logo.svg" alt="" width="44" height="44"> <span>Reach Dream Travel <small>/ Dashboard</small></span></a><?php if ($authenticated): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-outline-light btn-sm" name="logout" value="1">Sign out</button></form><?php endif; ?></div></header>
-<main class="dash-main">
-<?php if ($message): ?><div class="dash-status good"><?= admin_h($message) ?></div><?php endif; ?>
-<?php if ($error): ?><div class="dash-status bad"><?= admin_h($error) ?></div><?php endif; ?>
+<body<?= $loginView ? ' class="login-page"' : '' ?>>
+<?php if (!$loginView): ?><header class="dash-header"><div class="dash-head-inner"><a class="dash-brand" href="../index.php"><img src="../assets/logo.svg" alt="" width="44" height="44"> <span>Reach Dream Travel <small>/ Dashboard</small></span></a><?php if ($authenticated): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-outline-light btn-sm" name="logout" value="1">Sign out</button></form><?php endif; ?></div></header><?php endif; ?>
+<main class="dash-main<?= $loginView ? ' login-main' : '' ?>">
+<?php if ($message && !$loginView): ?><div class="dash-status good"><?= admin_h($message) ?></div><?php endif; ?>
+<?php if ($error && !$loginView): ?><div class="dash-status bad"><?= admin_h($error) ?></div><?php endif; ?>
 <?php if ($setupNeeded): ?>
   <section class="dash-panel setup-box"><h1 class="h3">Create dashboard account</h1><p>Create the first admin user. Passwords require at least 12 characters.</p><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><label class="d-block mb-3">Username<input class="form-control mt-1" type="text" name="username" minlength="3" maxlength="100" required autocomplete="username"></label><label class="d-block mb-3">Password<input class="form-control mt-1" type="password" name="password" minlength="12" required autocomplete="new-password"></label><label class="d-block mb-3">Confirm password<input class="form-control mt-1" type="password" name="confirm_password" minlength="12" required autocomplete="new-password"></label><button class="btn btn-success" name="setup" value="1">Create admin user</button></form></section>
 <?php elseif (!$authenticated): ?>
-  <section class="dash-panel setup-box"><h1 class="h3">Sign in</h1><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><label class="d-block mb-3">Username<input class="form-control mt-1" type="text" name="username" required autocomplete="username"></label><label class="d-block mb-3">Password<input class="form-control mt-1" type="password" name="password" required autocomplete="current-password"></label><button class="btn btn-success" name="login" value="1">Sign in</button></form></section>
+  <div class="login-layout">
+    <section class="login-visual" aria-label="Reach Dream Travel">
+      <img src="../assets/images/destinations/hero-himachal.jpg" alt="" fetchpriority="high">
+      <div class="login-visual-content">
+        <a class="login-brand" href="../index.php"><img src="../assets/logo.svg" alt="" width="54" height="54"><span>Reach Dream Travel<small>TRAVEL DASHBOARD</small></span></a>
+        <div class="login-intro"><span>ADMIN ACCESS</span><h1>Your journeys,<br>all in one place.</h1><p>Manage packages and vehicles for every trip ahead.</p></div>
+      </div>
+    </section>
+    <section class="login-panel" aria-labelledby="loginTitle">
+      <div class="login-form-wrap">
+        <span class="login-mark" aria-hidden="true"><i class="fa-solid fa-route"></i></span>
+        <p class="login-eyebrow">Welcome back</p>
+        <h2 id="loginTitle">Sign in</h2>
+        <p class="login-copy">Enter your dashboard credentials to continue.</p>
+<?php if ($message): ?><div class="login-notice" role="status"><?= admin_h($message) ?></div><?php endif; ?>
+<?php if ($error): ?><div class="login-error" role="alert"><?= admin_h($error) ?></div><?php endif; ?>
+        <form method="post" class="login-form">
+          <input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>">
+          <label for="loginUsername">Username</label>
+          <input class="form-control" id="loginUsername" type="text" name="username" required autocomplete="username">
+          <label for="loginPassword">Password</label>
+          <input class="form-control" id="loginPassword" type="password" name="password" required autocomplete="current-password">
+          <button class="btn login-submit" name="login" value="1">Sign in <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
+        </form>
+        <a class="login-back" href="../index.php"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to website</a>
+      </div>
+    </section>
+  </div>
 <?php else: ?>
-  <div class="dash-top"><div><h1>Content dashboard</h1><p>Manage the trips and vehicles shown on your website.</p></div><?php if (!$dbReady): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="initialize_database" value="1"><i class="fa-solid fa-database" aria-hidden="true"></i> Initialize database</button></form><?php else: ?><span class="badge text-bg-success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> MySQL connected</span><?php endif; ?></div>
+  <div class="dash-top"><div><h1>Content dashboard</h1><p>Manage the trips and vehicles shown on your website.</p></div><?php if (!$dbReady): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="initialize_database" value="1"><i class="fa-solid fa-database" aria-hidden="true"></i> Initialize database</button></form><?php endif; ?></div>
   <?php if (!$dbReady): ?><div class="dash-status">MySQL is not initialized. Start MySQL, then choose <strong>Initialize database</strong> to create the database and import the current catalog.</div><?php endif; ?>
   <nav class="dash-tabs" aria-label="Content types"><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a></nav>
   <?php if ($selectedTab === 'packages'): ?>
@@ -240,8 +302,9 @@ $dbReady = app_db() !== null && !empty($dbPackages) && !empty($dbTaxis);
         <label>Card label<input name="label" value="<?= admin_h($packageForm['label'] ?? '') ?>" placeholder="e.g. Desert & heritage"></label>
         <label>Category<select name="cat" required><option value="" disabled<?= empty($packageForm['cat']) ? ' selected' : '' ?>>Choose a category</option><?php foreach ($categories as $key => $label): ?><option value="<?= admin_h($key) ?>"<?= ($packageForm['cat'] ?? '') === $key ? ' selected' : '' ?>><?= admin_h($label) ?></option><?php endforeach; ?></select></label>
         <label>Duration<input name="duration" value="<?= admin_h($packageForm['duration'] ?? '') ?>" placeholder="e.g. 5 days · 4 nights"></label>
-        <label>Short duration<input name="short" value="<?= admin_h($packageForm['short'] ?? '') ?>" placeholder="e.g. 5D · 4N"></label>
-        <label>Difficulty<input name="difficulty" value="<?= admin_h($packageForm['difficulty'] ?? 'Easy') ?>" placeholder="Easy, moderate or challenging"></label>
+        <label>Regular price (INR)<input type="number" name="price_regular" min="0" step="1" inputmode="numeric" value="<?= admin_h($packageForm['price_regular'] ?? '') ?>" placeholder="Optional"></label>
+        <label>Discount price (INR)<input type="number" name="price_discount" min="0" step="1" inputmode="numeric" value="<?= admin_h($packageForm['price_discount'] ?? '') ?>" placeholder="Optional"></label>
+        <p class="dash-wide dash-note">Leave prices blank to hide them. If both are entered, the discount must be lower than the regular price.</p>
         <label>Best season<input name="season" value="<?= admin_h($packageForm['season'] ?? 'All year') ?>" placeholder="e.g. October to March"></label>
         <label>Package image<select name="image" data-package-image><option value="">Choose an image from the library</option><?php foreach ($imageNames as $image): ?><option value="<?= admin_h($image) ?>"<?= ($packageForm['image'] ?? '') === $image ? ' selected' : '' ?>><?= admin_h($image) ?></option><?php endforeach; ?></select></label>
         <label>Upload package image<input type="file" name="package_image" accept="image/jpeg,image/png,image/webp" data-package-upload><span class="dash-note">JPEG, PNG or WebP. Minimum 600 × 350 px; maximum 10 MB. Upload overrides the library selection.</span></label>

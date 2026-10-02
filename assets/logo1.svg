@@ -1,0 +1,11 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Reach Dream Travel route map logo">
+  <rect x="8" y="8" width="104" height="104" rx="28" fill="#123B3A"/>
+  <path d="M25 38L48 31L72 39L96 31V82L72 90L48 82L25 89V38Z" fill="#F7F5E9" stroke="#F7F5E9" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M48 32V82M72 39V89" stroke="#A7BDB0" stroke-width="3"/>
+  <path d="M35 69C44 62 48 54 59 58C68 61 72 69 83 52" stroke="#D99A32" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 8"/>
+  <circle cx="36" cy="68" r="5" fill="#123B3A" stroke="#F2BD57" stroke-width="3"/>
+  <path d="M84 37C77.9 37 73 41.9 73 48C73 56.2 84 67 84 67C84 67 95 56.2 95 48C95 41.9 90.1 37 84 37Z" fill="#F2BD57" stroke="#123B3A" stroke-width="2.5"/>
+  <circle cx="84" cy="48" r="3.5" fill="#123B3A"/>
+  <path d="M25 96H95" stroke="#F2BD57" stroke-width="4" stroke-linecap="round"/>
+  <path d="M89 22L91 27L96 29L91 31L89 36L87 31L82 29L87 27L89 22Z" fill="#F2BD57"/>
+</svg>

@@ -1,8 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'home';
-$pageTitle = 'Private Trips Across India';
-$pageDescription = 'Plan a private road trip with Reach Dream Travel. Explore Himachal, Spiti, the Golden Triangle and Rajasthan with a driver, stays and a route shaped around your group.';
+$pageTitle = 'Private North India Tours & Road Trips';
+$pageDescription = 'Plan a private North India tour with Reach Dream Travel. Explore Himachal, Kashmir, Uttarakhand, Rajasthan and the Golden Triangle with a driver, stays and a flexible itinerary.';
 require __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/includes/components.php';
 ?>
@@ -13,9 +13,9 @@ require_once __DIR__ . '/includes/components.php';
       <div class="container hero-content">
         <div class="row align-items-center g-5">
           <div class="col-12 col-lg-7 hero-copy">
-            <p class="hero-kicker">Private trips from Amritsar across India</p>
-            <h1 id="heroTitle">Road trips planned around you.</h1>
-            <p class="hero-lead">Choose a route and set your pace. We arrange the driver, vehicle and stays, from Himachal’s mountain roads to North India’s heritage circuits.</p>
+            <p class="hero-kicker">Private road trips, made personal</p>
+            <h1 id="heroTitle">Private tours across North India.</h1>
+            <p class="hero-lead">Explore Himalayan valleys, Kashmir, Uttarakhand, Rajasthan and the Golden Triangle. We coordinate your route, vehicle, driver and stays around your dates.</p>
             <div class="hero-actions">
               <a class="btn btn-gold" href="packages.php">Explore packages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
               <a class="btn btn-glass" href="<?= e(wa_link()) ?>" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Plan on WhatsApp</a>
@@ -94,14 +94,14 @@ require_once __DIR__ . '/includes/components.php';
     <!-- Destination ribbon -->
     <div class="ribbon-band" aria-hidden="true">
       <div class="ribbon-track">
-        <span>Shimla</span><i class="fa-solid fa-mountain"></i><span>Manali</span><i class="fa-solid fa-mountain"></i><span>Kinnaur</span><i class="fa-solid fa-mountain"></i><span>Spiti Valley</span><i class="fa-solid fa-mountain"></i><span>Kasol</span><i class="fa-solid fa-mountain"></i><span>Chitkul</span><i class="fa-solid fa-mountain"></i><span>Atal Tunnel</span><i class="fa-solid fa-mountain"></i><span>Chandratal</span><i class="fa-solid fa-mountain"></i>
-        <span>Shimla</span><i class="fa-solid fa-mountain"></i><span>Manali</span><i class="fa-solid fa-mountain"></i><span>Kinnaur</span><i class="fa-solid fa-mountain"></i><span>Spiti Valley</span><i class="fa-solid fa-mountain"></i><span>Kasol</span><i class="fa-solid fa-mountain"></i><span>Chitkul</span><i class="fa-solid fa-mountain"></i><span>Atal Tunnel</span><i class="fa-solid fa-mountain"></i><span>Chandratal</span><i class="fa-solid fa-mountain"></i>
+        <span>Shimla</span><i class="fa-solid fa-route"></i><span>Manali</span><i class="fa-solid fa-route"></i><span>Srinagar</span><i class="fa-solid fa-route"></i><span>Gulmarg</span><i class="fa-solid fa-route"></i><span>Nainital</span><i class="fa-solid fa-route"></i><span>Rishikesh</span><i class="fa-solid fa-route"></i><span>Jaipur</span><i class="fa-solid fa-route"></i><span>Agra</span><i class="fa-solid fa-route"></i>
+        <span>Shimla</span><i class="fa-solid fa-route"></i><span>Manali</span><i class="fa-solid fa-route"></i><span>Srinagar</span><i class="fa-solid fa-route"></i><span>Gulmarg</span><i class="fa-solid fa-route"></i><span>Nainital</span><i class="fa-solid fa-route"></i><span>Rishikesh</span><i class="fa-solid fa-route"></i><span>Jaipur</span><i class="fa-solid fa-route"></i><span>Agra</span><i class="fa-solid fa-route"></i>
       </div>
     </div>
 
     <!-- Packages -->
     <section class="section section-packages" id="packages">
-      <span class="bg-word" data-drift="0.25" aria-hidden="true">HIMACHAL</span>
+      <span class="bg-word" data-drift="0.25" aria-hidden="true">NORTH INDIA</span>
       <div class="container">
         <div class="section-heading split">
           <div><span class="eyebrow">Sample itineraries</span><h2>Choose a starting point.</h2><p>Browse mountain routes, heritage circuits and short city breaks. Each itinerary can be adjusted around your dates.</p></div>
@@ -124,9 +124,9 @@ require_once __DIR__ . '/includes/components.php';
       <div class="container">
         <div class="section-heading split">
           <div>
-            <span class="eyebrow">Beyond Himachal</span>
+            <span class="eyebrow">Explore North India</span>
             <h2>North India, by road.</h2>
-            <p>Three sample routes beyond Himachal, with the route and duration shown up front. Each can be adjusted around your dates.</p>
+            <p>From the Golden Triangle to Rajasthan’s heritage cities, start with a sample itinerary and tailor it to your dates.</p>
           </div>
           <a class="text-link" href="packages.php">Browse all packages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
@@ -210,7 +210,7 @@ require_once __DIR__ . '/includes/components.php';
           <div class="col-12 col-lg-5">
             <span class="eyebrow eyebrow-light">Made for your journey</span>
             <h2 id="journeyTitle">Booking is easy.</h2>
-            <p>Tell us where you want to go. We plan everything and pick you up from your door.</p>
+            <p>Share your dates, group size and the places you have in mind. We’ll help shape the route and coordinate the arrangements you need.</p>
             <div class="counter-grid">
               <div class="counter-item"><strong><?= count($vehicles) ?></strong><small>Vehicle options</small></div>
               <div class="counter-item"><strong><?= count($destinations) ?></strong><small>Destinations</small></div>
@@ -221,7 +221,7 @@ require_once __DIR__ . '/includes/components.php';
             <ol class="steps list-unstyled">
               <li class="step"><span class="step-no">01</span><div><h3>Tell us your plan</h3><p>Your dates, how many people, and where you want to go — even a rough idea is fine.</p></div><i class="fa-solid fa-comments step-icon" aria-hidden="true"></i></li>
               <li class="step"><span class="step-no">02</span><div><h3>Get your trip plan</h3><p>We send you the day-by-day plan, hotels, car and price.</p></div><i class="fa-solid fa-map-location-dot step-icon" aria-hidden="true"></i></li>
-              <li class="step"><span class="step-no">03</span><div><h3>Start your trip</h3><p>The driver picks you up from your door. We are one call away the whole time.</p></div><i class="fa-solid fa-car-side step-icon" aria-hidden="true"></i></li>
+              <li class="step"><span class="step-no">03</span><div><h3>Start your trip</h3><p>Meet your driver at the agreed pickup point, with our team available if you need help along the way.</p></div><i class="fa-solid fa-car-side step-icon" aria-hidden="true"></i></li>
             </ol>
           </div>
         </div>
@@ -237,13 +237,13 @@ require_once __DIR__ . '/includes/components.php';
               <img class="about-main" src="<?= e(img('kinnaur-sangla', true)) ?>" alt="Sangla valley in Kinnaur" loading="lazy">
               <img class="about-sub" data-depth="-0.12" src="<?= e(img('hidimba', true)) ?>" alt="Hidimba Devi Temple in Manali" loading="lazy">
               <div class="about-stamp" data-depth="0.18"><b>RD</b><small>YOUR JOURNEY<br>OUR PASSION</small></div>
-              <div class="about-chip" data-depth="0.08"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><b>Trips all over Himachal</b><small>Door-to-door pickup</small></span></div>
+              <div class="about-chip" data-depth="0.08"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span><b>Trips across North India</b><small>Pickup by arrangement</small></span></div>
             </div>
           </div>
           <div class="col-12 col-lg-6 about-copy">
             <span class="eyebrow">About Reach Dream Travel</span>
             <h2>One plan for the road ahead.</h2>
-            <p>Reach Dream Travel takes families, friends and groups to the Himachal mountains — Shimla, Manali, Kasol, Kinnaur and Spiti.</p>
+            <p>Reach Dream Travel plans private holidays across North India, from Himachal and Kashmir to Uttarakhand, Rajasthan and the Golden Triangle.</p>
             <p>Share your dates, group size and preferred pace. We’ll help put together the route, vehicle and stays before you decide.</p>
             <ul class="about-list list-unstyled">
               <li><i class="fa-solid fa-route" aria-hidden="true"></i> Pickup and drop arranged around your route</li>
