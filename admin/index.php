@@ -265,7 +265,7 @@ $loginView = !$setupNeeded && !$authenticated;
     <section class="login-visual" aria-label="Reach Dream Travel">
       <img src="../assets/images/destinations/hero-himachal.jpg" alt="" fetchpriority="high">
       <div class="login-visual-content">
-        <a class="login-brand" href="../index.php"><img src="../assets/logo.svg" alt="" width="54" height="54"><span>Reach Dream Travel<small>TRAVEL DASHBOARD</small></span></a>
+        <a class="login-brand" href="../index.php"><img src="../assets/logo.svg" alt="" width="170px" height="auto"><span><small>TRAVEL DASHBOARD</small></span></a>
         <div class="login-intro"><span>ADMIN ACCESS</span><h1>Your journeys,<br>all in one place.</h1><p>Manage packages and vehicles for every trip ahead.</p></div>
       </div>
     </section>

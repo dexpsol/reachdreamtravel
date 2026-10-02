@@ -11,11 +11,13 @@ function smtp_read_reply($socket): array
     return [(int) substr($reply, 0, 3), trim($reply)];
 }
 
-function smtp_command($socket, string $command, array $accepted): string
+function smtp_command($socket, string $command, array $accepted, string $name): string
 {
     if (fwrite($socket, $command . "\r\n") === false) throw new RuntimeException('SMTP write failed.');
     [$code, $reply] = smtp_read_reply($socket);
-    if (!in_array($code, $accepted, true)) throw new RuntimeException('SMTP server rejected a command.');
+    if (!in_array($code, $accepted, true)) {
+        throw new RuntimeException('SMTP rejected ' . $name . ' with ' . $code . ': ' . preg_replace('/[\r\n]+/', ' ', $reply));
+    }
     return $reply;
 }
 
@@ -42,13 +44,13 @@ function smtp_send_message(array $config, string $recipient, string $subject, st
         [$code] = smtp_read_reply($socket);
         if ($code !== 220) throw new RuntimeException('SMTP server is unavailable.');
         $hostname = preg_replace('/[^a-zA-Z0-9.-]/', '', (string) gethostname()) ?: 'localhost';
-        smtp_command($socket, 'EHLO ' . $hostname, [250]);
-        smtp_command($socket, 'AUTH LOGIN', [334]);
-        smtp_command($socket, base64_encode($config['smtp_user']), [334]);
-        smtp_command($socket, base64_encode($config['smtp_password']), [235]);
-        smtp_command($socket, 'MAIL FROM:<' . $config['from'] . '>', [250]);
-        smtp_command($socket, 'RCPT TO:<' . $recipient . '>', [250, 251]);
-        smtp_command($socket, 'DATA', [354]);
+        smtp_command($socket, 'EHLO ' . $hostname, [250], 'EHLO');
+        smtp_command($socket, 'AUTH LOGIN', [334], 'authentication start');
+        smtp_command($socket, base64_encode($config['smtp_user']), [334], 'authentication username');
+        smtp_command($socket, base64_encode($config['smtp_password']), [235], 'authentication password');
+        smtp_command($socket, 'MAIL FROM:<' . $config['from'] . '>', [250], 'sender address');
+        smtp_command($socket, 'RCPT TO:<' . $recipient . '>', [250, 251], 'recipient address');
+        smtp_command($socket, 'DATA', [354], 'message start');
 
         $headers = [
             'Date: ' . date(DATE_RFC2822),
@@ -67,7 +69,7 @@ function smtp_send_message(array $config, string $recipient, string $subject, st
         }
         [$code] = smtp_read_reply($socket);
         if ($code !== 250) throw new RuntimeException('SMTP server did not accept the email.');
-        smtp_command($socket, 'QUIT', [221]);
+        smtp_command($socket, 'QUIT', [221], 'connection close');
         return true;
     } finally {
         fclose($socket);

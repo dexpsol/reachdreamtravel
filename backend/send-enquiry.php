@@ -80,6 +80,9 @@ try {
     );
 } catch (Throwable $error) {
     error_log('Package enquiry email failed: ' . $error->getMessage());
+    if (str_contains($error->getMessage(), 'authentication')) {
+        enquiry_response(503, false, 'Email sign-in failed. Please update the Gmail app password in the server mail settings. Your request is ready in WhatsApp; please tap Send.');
+    }
     enquiry_response(503, false, 'Email could not be sent right now. Your request is ready in WhatsApp; please tap Send.');
 }
 

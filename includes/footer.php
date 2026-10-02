@@ -126,6 +126,6 @@ $footerPackages = array_slice($packages, 0, 4, true);
   <dialog class="lightbox" id="lightbox" aria-label="Photo viewer"><button class="lightbox-close" aria-label="Close gallery"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button><button class="lightbox-prev" aria-label="Previous image"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button><img alt="Himachal scenery"><button class="lightbox-next" aria-label="Next image"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button><div class="lightbox-caption"><b></b><small></small></div><span class="lightbox-count"></span></dialog>
 
   <script src="assets/bootstrap/bootstrap.bundle.min.js" defer></script>
-  <script src="script.js" defer></script>
+  <script src="script.js?v=<?= (int) (filemtime(__DIR__ . '/../script.js') ?: 0) ?>" defer></script>
 </body>
 </html>

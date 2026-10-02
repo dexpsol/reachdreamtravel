@@ -94,7 +94,7 @@ function trip_select_options(): void
 function vehicle_select_options(): void
 {
     global $vehicles;
-    echo '<option>Suggest the best option</option>';
+    echo '<option>No preference - please suggest the best option</option>';
     foreach ($vehicles as $v) {
         echo '<option>' . e($v['name']) . '</option>';
     }

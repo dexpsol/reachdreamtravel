@@ -63,7 +63,7 @@ $nav = [
       <a class="navbar-brand brand" href="<?= e($nav['home'][1]) ?>" aria-label="<?= e($site['name']) ?> home"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="100%" height="auto"></span></a>
       <button class="navbar-toggler menu-toggle ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#siteMenu" aria-controls="siteMenu" aria-expanded="false" aria-label="Open navigation"><span class="toggle-lines"></span></button>
       <div class="offcanvas offcanvas-xl offcanvas-start site-menu" tabindex="-1" id="siteMenu" aria-labelledby="siteMenuLabel">
-        <div class="offcanvas-header d-xl-none"><a class="navbar-brand brand" href="<?= e($nav['home'][1]) ?>" id="siteMenuLabel"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="44" height="44"></span><span>Reach Dream<small>TRAVEL &amp; TOURS</small></span></a><button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close navigation"></button></div>
+        <div class="offcanvas-header d-xl-none"><a class="navbar-brand brand" href="<?= e($nav['home'][1]) ?>" id="siteMenuLabel"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="100%" height="auto"></span></a><button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close navigation"></button></div>
         <div class="offcanvas-body">
           <ul class="navbar-nav mx-xl-auto">
 <?php foreach ($nav as $key => [$label, $href]): ?>
