@@ -40,6 +40,7 @@ require_once __DIR__ . '/includes/components.php';
               <label class="field"><span>Where to?</span>
                 <select name="destination"><?php trip_select_options(); ?></select>
               </label>
+              <label class="field"><span>Duration</span><select name="duration"><option value="" selected disabled>Number of nights</option><option>2 Nights</option><option>3 Nights</option><option>5 Nights</option><option>7 Nights</option><option>9 Nights</option><option>10+ Nights</option></select></label>
               <div class="field-row">
                 <label class="field"><span>Travel date</span><input type="date" name="date"></label>
                 <label class="field"><span>Travellers</span><input type="number" name="travellers" min="1" max="40" value="2" inputmode="numeric"></label>

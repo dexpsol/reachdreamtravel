@@ -5236,6 +5236,18 @@ a.package-image {
   position: relative
 }
 
+.dr-image-credit {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: right
+}
+
+.dr-image-credit:hover {
+  color: var(--navy)
+}
+
 .dr-media img {
   width: 100%;
   aspect-ratio: 4/3;

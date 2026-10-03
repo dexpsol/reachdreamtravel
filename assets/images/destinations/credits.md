@@ -12,3 +12,12 @@
 - `rishikesh.jpg`: Carol Miranda, [Along the Holy Ganges river in Rishikesh](https://commons.wikimedia.org/wiki/File:Along_the_Holy_Ganges_river_in_Rishikesh,India.jpg), CC BY-SA 4.0.
 - `jim-corbett.jpg`: Timothy Gonsalves, [Sambar Corbett India](https://commons.wikimedia.org/wiki/File:Sambar_Corbett_India_Dec19_D72_12585.jpg), CC BY-SA 4.0.
 - `srinagar.jpg`: KennyOMG, [Srinagar panorama](https://commons.wikimedia.org/wiki/File:Srinagar_pano.jpg), CC BY-SA 3.0.
+- `Pathankot_City.jpg`: Vishalsaini, [Pathankot City](https://commons.wikimedia.org/wiki/File:Pathankot_City.jpg), CC BY-SA 3.0.
+- `Chandigarh_Rock_Garden.jpg`: Klaus Nahr, [Chandigarh Rock Garden](https://commons.wikimedia.org/wiki/File:Chandigarh_Rock_Garden.jpg), CC BY-SA 2.0.
+- `Chail_Palace.jpg`: Shrey.ashi, [Chail Palace](https://commons.wikimedia.org/wiki/File:Chail_Palace.jpg), CC BY 4.0.
+- `Palampur_tea_plantation,_Himachal_Pradesh,_India.jpg`: UnpetitproleX, [Palampur tea plantation](https://commons.wikimedia.org/wiki/File:Palampur_tea_plantation,_Himachal_Pradesh,_India.jpg), CC BY-SA 4.0.
+- `McLeod_Ganj_main_street.jpg`: John Hill, [McLeod Ganj main street](https://commons.wikimedia.org/wiki/File:McLeod_Ganj_main_street.jpg), CC BY-SA 3.0 / GFDL.
+- `Dalhousie_View_l_Himachal_Pradesh.jpg`: Piyush Tripathi, [Dalhousie view](https://commons.wikimedia.org/wiki/File:Dalhousie_View_l_Himachal_Pradesh.jpg), CC BY-SA 4.0.
+- `Kufri_in_Shimla_3.jpg`: [Kufri in Shimla](https://commons.wikimedia.org/wiki/File:Kufri_in_Shimla_3.jpg), CC BY-SA 4.0.
+- `Narkanda.jpg`: Skmishraindia, [Narkanda](https://commons.wikimedia.org/wiki/File:Narkanda.jpg), CC0.
+- `Kangra_Fort,_Kangra,_Himachal_Pradesh.jpg`: Brahmavadini, [Kangra Fort](https://commons.wikimedia.org/wiki/File:Kangra_Fort,_Kangra,_Himachal_Pradesh.jpg), CC BY 4.0.

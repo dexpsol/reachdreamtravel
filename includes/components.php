@@ -55,7 +55,7 @@ function package_card(string $slug, array $p): void
                 <h3><a href="<?= e(package_url($slug)) ?>"><?= e($p['title']) ?></a></h3>
                 <p class="route"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <?= e($p['route']) ?></p>
 <?php package_price($p); ?>
-                <div class="package-tags"><span class="tag-from"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Pickup &amp; drop</span><span><i class="fa-solid fa-signal" aria-hidden="true"></i> <?= e($p['difficulty']) ?></span><span><i class="fa-solid fa-sun" aria-hidden="true"></i> <?= e($p['season']) ?></span></div>
+                <div class="package-tags"><span class="tag-from"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Pickup &amp; drop</span><span><i class="fa-solid fa-sun" aria-hidden="true"></i> <?= e($p['season']) ?></span></div>
                 <a class="package-link" href="<?= e(package_url($slug)) ?>">See day-by-day plan <span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span></a>
                 <div class="package-contact-actions" aria-label="Contact us about <?= e($p['title']) ?>">
                   <a class="package-contact-icon package-call" href="tel:<?= e($site['phoneLink']) ?>" aria-label="Call about <?= e($p['title']) ?>" title="Call us"><i class="fa-solid fa-phone" aria-hidden="true"></i></a>
@@ -102,9 +102,9 @@ function filter_bar(array $options, string $target, string $label): void
 /** Trip enquiry form fields (destination/date/travellers/vehicle), shared by forms. */
 function trip_select_options(): void
 {
-    global $publicPackages;
-    foreach ($publicPackages as $p) {
-        echo '<option>' . e($p['title']) . '</option>';
+    global $destinations;
+    foreach ($destinations as $destination) {
+        echo '<option>' . e($destination['name']) . '</option>';
     }
     echo '<option>Custom trip</option>';
 }

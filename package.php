@@ -23,7 +23,7 @@ $pageHero = [
     'title'   => $package['title'],
     'lead'    => $package['route'],
     'image'   => img($package['image']),
-    'meta'    => [['fa-clock', $package['duration']], ['fa-signal', $package['difficulty']], ['fa-sun', $package['season']]],
+    'meta'    => [['fa-clock', $package['duration']], ['fa-sun', $package['season']]],
 ];
 require __DIR__ . '/includes/header.php';
 
@@ -46,7 +46,6 @@ $related = array_slice($related, 0, 3, true);
           <div class="pd-main">
             <div class="pd-facts">
               <div><i class="fa-solid fa-clock" aria-hidden="true"></i><small>Duration</small><b><?= e($package['duration']) ?></b></div>
-              <div><i class="fa-solid fa-signal" aria-hidden="true"></i><small>Difficulty</small><b><?= e($package['difficulty']) ?></b></div>
               <div><i class="fa-solid fa-sun" aria-hidden="true"></i><small>Best season</small><b><?= e($package['season']) ?></b></div>
               <div><i class="fa-solid fa-location-dot" aria-hidden="true"></i><small>Starts &amp; ends</small><b><?= e($package['start']) ?></b></div>
             </div>

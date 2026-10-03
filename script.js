@@ -312,7 +312,7 @@
   }
 
   // Trip enquiry forms open WhatsApp with the submitted details ready to send.
-  const labels = { name: 'Name', phone: 'Phone', email: 'Email', destination: 'Trip', date: 'Travel date', travellers: 'Travellers', purpose: 'Package for', arrival: 'Arrival date', departure: 'Departure date', adults: 'Adults', kids: 'Kids', room_required: 'Room required', room_type: 'Room type', meal_plan: 'Meal plan', transportation: 'Transportation', vehicle: 'Vehicle type', message: 'Notes' };
+  const labels = { name: 'Name', phone: 'Phone', email: 'Email', destination: 'Trip', duration: 'Duration (nights)', date: 'Travel date', travellers: 'Travellers', purpose: 'Package for', arrival: 'Arrival date', departure: 'Departure date', adults: 'Adults', kids: 'Kids', room_required: 'Room required', room_type: 'Room type', meal_plan: 'Meal plan', transportation: 'Transportation', vehicle: 'Vehicle type', message: 'Notes' };
   document.querySelectorAll('[data-transport-choice]').forEach(choice => {
     const vehicleField = choice.form.querySelector('[data-vehicle-field]');
     const vehicleSelect = vehicleField.querySelector('select');
