@@ -1,5 +1,8 @@
 # Destination Photo Credits
 
+- `sanjauli-daytime.png`: AI-generated daytime Sanjauli hillside hero image.
+- `sanjauli-sunset.png`: AI-generated wide adaptation of the sunset Sanjauli reference image provided in chat.
+
 - `taj-mahal-agra.jpg`: AussieActive, [Taj Mahal, India](https://unsplash.com/photos/taj-mahal-india-Thr_TUYPtAk), via [Unsplash](https://unsplash.com/license).
 - `hawa-mahal-jaipur.jpg`: Luqman Hariz, [Hawa Mahal, Jaipur, India](https://unsplash.com/photos/hawa-mahal-jaipur-india--s529_PPy1Y), via [Unsplash](https://unsplash.com/license).
 - `amritsar-golden-temple.jpg`: Oleg Yunakov, [Hamandir Sahib (Golden Temple)](https://commons.wikimedia.org/wiki/File:Hamandir_Sahib_(Golden_Temple).jpg), CC BY-SA 3.0.

@@ -508,14 +508,14 @@ h3 {
 }
 
 .hero-image {
-  background: url('assets/images/destinations/sanjauli.jpeg') center 45%/cover no-repeat;
+  background: url('assets/images/destinations/sanjauli-sunset.png') center 52%/cover no-repeat;
   transform: scale(1.06);
   animation: hero-zoom 18s ease-out both;
   will-change: transform
 }
 
 .hero-overlay {
-  background: linear-gradient(100deg, rgba(8, 22, 38, .92) 0%, rgba(8, 22, 38, .72) 45%, rgba(8, 22, 38, .35) 100%), linear-gradient(0deg, rgba(8, 22, 38, .85) 0%, transparent 40%)
+  background: linear-gradient(100deg, rgba(8, 22, 38, .72) 0%, rgba(8, 22, 38, .48) 45%, rgba(8, 22, 38, .16) 100%), linear-gradient(0deg, rgba(8, 22, 38, .58) 0%, transparent 48%)
 }
 
 .hero-content {

@@ -112,7 +112,7 @@ $footerPackages = array_slice($packages, 0, 4, true);
       </div>
       <label class="field"><span>Where to?</span><select name="destination"><?php trip_select_options(); ?></select></label>
       <div class="field-row">
-        <label class="field"><span>Travel date</span><input type="date" name="date" placeholder="Select travel date"></label>
+        <label class="field"><span>Travel date</span><input type="date" name="date" min="<?= date('Y-m-d') ?>" placeholder="Select travel date"></label>
         <label class="field"><span>Travellers</span><input type="number" name="travellers" min="1" max="40" value="2" inputmode="numeric" placeholder="Number of travellers"></label>
       </div>
       <label class="field"><span>Vehicle</span><select name="vehicle"><?php vehicle_select_options(); ?></select></label>

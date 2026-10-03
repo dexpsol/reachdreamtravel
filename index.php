@@ -42,7 +42,7 @@ require_once __DIR__ . '/includes/components.php';
               </label>
               <label class="field"><span>Duration</span><select name="duration"><option value="" selected disabled>Number of nights</option><option>2 Nights</option><option>3 Nights</option><option>5 Nights</option><option>7 Nights</option><option>9 Nights</option><option>10+ Nights</option></select></label>
               <div class="field-row">
-                <label class="field"><span>Travel date</span><input type="date" name="date"></label>
+                <label class="field"><span>Travel date</span><input type="date" name="date" min="<?= date('Y-m-d') ?>"></label>
                 <label class="field"><span>Travellers</span><input type="number" name="travellers" min="1" max="40" value="2" inputmode="numeric"></label>
               </div>
               <label class="field"><span>Vehicle</span>
@@ -95,8 +95,9 @@ require_once __DIR__ . '/includes/components.php';
     <!-- Destination ribbon -->
     <div class="ribbon-band" aria-hidden="true">
       <div class="ribbon-track">
-        <span>Shimla</span><i class="fa-solid fa-route"></i><span>Manali</span><i class="fa-solid fa-route"></i><span>Srinagar</span><i class="fa-solid fa-route"></i><span>Gulmarg</span><i class="fa-solid fa-route"></i><span>Nainital</span><i class="fa-solid fa-route"></i><span>Rishikesh</span><i class="fa-solid fa-route"></i><span>Jaipur</span><i class="fa-solid fa-route"></i><span>Agra</span><i class="fa-solid fa-route"></i>
-        <span>Shimla</span><i class="fa-solid fa-route"></i><span>Manali</span><i class="fa-solid fa-route"></i><span>Srinagar</span><i class="fa-solid fa-route"></i><span>Gulmarg</span><i class="fa-solid fa-route"></i><span>Nainital</span><i class="fa-solid fa-route"></i><span>Rishikesh</span><i class="fa-solid fa-route"></i><span>Jaipur</span><i class="fa-solid fa-route"></i><span>Agra</span><i class="fa-solid fa-route"></i>
+<?php $ribbonDestinations = array_column($destinations, 'name'); for ($copy = 0; $copy < 2; $copy++): foreach ($ribbonDestinations as $destinationName): ?>
+        <span><?= e($destinationName) ?></span><i class="fa-solid fa-route" aria-hidden="true"></i>
+<?php endforeach; endfor; ?>
       </div>
     </div>
 
