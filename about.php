@@ -92,7 +92,7 @@ require __DIR__ . '/includes/header.php';
             <div class="counter-grid">
               <div class="counter-item"><strong><?= count($vehicles) ?></strong><small>Vehicle options</small></div>
               <div class="counter-item"><strong><?= count($destinations) ?></strong><small>Destinations</small></div>
-              <div class="counter-item"><strong><?= count($packages) ?></strong><small>Sample itineraries</small></div>
+              <div class="counter-item"><strong><?= count($publicPackages) ?></strong><small>Sample itineraries</small></div>
             </div>
           </div>
           <div class="col-12 col-lg-7">

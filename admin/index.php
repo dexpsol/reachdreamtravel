@@ -12,7 +12,7 @@ if ($db) {
     $db->exec('CREATE TABLE IF NOT EXISTS users (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL, role VARCHAR(32) NOT NULL DEFAULT \'admin\', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
     $setupNeeded = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn() === 0;
 }
-$categories = ['road' => 'Long road trips', 'hills' => 'Hill stations', 'nature' => 'Nature & adventure', 'heritage' => 'Heritage & culture', 'city' => 'City escapes', 'north' => 'Northern India'];
+$categories = ['nature' => 'Nature', 'heritage' => 'Heritage', 'himachal' => 'Himachal tours', 'trekking' => 'Trekking', 'camping' => 'Camping', 'religious' => 'Religious / Temple', 'solo' => 'Solo trips', 'new-year' => 'New Year', 'group' => 'Group tours', 'adventure' => 'Adventure / Activities', 'special' => 'Special interest', 'hills' => 'Hill stations', 'road' => 'Long road trips', 'north' => 'Northern India'];
 $imageFiles = [];
 foreach (['destinations', 'stays'] as $imageFolder) {
     foreach (['jpg', 'jpeg', 'png', 'webp'] as $imageExtension) {
@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!empty($_SESSION['admin'])) {
         if (isset($_POST['initialize_database'])) {
             try {
-                $error = app_db_initialize($packages ?: $defaultPackages, $vehicles ?: $defaultVehicles);
+                $error = app_db_initialize($packages ?: $defaultPackages, $vehicles ?: $defaultVehicles, $destinationGroups ?: $defaultDestinationGroups);
                 if ($error === '') {
                     $_SESSION['notice'] = 'Database is ready. Current packages and taxis were imported.';
                     admin_redirect();
@@ -124,10 +124,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } else {
             $kind = (string) ($_POST['kind'] ?? 'package');
-            $table = $kind === 'taxi' ? 'taxis' : 'packages';
+            $table = 'packages';
             $action = (string) ($_POST['action'] ?? 'save');
             $slug = admin_slug((string) ($_POST['slug'] ?? ''));
             try {
+                if (!in_array($kind, ['package', 'taxi', 'destination'], true)) {
+                    throw new RuntimeException('Choose a valid content type.');
+                }
+                $table = ['package' => 'packages', 'taxi' => 'taxis', 'destination' => 'destination_groups'][$kind];
                 $db = app_db();
                 if (!$db) throw new RuntimeException('Start MySQL and use Initialize database before saving records.');
                 if ($action === 'delete') {
@@ -156,12 +160,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'best' => trim((string) ($_POST['best'] ?? '')), 'terrain' => trim((string) ($_POST['terrain'] ?? '')),
                         'features' => admin_lines((string) ($_POST['features'] ?? '')), 'routes' => admin_lines((string) ($_POST['routes'] ?? '')),
                     ];
+                } elseif ($kind === 'destination') {
+                    $items = admin_lines((string) ($_POST['items'] ?? ''));
+                    $image = (string) ($_POST['image'] ?? '');
+                    if (!$items) throw new RuntimeException('Add at least one place or attraction.');
+                    if (!in_array($image, $imageNames, true)) throw new RuntimeException('Choose an image from the destination image library.');
+                    $record = [
+                        'title' => $name,
+                        'image' => $image,
+                        'description' => trim((string) ($_POST['description'] ?? '')),
+                        'items' => $items,
+                    ];
+                    if ($record['description'] === '') throw new RuntimeException('Add a short description for this destination group.');
                 } else {
-                    $category = (string) ($_POST['cat'] ?? 'heritage');
+                    $categoryValues = $_POST['cat'] ?? ['heritage'];
+                    if (!is_array($categoryValues)) $categoryValues = [$categoryValues];
+                    $categoryValues = array_values(array_unique(array_filter(array_map('strval', $categoryValues), static fn($category) => $category !== '')));
                     $image = (string) ($_POST['image'] ?? '');
                     $previousSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
                     $previousPackage = $packages[$previousSlug] ?? $packages[$slug] ?? [];
-                    if (!isset($categories[$category])) throw new RuntimeException('Choose a valid package category.');
+                    if (!$categoryValues || array_diff($categoryValues, array_keys($categories))) throw new RuntimeException('Choose at least one valid package category.');
                     $highlights = admin_lines((string) ($_POST['highlights'] ?? ''));
                     $days = [];
                     foreach (admin_lines((string) ($_POST['days'] ?? '')) as $line) {
@@ -191,8 +209,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         throw new RuntimeException('Upload a package image or choose one from the image library.');
                     }
                     $record = [
-                        'title' => $name, 'label' => trim((string) ($_POST['label'] ?? '')), 'cat' => $category,
-                        'duration' => $previousPackage['duration'] ?? 'Custom duration', 'short' => $previousPackage['short'] ?? 'Flexible',
+                        'title' => $name, 'label' => trim((string) ($_POST['label'] ?? '')), 'cat' => implode(' ', $categoryValues),
+                        'duration' => trim((string) ($_POST['duration'] ?? '')) ?: 'Custom duration', 'short' => trim((string) ($_POST['short'] ?? '')) ?: 'Flexible',
                         'popular' => !empty($_POST['popular']), 'image' => $image, 'image_customized' => true, 'difficulty' => $previousPackage['difficulty'] ?? 'Planned around your group',
                         'price_regular' => $regularPrice, 'price_discount' => $discountPrice,
                         'season' => trim((string) ($_POST['season'] ?? 'All year')), 'start' => trim((string) ($_POST['start'] ?? 'Your home or hotel')),
@@ -227,16 +245,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $authenticated = !empty($_SESSION['admin']);
-$activeTab = ($_GET['tab'] ?? 'packages') === 'taxis' ? 'taxis' : 'packages';
+$requestedTab = (string) ($_GET['tab'] ?? 'packages');
+$activeTab = in_array($requestedTab, ['packages', 'taxis', 'destinations'], true) ? $requestedTab : 'packages';
 $editingSlug = (string) ($_GET['edit'] ?? '');
 $editingKind = (string) ($_GET['kind'] ?? 'package');
 $packageForm = $editingKind === 'package' ? ($packages[$editingSlug] ?? []) : [];
+$destinationForm = $editingKind === 'destination' ? ($destinationGroups[$editingSlug] ?? []) : [];
 $taxiForm = [];
 foreach ($vehicles as $vehicle) if (($vehicle['_slug'] ?? admin_slug($vehicle['name'])) === $editingSlug && $editingKind === 'taxi') $taxiForm = $vehicle;
-$selectedTab = $editingKind === 'taxi' ? 'taxis' : $activeTab;
+$selectedTab = ['package' => 'packages', 'taxi' => 'taxis', 'destination' => 'destinations'][$editingKind] ?? $activeTab;
 $dbPackages = app_db_catalog('packages');
 $dbTaxis = app_db_catalog('taxis');
-$dbReady = app_db() !== null && !empty($dbPackages) && !empty($dbTaxis);
+$dbDestinationGroups = app_db_catalog('destination_groups');
+$dbReady = app_db() !== null && !empty($dbPackages) && !empty($dbTaxis) && $dbDestinationGroups !== null;
 $loginView = !$setupNeeded && !$authenticated;
 ?>
 <!doctype html>
@@ -266,7 +287,7 @@ $loginView = !$setupNeeded && !$authenticated;
       <img src="../assets/images/destinations/hero-himachal.jpg" alt="" fetchpriority="high">
       <div class="login-visual-content">
         <a class="login-brand" href="../index.php"><img src="../assets/logo.svg" alt="" width="170px" height="auto"><span><small>TRAVEL DASHBOARD</small></span></a>
-        <div class="login-intro"><span>ADMIN ACCESS</span><h1>Your journeys,<br>all in one place.</h1><p>Manage packages and vehicles for every trip ahead.</p></div>
+        <div class="login-intro"><span>ADMIN ACCESS</span><h1>Your journeys,<br>all in one place.</h1><p>Manage packages, destination lists and vehicles for every trip ahead.</p></div>
       </div>
     </section>
     <section class="login-panel" aria-labelledby="loginTitle">
@@ -290,9 +311,9 @@ $loginView = !$setupNeeded && !$authenticated;
     </section>
   </div>
 <?php else: ?>
-  <div class="dash-top"><div><h1>Content dashboard</h1><p>Manage the trips and vehicles shown on your website.</p></div><?php if (!$dbReady): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="initialize_database" value="1"><i class="fa-solid fa-database" aria-hidden="true"></i> Initialize database</button></form><?php endif; ?></div>
+  <div class="dash-top"><div><h1>Content dashboard</h1><p>Manage trips, destination collections and vehicles shown on your website.</p></div><?php if (!$dbReady): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="initialize_database" value="1"><i class="fa-solid fa-database" aria-hidden="true"></i> Initialize database</button></form><?php endif; ?></div>
   <?php if (!$dbReady): ?><div class="dash-status">MySQL is not initialized. Start MySQL, then choose <strong>Initialize database</strong> to create the database and import the current catalog.</div><?php endif; ?>
-  <nav class="dash-tabs" aria-label="Content types"><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a></nav>
+  <nav class="dash-tabs" aria-label="Content types"><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'destinations' ? 'active' : '' ?>" href="?tab=destinations"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Destinations <span>(<?= count($destinationGroups) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a></nav>
   <?php if ($selectedTab === 'packages'): ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $packageForm ? 'Update package' : 'Add package' ?></h2><?php if ($packageForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=packages">New package</a><?php endif; ?></div>
       <form method="post" enctype="multipart/form-data" data-package-form><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="save"><div class="dash-grid">
@@ -300,8 +321,9 @@ $loginView = !$setupNeeded && !$authenticated;
         <label>Package title<input name="title" required value="<?= admin_h($packageForm['title'] ?? '') ?>" placeholder="e.g. Jaipur & Jaisalmer Heritage Trail"></label>
         <label>URL slug<input name="slug" data-package-slug value="<?= admin_h($editingKind === 'package' ? $editingSlug : '') ?>" placeholder="Generated from package title"></label>
         <label>Card label<input name="label" value="<?= admin_h($packageForm['label'] ?? '') ?>" placeholder="e.g. Desert & heritage"></label>
-        <label>Category<select name="cat" required><option value="" disabled<?= empty($packageForm['cat']) ? ' selected' : '' ?>>Choose a category</option><?php foreach ($categories as $key => $label): ?><option value="<?= admin_h($key) ?>"<?= ($packageForm['cat'] ?? '') === $key ? ' selected' : '' ?>><?= admin_h($label) ?></option><?php endforeach; ?></select></label>
+        <label>Categories<select name="cat[]" multiple required size="5"><?php $selectedCategories = preg_split('/\s+/', (string) ($packageForm['cat'] ?? 'heritage')) ?: []; foreach ($categories as $key => $label): ?><option value="<?= admin_h($key) ?>"<?= in_array($key, $selectedCategories, true) ? ' selected' : '' ?>><?= admin_h($label) ?></option><?php endforeach; ?></select></label>
         <label>Duration<input name="duration" value="<?= admin_h($packageForm['duration'] ?? '') ?>" placeholder="e.g. 5 days · 4 nights"></label>
+        <label>Card duration<input name="short" value="<?= admin_h($packageForm['short'] ?? '') ?>" placeholder="e.g. 5D · 4N"></label>
         <label>Regular price (INR)<input type="number" name="price_regular" min="0" step="1" inputmode="numeric" value="<?= admin_h($packageForm['price_regular'] ?? '') ?>" placeholder="Optional"></label>
         <label>Discount price (INR)<input type="number" name="price_discount" min="0" step="1" inputmode="numeric" value="<?= admin_h($packageForm['price_discount'] ?? '') ?>" placeholder="Optional"></label>
         <p class="dash-wide dash-note">Leave prices blank to hide them. If both are entered, the discount must be lower than the regular price.</p>
@@ -318,7 +340,19 @@ $loginView = !$setupNeeded && !$authenticated;
         <label><span><input type="checkbox" name="popular" value="1"<?= !empty($packageForm['popular']) ? ' checked' : '' ?>> Mark as popular</span></label>
       </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save package</button></p></form>
     </section>
-    <section class="dash-panel"><h2>All packages</h2><div class="dash-list"><?php foreach ($packages as $slug => $package): ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h($categories[$package['cat']] ?? $package['cat']) ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a><form method="post" onsubmit="return confirm('Delete this package?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <section class="dash-panel"><h2>All packages</h2><div class="dash-list"><?php foreach ($packages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?><?php if (!empty($package['deprecated_duplicate_of'])): ?> · Saved duplicate of <?= admin_h($packages[$package['deprecated_duplicate_of']]['title'] ?? $package['deprecated_duplicate_of']) ?><?php endif; ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a><form method="post" onsubmit="return confirm('Delete this package?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+  <?php elseif ($selectedTab === 'destinations'): ?>
+    <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $destinationForm ? 'Update destination group' : 'Add destination group' ?></h2><?php if ($destinationForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=destinations">New destination group</a><?php endif; ?></div>
+      <form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="save"><div class="dash-grid">
+        <input type="hidden" name="old_slug" value="<?= admin_h($editingKind === 'destination' ? $editingSlug : '') ?>">
+        <label>Group title<input name="name" required value="<?= admin_h($destinationForm['title'] ?? '') ?>" placeholder="e.g. Punjab"></label>
+        <label>URL slug<input name="slug" value="<?= admin_h($editingKind === 'destination' ? $editingSlug : '') ?>" placeholder="Generated from group title"></label>
+        <label>Destination image<select name="image" required><option value="">Choose an image from the library</option><?php foreach ($imageNames as $image): ?><option value="<?= admin_h($image) ?>"<?= ($destinationForm['image'] ?? '') === $image ? ' selected' : '' ?>><?= admin_h($image) ?></option><?php endforeach; ?></select></label>
+        <label class="dash-wide">Description<textarea name="description" required placeholder="A short introduction to this region or attraction list."><?= admin_h($destinationForm['description'] ?? '') ?></textarea></label>
+        <label class="dash-wide">Places or attractions<textarea name="items" required placeholder="One destination or attraction per line."><?= admin_h(implode("\n", $destinationForm['items'] ?? [])) ?></textarea><span class="dash-note">One place per line. These appear on the Destinations page.</span></label>
+      </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save destination group</button></p></form>
+    </section>
+    <section class="dash-panel"><h2>Destination groups</h2><div class="dash-list"><?php foreach ($destinationGroups as $slug => $group): ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($group['image'], true)) ?>" alt=""><div><strong><?= admin_h($group['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $group['items'])) ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=destinations&amp;kind=destination&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><form method="post" onsubmit="return confirm('Delete this destination group?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
   <?php else: ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $taxiForm ? 'Update taxi' : 'Add taxi' ?></h2><?php if ($taxiForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=taxis">New taxi</a><?php endif; ?></div>
       <form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="taxi"><input type="hidden" name="action" value="save"><div class="dash-grid">

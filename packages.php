@@ -9,7 +9,7 @@ $pageHero = [
     'title'   => 'North India tours, shaped around you',
     'lead'    => 'Explore mountain, heritage and wildlife routes with an itinerary shaped around your dates. Ask us to arrange a vehicle, driver and stays for your trip.',
     'image'   => img('spiti-key-sunset'),
-    'meta'    => [['fa-route', count($packages) . ' signature routes'], ['fa-location-dot', 'Pickup and drop'], ['fa-sliders', 'Fully customisable']],
+    'meta'    => [['fa-route', count($publicPackages) . ' signature routes'], ['fa-location-dot', 'Pickup and drop'], ['fa-sliders', 'Fully customisable']],
 ];
 require __DIR__ . '/includes/header.php';
 ?>
@@ -50,7 +50,7 @@ require __DIR__ . '/includes/header.php';
           </nav>
         </div>
         <div class="package-grid">
-<?php foreach ($packages as $slug => $package) { package_card($slug, $package); } ?>
+<?php foreach ($publicPackages as $slug => $package) { package_card($slug, $package); } ?>
         </div>
         <p class="pricing-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Pricing depends on season, route, stay category, vehicle and number of travellers. Ask for a free quote.</p>
       </div>

@@ -46,7 +46,7 @@ function app_db(bool $serverOnly = false, bool $refresh = false): ?PDO
     return $connections[$key];
 }
 
-function app_db_initialize(array $packages, array $vehicles): string
+function app_db_initialize(array $packages, array $vehicles, array $destinationGroups = []): string
 {
     $name = getenv('REACH_DB_NAME');
     if ($name === false || $name === '') return 'Set REACH_DB_NAME in the .env file.';
@@ -58,6 +58,7 @@ function app_db_initialize(array $packages, array $vehicles): string
     if (!$db) return 'Database created, but the application could not connect to it.';
     $db->exec('CREATE TABLE IF NOT EXISTS packages (slug VARCHAR(190) PRIMARY KEY, payload LONGTEXT NOT NULL, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
     $db->exec('CREATE TABLE IF NOT EXISTS taxis (slug VARCHAR(190) PRIMARY KEY, payload LONGTEXT NOT NULL, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+    $db->exec('CREATE TABLE IF NOT EXISTS destination_groups (slug VARCHAR(190) PRIMARY KEY, payload LONGTEXT NOT NULL, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
     $db->exec("CREATE TABLE IF NOT EXISTS users (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL, role VARCHAR(32) NOT NULL DEFAULT 'admin', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
     $packageInsert = $db->prepare('INSERT IGNORE INTO packages (slug, payload) VALUES (?, ?)');
     foreach ($packages as $slug => $package) $packageInsert->execute([$slug, json_encode($package, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
@@ -66,12 +67,16 @@ function app_db_initialize(array $packages, array $vehicles): string
         $slug = trim(strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $vehicle['name'])), '-');
         $taxiInsert->execute([$slug, json_encode($vehicle, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
     }
+    $destinationInsert = $db->prepare('INSERT IGNORE INTO destination_groups (slug, payload) VALUES (?, ?)');
+    foreach ($destinationGroups as $slug => $group) {
+        $destinationInsert->execute([$slug, json_encode($group, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
+    }
     return '';
 }
 
 function app_db_catalog(string $table): ?array
 {
-    if (!in_array($table, ['packages', 'taxis'], true)) return null;
+    if (!in_array($table, ['packages', 'taxis', 'destination_groups'], true)) return null;
     $db = app_db();
     if (!$db) return null;
     try {

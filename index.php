@@ -114,7 +114,7 @@ require_once __DIR__ . '/includes/components.php';
           </div>
 <?php endforeach; ?>
         </div>
-        <div class="section-more"><a class="btn btn-dark" href="packages.php">View all <?= count($packages) ?> packages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+        <div class="section-more"><a class="btn btn-dark" href="packages.php">View all <?= count($publicPackages) ?> packages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
         <p class="pricing-note"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Price depends on the season, hotel type, car and number of people. Ask us for a free quote.</p>
       </div>
     </section>
@@ -214,7 +214,7 @@ require_once __DIR__ . '/includes/components.php';
             <div class="counter-grid">
               <div class="counter-item"><strong><?= count($vehicles) ?></strong><small>Vehicle options</small></div>
               <div class="counter-item"><strong><?= count($destinations) ?></strong><small>Destinations</small></div>
-              <div class="counter-item"><strong><?= count($packages) ?></strong><small>Sample itineraries</small></div>
+              <div class="counter-item"><strong><?= count($publicPackages) ?></strong><small>Sample itineraries</small></div>
             </div>
           </div>
           <div class="col-12 col-lg-7">

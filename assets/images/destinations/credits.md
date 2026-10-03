@@ -2,3 +2,13 @@
 
 - `taj-mahal-agra.jpg`: AussieActive, [Taj Mahal, India](https://unsplash.com/photos/taj-mahal-india-Thr_TUYPtAk), via [Unsplash](https://unsplash.com/license).
 - `hawa-mahal-jaipur.jpg`: Luqman Hariz, [Hawa Mahal, Jaipur, India](https://unsplash.com/photos/hawa-mahal-jaipur-india--s529_PPy1Y), via [Unsplash](https://unsplash.com/license).
+- `amritsar-golden-temple.jpg`: Oleg Yunakov, [Hamandir Sahib (Golden Temple)](https://commons.wikimedia.org/wiki/File:Hamandir_Sahib_(Golden_Temple).jpg), CC BY-SA 3.0.
+- `ranjit-sagar-dam.jpg`: Vikramaadityasumbria, [Ranjit Sagar Dam 1](https://commons.wikimedia.org/wiki/File:Ranjit_Sagar_Dam_1.jpg), CC BY-SA 3.0.
+- `nurpur-fort.jpg`: Harvinder Chandigarh, [Entrance Nurpur Fort](https://commons.wikimedia.org/wiki/File:Entrance_Nurpur_Fort,Kangra_,Himachal_Pardesh.jpg), CC BY-SA 4.0.
+- `dharamshala.jpg`: Amit Phulera, [Dharamshala 03 (Cropped)](https://commons.wikimedia.org/wiki/File:Dharamshala_03_(Cropped).jpg), CC BY-SA 4.0.
+- `red-fort-delhi.jpg`: A.Savin, [Red Fort in Delhi](https://commons.wikimedia.org/wiki/File:Red_Fort_in_Delhi_03-2016_img3.jpg), [Free Art License](https://artlibre.org/licence/lal/en/).
+- `nainital.jpg`: Praveen Singh Bisht, [Naini Lake, Nainital](https://commons.wikimedia.org/wiki/File:Naini_Lake,_Nainital,_Uttarakhand,_India.jpg), CC BY 2.0.
+- `mussoorie.jpg`: Pinakpani, [Mussoorie city in Uttarakhand](https://commons.wikimedia.org/wiki/File:Mussoorie_city_in_Uttarakhand_06.jpg), CC BY-SA 4.0.
+- `rishikesh.jpg`: Carol Miranda, [Along the Holy Ganges river in Rishikesh](https://commons.wikimedia.org/wiki/File:Along_the_Holy_Ganges_river_in_Rishikesh,India.jpg), CC BY-SA 4.0.
+- `jim-corbett.jpg`: Timothy Gonsalves, [Sambar Corbett India](https://commons.wikimedia.org/wiki/File:Sambar_Corbett_India_Dec19_D72_12585.jpg), CC BY-SA 4.0.
+- `srinagar.jpg`: KennyOMG, [Srinagar panorama](https://commons.wikimedia.org/wiki/File:Srinagar_pano.jpg), CC BY-SA 3.0.

@@ -1,4 +1,4 @@
-<?php
+ <?php
 function smtp_read_reply($socket): array
 {
     $reply = '';

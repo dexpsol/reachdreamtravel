@@ -9,6 +9,10 @@ if (!isset($packages[$slug])) {
     exit;
 }
 $package = $packages[$slug];
+if (!empty($package['deprecated_duplicate_of']) && isset($packages[$package['deprecated_duplicate_of']])) {
+    header('Location: package.php?slug=' . rawurlencode($package['deprecated_duplicate_of']), true, 301);
+    exit;
+}
 
 $pageKey = 'packages';
 $pageTitle = $package['title'];
@@ -24,9 +28,14 @@ $pageHero = [
 require __DIR__ . '/includes/header.php';
 
 $enquiry = 'Hello Reach Dream Travel, please share details for the ' . $package['title'] . ' package.';
-$related = array_filter($packages, fn($p, $key) => $key !== $slug && $p['cat'] === $package['cat'], ARRAY_FILTER_USE_BOTH);
+$packageCategoryKeys = preg_split('/\s+/', trim((string) $package['cat'])) ?: [];
+$related = array_filter($publicPackages, static function ($p, $key) use ($slug, $packageCategoryKeys): bool {
+    if ($key === $slug) return false;
+    $candidateCategories = preg_split('/\s+/', trim((string) ($p['cat'] ?? ''))) ?: [];
+    return (bool) array_intersect($packageCategoryKeys, $candidateCategories);
+}, ARRAY_FILTER_USE_BOTH);
 if (count($related) < 3) {
-    $related += array_diff_key($packages, [$slug => true], $related);
+    $related += array_diff_key($publicPackages, [$slug => true], $related);
 }
 $related = array_slice($related, 0, 3, true);
 ?>
@@ -40,6 +49,11 @@ $related = array_slice($related, 0, 3, true);
               <div><i class="fa-solid fa-signal" aria-hidden="true"></i><small>Difficulty</small><b><?= e($package['difficulty']) ?></b></div>
               <div><i class="fa-solid fa-sun" aria-hidden="true"></i><small>Best season</small><b><?= e($package['season']) ?></b></div>
               <div><i class="fa-solid fa-location-dot" aria-hidden="true"></i><small>Starts &amp; ends</small><b><?= e($package['start']) ?></b></div>
+            </div>
+            <div class="package-tags package-category-tags" aria-label="Package categories">
+<?php foreach (package_category_labels($package) as $categoryLabel): ?>
+              <span><?= e($categoryLabel) ?></span>
+<?php endforeach; ?>
             </div>
 
             <h2 class="pd-title">Trip overview</h2>

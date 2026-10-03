@@ -508,7 +508,7 @@ h3 {
 }
 
 .hero-image {
-  background: url('assets/images/destinations/taj-mahal-agra.jpg') center 45%/cover no-repeat;
+  background: url('assets/images/destinations/sanjauli.jpeg') center 45%/cover no-repeat;
   transform: scale(1.06);
   animation: hero-zoom 18s ease-out both;
   will-change: transform
@@ -994,6 +994,10 @@ h3 {
 .package-tags i {
   font-size: 12px;
   color: var(--green)
+}
+
+.package-category-tags {
+  margin: 10px 0 8px
 }
 
 .package-link {
@@ -5101,6 +5105,47 @@ a.package-image {
 }
 
 /* ---- Destinations ---- */
+.destination-region-card {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 1.6fr;
+  align-items: center;
+  gap: 18px;
+  height: 100%;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff
+}
+
+.destination-region-image {
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: 12px;
+  object-fit: cover
+}
+
+.destination-region-card h3 {
+  margin: 0 0 8px
+}
+
+.destination-region-card p {
+  margin: 0 0 8px;
+  color: var(--muted)
+}
+
+.destination-region-card p:last-child {
+  margin-bottom: 0;
+  color: var(--ink)
+}
+
+@media (max-width: 575.98px) {
+  .destination-region-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px
+  }
+}
+
 .dest-jump-section {
   position: relative;
   z-index: 3;
