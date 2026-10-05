@@ -57,7 +57,7 @@ body {
   font-size: 16px;
   line-height: 1.65;
   color: var(--ink);
-  /* overflow-x: hidden; */
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased
 }
 
@@ -492,6 +492,10 @@ h3 {
 .hero {
   position: relative;
   isolation: isolate;
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
   min-height: 100svh;
   display: flex;
   align-items: center;
@@ -504,18 +508,22 @@ h3 {
 .hero-overlay {
   position: absolute;
   z-index: -1;
-  inset: 0
+  inset: -1px
 }
 
 .hero-image {
-  background: url('assets/images/destinations/sanjauli-sunset.png') center 52%/cover no-repeat;
-  transform: scale(1.06);
-  animation: hero-zoom 18s ease-out both;
-  will-change: transform
+  width: 100%;
+  height: 100%;
+  background-image: url('assets/images/destinations/sanjauli-sunset.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  filter: none;
+  transform: none
 }
 
 .hero-overlay {
-  background: linear-gradient(100deg, rgba(8, 22, 38, .72) 0%, rgba(8, 22, 38, .48) 45%, rgba(8, 22, 38, .16) 100%), linear-gradient(0deg, rgba(8, 22, 38, .58) 0%, transparent 48%)
+  background: linear-gradient(100deg, rgba(5, 15, 27, .88) 0%, rgba(5, 15, 27, .76) 36%, rgba(5, 15, 27, .42) 62%, rgba(5, 15, 27, .10) 100%), linear-gradient(0deg, rgba(5, 15, 27, .48) 0%, rgba(5, 15, 27, .10) 56%)
 }
 
 .hero-content {
@@ -553,6 +561,7 @@ h3 {
   letter-spacing: -.035em;
   margin: 0;
   text-wrap: balance;
+  text-shadow: 0 3px 24px rgba(0, 0, 0, .38);
   animation: rise .9s .1s var(--ease) both
 }
 
@@ -569,7 +578,8 @@ h3 {
   margin: 24px 0 32px;
   font-size: clamp(16px, 1.4vw, 19px);
   line-height: 1.7;
-  color: rgba(255, 255, 255, .82);
+  color: rgba(255, 255, 255, .92);
+  text-shadow: 0 2px 16px rgba(0, 0, 0, .34);
   animation: rise .9s .2s var(--ease) both
 }
 
@@ -602,11 +612,11 @@ h3 {
 
 .hero-form {
   padding: 28px;
-  border: 1px solid rgba(255, 255, 255, .18);
+  border: 1px solid rgba(255, 255, 255, .28);
   border-radius: 24px;
-  background: rgba(255, 255, 255, .1);
-  backdrop-filter: blur(18px) saturate(1.4);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, .3);
+  background: rgba(8, 22, 38, .72);
+  backdrop-filter: none;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, .38);
   animation: rise 1s .35s var(--ease) both
 }
 
@@ -686,20 +696,20 @@ h3 {
 }
 
 .hero-form .field>span {
-  color: rgba(255, 255, 255, .75)
+  color: rgba(255, 255, 255, .94)
 }
 
 .hero-form .field input,
 .hero-form .field select {
-  border-color: rgba(255, 255, 255, .2);
-  background: rgba(255, 255, 255, .95)
+  border-color: rgba(255, 255, 255, .34);
+  background: #fff
 }
 
 .form-note {
   display: block;
   text-align: center;
   font-size: 13px;
-  color: rgba(255, 255, 255, .65)
+  color: rgba(255, 255, 255, .86)
 }
 
 .form-note i {
@@ -2773,7 +2783,7 @@ h3 {
 }
 
 .hero-image {
-  translate: calc(var(--hx)*-28px) calc(var(--hy)*-18px + var(--hs)*120px)
+  translate: none
 }
 
 .hero-content {
