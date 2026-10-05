@@ -47,7 +47,7 @@ function wa_link(string $message = 'Hello Reach Dream Travel, I would like to pl
 /** Resolve a photo to its category folder and optional thumbnail. */
 function img(string $name, bool $small = false): string
 {
-    if (preg_match('~^https://commons\.wikimedia\.org/wiki/Special:FilePath/~i', $name)) {
+    if (preg_match('~^https?://~i', $name)) {
         return $name;
     }
     $fileName = basename($name);
@@ -80,6 +80,11 @@ function img(string $name, bool $small = false): string
         }
     }
     return $imagePath;
+}
+
+function destination_url(string $slug): string
+{
+    return 'destinations.php?destination=' . rawurlencode($slug) . '#' . rawurlencode($slug);
 }
 
 /* ---------------------------------------------------------------------------
@@ -408,6 +413,16 @@ $storedDestinationGroups = app_db_catalog('destination_groups');
 if ($storedDestinationGroups !== null) {
     $destinationGroups = $storedDestinationGroups;
 }
+$defaultDestinations = $destinations;
+$defaultDestinationGroups = $defaultDestinations;
+$storedDestinations = app_db_catalog('destination_groups');
+if ($storedDestinations !== null) {
+    $dynamicDestinations = array_filter($storedDestinations, static fn($destination) => isset($destination['name'], $destination['tagline'], $destination['text'], $destination['see']));
+    if ($dynamicDestinations) {
+        $destinations = array_replace($destinations, $dynamicDestinations);
+    }
+}
+$destinationGroups = $destinations;
 
 /* ---------------------------------------------------------------------------
  * Vehicles. 'group' lists the group-size filters a vehicle suits.

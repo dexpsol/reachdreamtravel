@@ -70,7 +70,7 @@ require __DIR__ . '/includes/header.php';
         </div>
         <div class="dest-grid">
 <?php $i = 0; foreach ($destinations as $destSlug => $d): $hasScenicPhoto = !in_array($destSlug, ['delhi', 'agra', 'rajasthan'], true); ?>
-          <a class="dest-card<?= $i === 0 ? ' dest-wide' : '' ?><?= $hasScenicPhoto ? '' : ' is-text-only' ?>" href="destinations.php#<?= e($destSlug) ?>">
+          <a class="dest-card<?= $i === 0 ? ' dest-wide' : '' ?><?= $hasScenicPhoto ? '' : ' is-text-only' ?>" href="<?= e(destination_url($destSlug)) ?>">
 <?php if ($hasScenicPhoto): ?>
             <img src="<?= e(img($d['image'], true)) ?>" alt="" loading="lazy">
 <?php endif; ?>

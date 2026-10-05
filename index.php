@@ -83,7 +83,7 @@ require_once __DIR__ . '/includes/components.php';
         </div>
         <div class="drive-grid">
 <?php foreach ($driveTimes as [$driveTo, $driveTime, $driveSlug]): ?>
-          <a class="drive-card" href="destinations.php#<?= e($driveSlug) ?>">
+          <a class="drive-card" href="<?= e(destination_url($driveSlug)) ?>">
             <img src="<?= e(img($destinations[$driveSlug]['image'], true)) ?>" alt="" loading="lazy">
             <span class="drive-body"><small>Drive to <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></small><b><?= e($driveTo) ?></b><em><i class="fa-solid fa-car-side" aria-hidden="true"></i> <?= e($driveTime) ?></em></span>
           </a>

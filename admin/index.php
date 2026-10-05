@@ -44,7 +44,45 @@ function admin_slug(string $value): string
 {
     return trim(strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $value)), '-');
 }
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+function admin_destination_upload(string $slug, string $root): string
+{
+    $file = $_FILES['image_upload'] ?? null;
+    if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return '';
+    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) throw new RuntimeException('Destination image upload failed. Try another image.');
+    if ((int) ($file['size'] ?? 0) > 6 * 1024 * 1024) throw new RuntimeException('Destination image must be 6 MB or smaller.');
+
+    $info = getimagesize((string) $file['tmp_name']);
+    $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+    $extension = $extensions[$info['mime'] ?? ''] ?? '';
+    if ($extension === '') throw new RuntimeException('Upload a JPG, PNG or WebP destination image.');
+
+    $folder = $root . '/assets/images/destinations';
+    if (!is_dir($folder) && !mkdir($folder, 0775, true)) throw new RuntimeException('Could not create the destination image folder.');
+    $fileBase = ($slug !== '' ? $slug : 'destination') . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(3));
+    $target = $folder . '/' . $fileBase . '.' . $extension;
+    if (!move_uploaded_file((string) $file['tmp_name'], $target)) throw new RuntimeException('Could not save the uploaded destination image.');
+    return $fileBase;
+}
+function admin_match_destination_packages(array $destination, array $packages): array
+{
+    $needles = array_merge([(string) ($destination['name'] ?? '')], $destination['see'] ?? []);
+    $needles = array_values(array_unique(array_filter(array_map(static fn($value) => admin_slug((string) $value), $needles), static fn($value) => strlen($value) > 2)));
+    $matches = [];
+    foreach ($packages as $slug => $package) {
+        if (!empty($package['deprecated_duplicate_of'])) continue;
+        $parts = [$slug, $package['title'] ?? '', $package['route'] ?? '', $package['overview'] ?? ''];
+        foreach ($package['highlights'] ?? [] as $highlight) $parts[] = $highlight;
+        $haystack = admin_slug(implode(' ', array_map('strval', $parts)));
+        foreach ($needles as $needle) {
+            if (str_contains($haystack, $needle)) {
+                $matches[] = $slug;
+                break;
+            }
+        }
+    }
+    return $matches;
+}
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     if (!hash_equals(admin_csrf(), (string) ($_POST['csrf'] ?? ''))) {
         $error = 'Your session expired. Refresh the page and try again.';
     } elseif (isset($_POST['setup'])) {
@@ -89,9 +127,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (!empty($_SESSION['admin'])) {
         if (isset($_POST['initialize_database'])) {
             try {
-                $error = app_db_initialize($packages ?: $defaultPackages, $vehicles ?: $defaultVehicles, $destinationGroups ?: $defaultDestinationGroups);
+                $error = app_db_initialize($packages ?: $defaultPackages, $vehicles ?: $defaultVehicles, $destinations ?: $defaultDestinations);
                 if ($error === '') {
-                    $_SESSION['notice'] = 'Database is ready. Current packages and taxis were imported.';
+                    $_SESSION['notice'] = 'Database is ready. Current packages, destinations and taxis were imported.';
                     admin_redirect();
                 }
             } catch (Throwable $exception) {
@@ -122,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $name = trim((string) ($_POST['name'] ?? $_POST['title'] ?? ''));
                 if ($slug === '') $slug = admin_slug($name);
-                if ($slug === '' || $name === '') throw new RuntimeException('Add a name and a valid URL slug.');
+                if ($slug === '' || $name === '') throw new RuntimeException($kind === 'destination' ? 'Add a destination name.' : 'Add a name and a valid URL slug.');
                 if ($kind === 'taxi') {
                     $image = (string) ($_POST['image'] ?? '');
                     if (!in_array($image, $taxiImages, true)) throw new RuntimeException('Choose one of the available fleet photos.');
@@ -136,17 +174,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'features' => admin_lines((string) ($_POST['features'] ?? '')), 'routes' => admin_lines((string) ($_POST['routes'] ?? '')),
                     ];
                 } elseif ($kind === 'destination') {
-                    $items = admin_lines((string) ($_POST['items'] ?? ''));
-                    $image = (string) ($_POST['image'] ?? '');
-                    if (!$items) throw new RuntimeException('Add at least one place or attraction.');
-                    if (!in_array($image, $imageNames, true)) throw new RuntimeException('Choose an image from the destination image library.');
+                    $see = admin_lines((string) ($_POST['see'] ?? ''));
+                    $previousSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
+                    $previousDestination = $destinations[$previousSlug] ?? $destinations[$slug] ?? [];
+                    $image = trim((string) ($_POST['image'] ?? ''));
+                    $uploadedImage = admin_destination_upload($slug, $root);
+                    if ($uploadedImage !== '') {
+                        $image = $uploadedImage;
+                    } elseif ($image === '' && !empty($previousDestination['image'])) {
+                        $image = (string) $previousDestination['image'];
+                    }
+                    if (!$see) throw new RuntimeException('Add at least one sightseeing place.');
+                    if ($image === '' || ($uploadedImage === '' && !in_array($image, $imageNames, true) && !preg_match('~^https?://~i', $image))) throw new RuntimeException('Upload a destination image.');
                     $record = [
-                        'title' => $name,
+                        'name' => $name,
+                        'tagline' => trim((string) ($_POST['tagline'] ?? '')),
                         'image' => $image,
-                        'description' => trim((string) ($_POST['description'] ?? '')),
-                        'items' => $items,
+                        'altitude' => trim((string) ($_POST['altitude'] ?? 'Varies by route')),
+                        'best' => trim((string) ($_POST['best'] ?? 'Plan around your dates')),
+                        'drive' => trim((string) ($_POST['drive'] ?? 'Route planned around pickup')),
+                        'text' => trim((string) ($_POST['text'] ?? '')),
+                        'see' => $see,
+                        'packages' => [],
                     ];
-                    if ($record['description'] === '') throw new RuntimeException('Add a short description for this destination group.');
+                    if ($record['tagline'] === '' || $record['text'] === '') throw new RuntimeException('Add a tagline and destination description.');
+                    $record['packages'] = admin_match_destination_packages($record, $packages);
                 } else {
                     $categoryValues = $_POST['cat'] ?? ['heritage'];
                     if (!is_array($categoryValues)) $categoryValues = [$categoryValues];
@@ -217,9 +269,20 @@ $authenticated = !empty($_SESSION['admin']);
 $requestedTab = (string) ($_GET['tab'] ?? 'packages');
 $activeTab = in_array($requestedTab, ['packages', 'taxis', 'destinations'], true) ? $requestedTab : 'packages';
 $editingSlug = (string) ($_GET['edit'] ?? '');
-$editingKind = (string) ($_GET['kind'] ?? 'package');
+$editingKind = (string) ($_GET['kind'] ?? '');
+if (!in_array($editingKind, ['package', 'taxi', 'destination'], true)) {
+    $editingKind = ['packages' => 'package', 'taxis' => 'taxi', 'destinations' => 'destination'][$activeTab];
+}
 $packageForm = $editingKind === 'package' ? ($packages[$editingSlug] ?? []) : [];
-$destinationForm = $editingKind === 'destination' ? ($destinationGroups[$editingSlug] ?? []) : [];
+$destinationForm = $editingKind === 'destination' ? ($destinations[$editingSlug] ?? []) : [];
+$destinationGroups = array_map(static function (array $destination): array {
+    $destination['title'] = $destination['name'] ?? '';
+    $destination['items'] = $destination['see'] ?? [];
+    if (str_starts_with((string) ($destination['image'] ?? ''), 'http')) {
+        $destination['image'] = 'hero-himachal';
+    }
+    return $destination;
+}, $destinations);
 $taxiForm = [];
 foreach ($vehicles as $vehicle) if (($vehicle['_slug'] ?? admin_slug($vehicle['name'])) === $editingSlug && $editingKind === 'taxi') $taxiForm = $vehicle;
 $selectedTab = ['package' => 'packages', 'taxi' => 'taxis', 'destination' => 'destinations'][$editingKind] ?? $activeTab;
@@ -281,7 +344,7 @@ $loginView = !$setupNeeded && !$authenticated;
   </div>
 <?php else: ?>
   <div class="dash-top"><div><h1>Content dashboard</h1><p>Manage trips, destination collections and vehicles shown on your website.</p></div><?php if (!$dbReady): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="initialize_database" value="1"><i class="fa-solid fa-database" aria-hidden="true"></i> Initialize database</button></form><?php endif; ?></div>
-  <nav class="dash-tabs" aria-label="Content types"><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'destinations' ? 'active' : '' ?>" href="?tab=destinations"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Destinations <span>(<?= count($destinationGroups) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a></nav>
+  <nav class="dash-tabs" aria-label="Content types"><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'destinations' ? 'active' : '' ?>" href="?tab=destinations"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Destinations <span>(<?= count($destinations) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a></nav>
   <?php if ($selectedTab === 'packages'): ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $packageForm ? 'Update package' : 'Add package' ?></h2><?php if ($packageForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=packages">New package</a><?php endif; ?></div>
       <form method="post" data-package-form><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="save"><div class="dash-grid">
@@ -306,17 +369,21 @@ $loginView = !$setupNeeded && !$authenticated;
     </section>
     <section class="dash-panel"><h2>All packages</h2><div class="dash-list"><?php foreach ($packages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?><?php if (!empty($package['deprecated_duplicate_of'])): ?> · Saved duplicate of <?= admin_h($packages[$package['deprecated_duplicate_of']]['title'] ?? $package['deprecated_duplicate_of']) ?><?php endif; ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a><form method="post" onsubmit="return confirm('Delete this package?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
   <?php elseif ($selectedTab === 'destinations'): ?>
-    <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $destinationForm ? 'Update destination group' : 'Add destination group' ?></h2><?php if ($destinationForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=destinations">New destination group</a><?php endif; ?></div>
-      <form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="save"><div class="dash-grid">
+    <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $destinationForm ? 'Update destination' : 'Add destination' ?></h2><?php if ($destinationForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=destinations">New destination</a><?php endif; ?></div>
+      <form method="post" enctype="multipart/form-data"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="save"><div class="dash-grid">
         <input type="hidden" name="old_slug" value="<?= admin_h($editingKind === 'destination' ? $editingSlug : '') ?>">
-        <label>Group title<input name="name" required value="<?= admin_h($destinationForm['title'] ?? '') ?>" placeholder="e.g. Punjab"></label>
-        <label>URL slug<input name="slug" value="<?= admin_h($editingKind === 'destination' ? $editingSlug : '') ?>" placeholder="Generated from group title"></label>
-        <label>Destination image<select name="image" required><option value="">Choose an image from the library</option><?php foreach ($imageNames as $image): ?><option value="<?= admin_h($image) ?>"<?= ($destinationForm['image'] ?? '') === $image ? ' selected' : '' ?>><?= admin_h($image) ?></option><?php endforeach; ?></select></label>
-        <label class="dash-wide">Description<textarea name="description" required placeholder="A short introduction to this region or attraction list."><?= admin_h($destinationForm['description'] ?? '') ?></textarea></label>
-        <label class="dash-wide">Places or attractions<textarea name="items" required placeholder="One destination or attraction per line."><?= admin_h(implode("\n", $destinationForm['items'] ?? [])) ?></textarea><span class="dash-note">One place per line. These appear on the Destinations page.</span></label>
-      </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save destination group</button></p></form>
+        <input type="hidden" name="image" value="<?= admin_h($destinationForm['image'] ?? '') ?>">
+        <label>Destination name<input name="name" required value="<?= admin_h($destinationForm['name'] ?? '') ?>" placeholder="e.g. Shimla"></label>
+        <label>Tagline<input name="tagline" required value="<?= admin_h($destinationForm['tagline'] ?? '') ?>" placeholder="e.g. The Queen of Hills"></label>
+        <label>Destination image<input type="file" name="image_upload" accept="image/jpeg,image/png,image/webp"<?= empty($destinationForm['image']) ? ' required' : '' ?>><span class="dash-note"><?= !empty($destinationForm['image']) ? 'Current image: ' . admin_h($destinationForm['image']) . '. Upload a new image to replace it.' : 'Upload a JPG, PNG or WebP image.' ?></span></label>
+        <label>Drive time<input name="drive" value="<?= admin_h($destinationForm['drive'] ?? 'Route planned around pickup') ?>" placeholder="e.g. 7-8 hrs by road"></label>
+        <label>Altitude<input name="altitude" value="<?= admin_h($destinationForm['altitude'] ?? 'Varies by route') ?>" placeholder="e.g. 2,200 m"></label>
+        <label>Best season<input name="best" value="<?= admin_h($destinationForm['best'] ?? 'Plan around your dates') ?>" placeholder="e.g. March-June"></label>
+        <label class="dash-wide">Destination description<textarea name="text" required placeholder="A short introduction shown on the Destinations page."><?= admin_h($destinationForm['text'] ?? '') ?></textarea></label>
+        <label class="dash-wide">Sightseeing places<textarea name="see" required placeholder="The Ridge & Christ Church&#10;Mall Road&#10;Jakhu Temple"><?= admin_h(implode("\n", $destinationForm['see'] ?? [])) ?></textarea><span class="dash-note">One sightseeing place per line. These appear under Don't miss.</span></label>
+      </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save destination</button></p></form>
     </section>
-    <section class="dash-panel"><h2>Destination groups</h2><div class="dash-list"><?php foreach ($destinationGroups as $slug => $group): ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($group['image'], true)) ?>" alt=""><div><strong><?= admin_h($group['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $group['items'])) ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=destinations&amp;kind=destination&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><form method="post" onsubmit="return confirm('Delete this destination group?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <section class="dash-panel"><h2>All destinations</h2><div class="dash-list"><?php foreach ($destinationGroups as $slug => $group): ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($group['image'], true)) ?>" alt=""><div><strong><?= admin_h($group['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $group['items'])) ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=destinations&amp;kind=destination&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><form method="post" onsubmit="return confirm('Delete this destination?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
   <?php else: ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $taxiForm ? 'Update taxi' : 'Add taxi' ?></h2><?php if ($taxiForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=taxis">New taxi</a><?php endif; ?></div>
       <form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="taxi"><input type="hidden" name="action" value="save"><div class="dash-grid">

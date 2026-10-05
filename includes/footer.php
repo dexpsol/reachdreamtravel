@@ -72,7 +72,7 @@ $footerPackages = array_slice($packages, 0, 4, true);
         <nav class="footer-col" aria-label="Destinations">
           <h3>Destinations</h3>
 <?php foreach ($destinations as $destSlug => $dest): ?>
-          <a href="destinations.php#<?= e($destSlug) ?>"><?= e($dest['name']) ?></a>
+          <a href="<?= e(destination_url($destSlug)) ?>"><?= e($dest['name']) ?></a>
 <?php endforeach; ?>
         </nav>
 

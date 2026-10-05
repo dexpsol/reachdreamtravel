@@ -1,33 +1,24 @@
 <?php
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'destinations';
-$pageTitle = 'Destinations';
-$pageDescription = 'Explore North India destinations including Himachal, Kashmir, Uttarakhand, Delhi, Agra and Rajasthan. Find trip ideas, highlights and the best time to visit.';
+$selectedDestinationSlug = (string) ($_GET['destination'] ?? $_GET['slug'] ?? '');
+$selectedDestination = $destinations[$selectedDestinationSlug] ?? null;
+$pageTitle = $selectedDestination ? $selectedDestination['name'] : 'Destinations';
+$pageDescription = $selectedDestination ? $selectedDestination['text'] : 'Explore North India destinations including Himachal, Kashmir, Uttarakhand, Delhi, Agra and Rajasthan. Find trip ideas, highlights and the best time to visit.';
 $pageHero = [
-    'crumb'   => 'Destinations',
-    'eyebrow' => 'Where we travel',
-    'title'   => 'Places to discover across North India',
-    'lead'    => 'Plan a journey through mountain valleys, lake towns, wildlife country and historic cities, with an itinerary shaped around your dates.',
-    'image'   => img('taj-mahal-agra'),
+    'crumb'   => $selectedDestination ? $selectedDestination['name'] : 'Destinations',
+    'eyebrow' => $selectedDestination ? $selectedDestination['tagline'] : 'Where we travel',
+    'title'   => $selectedDestination ? $selectedDestination['name'] : 'Places to discover across North India',
+    'lead'    => $selectedDestination ? $selectedDestination['text'] : 'Plan a journey through mountain valleys, lake towns, wildlife country and historic cities, with an itinerary shaped around your dates.',
+    'image'   => img($selectedDestination['image'] ?? 'taj-mahal-agra'),
 ];
 require __DIR__ . '/includes/header.php';
 ?>
 
-    <!-- Quick jump -->
-    <section class="dest-jump-section">
-      <div class="container">
-        <nav class="dest-jump" aria-label="Jump to a destination">
-<?php foreach ($destinations as $slug => $d): ?>
-          <a href="#<?= e($slug) ?>"<?= empty($d['image']) ? ' class="is-text-only"' : '' ?>><?php if (!empty($d['image'])): ?><img src="<?= e(img($d['image'], true)) ?>" alt="" loading="lazy"><?php endif; ?><span><?= e($d['name']) ?></span></a>
-<?php endforeach; ?>
-        </nav>
-      </div>
-    </section>
-
     <section class="section dest-list-section">
       <div class="container">
         <div class="dest-list">
-<?php $n = 0; foreach ($destinations as $slug => $d): $n++; $hasScenicPhoto = !empty($d['image']); ?>
+<?php $n = 0; foreach ($destinations as $slug => $d): $n++; $hasScenicPhoto = !empty($d['image']); $destinationPackages = $d['packages'] ?? []; ?>
           <article class="dest-row<?= $n % 2 === 0 ? ' is-flipped' : '' ?><?= $hasScenicPhoto ? '' : ' is-text-only' ?>" id="<?= e($slug) ?>">
 <?php if ($hasScenicPhoto): ?>
             <div class="dr-media">
@@ -56,7 +47,7 @@ require __DIR__ . '/includes/header.php';
 <?php endforeach; ?>
               </ul>
               <div class="dr-packages">
-<?php foreach ($d['packages'] as $pkgSlug): ?>
+<?php foreach ($destinationPackages as $pkgSlug): if (empty($packages[$pkgSlug])) continue; ?>
                 <a href="<?= e(package_url($pkgSlug)) ?>"><i class="fa-solid fa-route" aria-hidden="true"></i> <?= e($packages[$pkgSlug]['title']) ?></a>
 <?php endforeach; ?>
               </div>
