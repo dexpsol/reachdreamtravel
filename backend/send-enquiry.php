@@ -27,6 +27,7 @@ $fields = [
     'phone' => 'Phone',
     'email' => 'Email',
     'destination' => 'Destination',
+    'duration' => 'Duration',
     'date' => 'Travel date',
     'travellers' => 'Travellers',
     'purpose' => 'Package for',
