@@ -57,15 +57,32 @@ if (($values['name'] ?? '') === '' || ($values['phone'] ?? '') === '') {
 if (($values['email'] ?? '') !== '' && !filter_var($values['email'], FILTER_VALIDATE_EMAIL)) {
     enquiry_response(422, false, 'Please enter a valid email address.');
 }
-if ($mail['to'] === '' || !filter_var($mail['to'], FILTER_VALIDATE_EMAIL) || $mail['from'] === '' || !filter_var($mail['from'], FILTER_VALIDATE_EMAIL)) {
-    enquiry_response(500, false, 'Email settings are incomplete. Please contact us on WhatsApp.');
-}
-if ($mail['smtp_host'] === '' || $mail['smtp_user'] === '' || $mail['smtp_password'] === '' || $mail['smtp_port'] < 1) {
-    enquiry_response(500, false, 'SMTP settings are incomplete. Please contact us on WhatsApp.');
-}
 
 $customPackage = isset($_POST['purpose']) || isset($_POST['arrival']) || isset($_POST['departure']);
 $subject = $customPackage ? 'Customized package request' : 'Trip enquiry';
+$db = app_db();
+if (!$db) {
+    enquiry_response(503, false, 'We could not save your request. Please contact us on WhatsApp.');
+}
+try {
+    $db->exec('CREATE TABLE IF NOT EXISTS enquiries (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, category VARCHAR(64) NOT NULL, payload LONGTEXT NOT NULL, submitted_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_enquiries_submitted_at (submitted_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+    $saveEnquiry = $db->prepare('INSERT INTO enquiries (category, payload) VALUES (?, ?)');
+    $saveEnquiry->execute([
+        $subject,
+        json_encode($values, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
+    ]);
+} catch (Throwable $error) {
+    error_log('Package enquiry database save failed: ' . $error->getMessage());
+    enquiry_response(503, false, 'We could not save your request. Please contact us on WhatsApp.');
+}
+
+if ($mail['to'] === '' || !filter_var($mail['to'], FILTER_VALIDATE_EMAIL) || $mail['from'] === '' || !filter_var($mail['from'], FILTER_VALIDATE_EMAIL)) {
+    enquiry_response(500, false, 'Your request was saved, but email settings are incomplete. Please contact us on WhatsApp.');
+}
+if ($mail['smtp_host'] === '' || $mail['smtp_user'] === '' || $mail['smtp_password'] === '' || $mail['smtp_port'] < 1) {
+    enquiry_response(500, false, 'Your request was saved, but email settings are incomplete. Please contact us on WhatsApp.');
+}
+
 $body = $subject . "\n\n";
 foreach ($fields as $key => $label) {
     if (($values[$key] ?? '') !== '') $body .= $label . ': ' . $values[$key] . "\n";
@@ -82,9 +99,9 @@ try {
 } catch (Throwable $error) {
     error_log('Package enquiry email failed: ' . $error->getMessage());
     if (str_contains($error->getMessage(), 'authentication')) {
-        enquiry_response(503, false, 'Email sign-in failed. Please update the Gmail app password in the server mail settings. Your request is ready in WhatsApp; please tap Send.');
+        enquiry_response(503, false, 'Your request was saved, but email sign-in failed. Please contact us on WhatsApp.');
     }
-    enquiry_response(503, false, 'Email could not be sent right now. Your request is ready in WhatsApp; please tap Send.');
+    enquiry_response(503, false, 'Your request was saved, but email could not be sent. Please contact us on WhatsApp.');
 }
 
 enquiry_response(200, true, 'Your request was emailed. WhatsApp is open with the message ready; tap Send there too.');
