@@ -35,7 +35,7 @@ require_once __DIR__ . '/includes/components.php';
               </div>
               <div class="field-row">
                 <label class="field"><span>Your name</span><input type="text" name="name" autocomplete="name" placeholder="Full name" required></label>
-                <label class="field"><span>Phone</span><input type="tel" name="phone" autocomplete="tel" placeholder="+91" required></label>
+                <label class="field"><span>Phone</span><input type="tel" name="phone" autocomplete="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="Enter your number" required></label>
               </div>
               <label class="field"><span>Where to?</span>
                 <select name="destination"><?php trip_select_options(); ?></select>

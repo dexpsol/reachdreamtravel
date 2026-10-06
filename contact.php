@@ -60,7 +60,7 @@ $faqs = [
               <form class="trip-form contact-form" aria-label="Customized package enquiry" novalidate>
                 <div class="field-row">
                   <label class="field"><span>Your name</span><input type="text" name="name" autocomplete="name" placeholder="Full name" required></label>
-                  <label class="field"><span>Phone</span><input type="tel" name="phone" autocomplete="tel" placeholder="+91" required></label>
+                  <label class="field"><span>Phone</span><input type="tel" name="phone" autocomplete="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="Enter your number" required></label>
                 </div>
                 <label class="field"><span>Email</span><input type="email" name="email" autocomplete="email" placeholder="you@example.com"></label>
                 <div class="field-row">

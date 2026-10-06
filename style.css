@@ -523,7 +523,7 @@ h3 {
 }
 
 .hero-overlay {
-  background: linear-gradient(100deg, rgb(5 15 27 / 25%) 0%, rgba(5, 15, 27, .76) 36%, rgba(5, 15, 27, .42) 62%, rgba(5, 15, 27, .10) 100%), linear-gradient(0deg, rgba(5, 15, 27, .48) 0%, rgba(5, 15, 27, .10) 56%)
+  background: linear-gradient(100deg, rgb(5 15 27 / 58%) 0%, rgb(5 15 27 / 26%) 36%, rgb(5 15 27 / 0%) 62%, rgb(5 15 27 / 0%) 100%), linear-gradient(0deg, rgb(5 15 27 / 0%) 0%, rgb(5 15 27 / 0%) 56%);
 }
 
 .hero-content {

@@ -324,6 +324,11 @@
     choice.addEventListener('change', updateVehicle);
     updateVehicle();
   });
+  document.querySelectorAll('.trip-form [name="phone"]').forEach(phoneField => {
+    phoneField.addEventListener('input', () => {
+      phoneField.value = phoneField.value.replace(/\D/g, '').slice(0, 10);
+    });
+  });
   document.querySelectorAll('.trip-form').forEach(form => form.addEventListener('submit', event => {
     event.preventDefault();
     const status = form.querySelector('.form-status');
@@ -337,6 +342,12 @@
     if (missing) {
       showStatus('Please enter your name and phone number.', true);
       missing.focus();
+      return;
+    }
+    const phone = form.querySelector('[name="phone"]');
+    if (phone && !/^\d{10}$/.test(phone.value.trim())) {
+      showStatus('Please enter a valid 10 digit phone number.', true);
+      phone.focus();
       return;
     }
 
