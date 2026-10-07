@@ -41,7 +41,7 @@ function package_catalog(array $defaults): array
         $db->exec('CREATE TABLE IF NOT EXISTS hidden_packages (slug VARCHAR(190) PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         $hidden = $db->query('SELECT slug FROM hidden_packages')->fetchAll(PDO::FETCH_COLUMN);
         $hiddenMap = array_fill_keys($hidden, true);
-        $newSlugs = ['nainital', 'mussoorie', 'rishikesh', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra'];
+        $newSlugs = ['nainital', 'mussoorie', 'chakrata', 'rishikesh', 'haridwar', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'char-dham-hemkund-sahib-yatra', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra'];
         $insert = $db->prepare('INSERT IGNORE INTO packages (slug, payload) VALUES (?, ?)');
         foreach ($newSlugs as $slug) {
             if (isset($defaults[$slug]) && !isset($databaseCatalog[$slug]) && !isset($hiddenMap[$slug])) {
@@ -68,7 +68,7 @@ function package_catalog(array $defaults): array
             }
         }
         $db->exec('CREATE TABLE IF NOT EXISTS catalog_migrations (migration_key VARCHAR(190) PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-        $migrationSlugs = ['shimla-local', 'shakti-peeths-himachal', 'chandratal-lahaul', 'nainital', 'mussoorie', 'rishikesh', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra'];
+        $migrationSlugs = ['shimla-local', 'shakti-peeths-himachal', 'chandratal-lahaul', 'nainital', 'mussoorie', 'chakrata', 'rishikesh', 'haridwar', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'char-dham-hemkund-sahib-yatra', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra'];
         $migrationCheck = $db->prepare('SELECT 1 FROM catalog_migrations WHERE migration_key = ?');
         $migrationWrite = $db->prepare('INSERT IGNORE INTO catalog_migrations (migration_key) VALUES (?)');
         $packageUpdate = $db->prepare('UPDATE packages SET payload = ? WHERE slug = ?');
@@ -85,6 +85,43 @@ function package_catalog(array $defaults): array
             $packageUpdate->execute([$payload, $slug]);
             $migrationWrite->execute([$migrationKey]);
             $databaseCatalog[$slug] = $updatedPackage;
+        }
+        $migrationKey = 'mussoorie-visiting-places-2026-10-v1';
+        $migrationCheck->execute([$migrationKey]);
+        if (!$migrationCheck->fetchColumn() && isset($databaseCatalog['mussoorie'], $defaults['mussoorie'])) {
+            $updatedPackage = array_replace($databaseCatalog['mussoorie'], [
+                'route' => $defaults['mussoorie']['route'],
+                'overview' => $defaults['mussoorie']['overview'],
+                'highlights' => $defaults['mussoorie']['highlights'],
+            ]);
+            if (isset($defaults['mussoorie']['days'])) {
+                $updatedPackage['days'] = $defaults['mussoorie']['days'];
+            }
+            if (!empty($databaseCatalog['mussoorie']['image_customized'])) {
+                $updatedPackage['image'] = $databaseCatalog['mussoorie']['image'];
+                $updatedPackage['image_customized'] = true;
+            }
+            $payload = json_encode($updatedPackage, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+            $packageUpdate->execute([$payload, 'mussoorie']);
+            $migrationWrite->execute([$migrationKey]);
+            $databaseCatalog['mussoorie'] = $updatedPackage;
+        }
+        $refreshSlugs = ['mussoorie', 'chakrata', 'rishikesh', 'haridwar', 'kashmir-valley', 'jammu-katra-patnitop', 'katra-vaishno-devi'];
+        $migrationKey = 'requested-packages-refresh-2026-10-v1';
+        $migrationCheck->execute([$migrationKey]);
+        if (!$migrationCheck->fetchColumn()) {
+            foreach ($refreshSlugs as $slug) {
+                if (!isset($databaseCatalog[$slug], $defaults[$slug])) continue;
+                $updatedPackage = array_replace($databaseCatalog[$slug], $defaults[$slug]);
+                if (!empty($databaseCatalog[$slug]['image_customized'])) {
+                    $updatedPackage['image'] = $databaseCatalog[$slug]['image'];
+                    $updatedPackage['image_customized'] = true;
+                }
+                $payload = json_encode($updatedPackage, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+                $packageUpdate->execute([$payload, $slug]);
+                $databaseCatalog[$slug] = $updatedPackage;
+            }
+            $migrationWrite->execute([$migrationKey]);
         }
         $duplicateRoutes = [
             'dharamshala-mcleod-ganj-trek' => 'dharamshala-mcleodganj',

@@ -12,11 +12,20 @@ if ($db) {
     $db->exec('CREATE TABLE IF NOT EXISTS users (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL, role VARCHAR(32) NOT NULL DEFAULT \'admin\', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
     $setupNeeded = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn() === 0;
 }
+$loadImageLibrary = !empty($_SESSION['admin']) && (
+    (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && ($_POST['kind'] ?? '') === 'destination')
+    || ($_GET['tab'] ?? '') === 'destinations'
+    || ($_GET['kind'] ?? '') === 'destination'
+);
 $categories = ['nature' => 'Nature', 'heritage' => 'Heritage', 'himachal' => 'Himachal tours', 'trekking' => 'Trekking', 'camping' => 'Camping', 'religious' => 'Religious / Temple', 'solo' => 'Solo trips', 'new-year' => 'New Year', 'group' => 'Group tours', 'adventure' => 'Adventure / Activities', 'special' => 'Special interest', 'hills' => 'Hill stations', 'road' => 'Long road trips', 'north' => 'Northern India'];
 $imageFiles = [];
-foreach (['destinations', 'stays'] as $imageFolder) {
-    foreach (['jpg', 'jpeg', 'png', 'webp'] as $imageExtension) {
-        $imageFiles = array_merge($imageFiles, glob($root . '/assets/images/' . $imageFolder . '/*.' . $imageExtension) ?: []);
+if ($loadImageLibrary) {
+    foreach (['destinations', 'stays'] as $imageFolder) {
+        foreach (glob($root . '/assets/images/' . $imageFolder . '/*') ?: [] as $imagePath) {
+            if (in_array(strtolower(pathinfo($imagePath, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                $imageFiles[] = $imagePath;
+            }
+        }
     }
 }
 $imageNames = array_values(array_unique(array_map(static fn($path) => pathinfo($path, PATHINFO_FILENAME), $imageFiles)));
@@ -307,12 +316,14 @@ $enquiryRows = [];
 $enquiryCount = 0;
 $viewEnquiryId = filter_var($_GET['view'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
 $selectedEnquiry = null;
-if ($authenticated && $db) {
+if ($authenticated && $db && in_array($selectedTab, ['dashboard', 'enquiries'], true)) {
     try {
         if ($db->query("SHOW TABLES LIKE 'enquiries'")->fetchColumn()) {
             $enquiryCount = (int) $db->query('SELECT COUNT(*) FROM enquiries')->fetchColumn();
-            $enquiryRows = $db->query('SELECT id, category, payload, submitted_at FROM enquiries ORDER BY submitted_at DESC, id DESC LIMIT 100')->fetchAll();
-            if ($viewEnquiryId > 0) {
+            if ($selectedTab === 'enquiries' && $viewEnquiryId === 0) {
+                $enquiryRows = $db->query('SELECT id, category, payload, submitted_at FROM enquiries ORDER BY submitted_at DESC, id DESC LIMIT 100')->fetchAll();
+            }
+            if ($selectedTab === 'enquiries' && $viewEnquiryId > 0) {
                 $findEnquiry = $db->prepare('SELECT id, category, payload, submitted_at FROM enquiries WHERE id = ?');
                 $findEnquiry->execute([$viewEnquiryId]);
                 $selectedEnquiry = $findEnquiry->fetch() ?: null;
