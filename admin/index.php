@@ -101,6 +101,125 @@ function admin_match_destination_packages(array $destination, array $packages): 
     }
     return $matches;
 }
+function admin_package_form_from_post(array $post, array $previousPackage = []): array
+{
+    global $destinations;
+    $categoryValues = $post['cat'] ?? ['heritage'];
+    if (!is_array($categoryValues)) $categoryValues = [$categoryValues];
+    $categoryValues = array_values(array_unique(array_filter(array_map('strval', $categoryValues), static fn($category) => $category !== '')));
+    $image = !empty($previousPackage['image_customized'])
+        ? (string) ($previousPackage['image'] ?? 'hero-himachal')
+        : admin_package_feature_image($post, $destinations, (string) ($previousPackage['image'] ?? 'hero-himachal'));
+    return [
+        'title' => trim((string) ($post['title'] ?? '')),
+        'label' => trim((string) ($post['label'] ?? '')),
+        'cat' => implode(' ', $categoryValues),
+        'duration' => trim((string) ($post['duration'] ?? '')),
+        'short' => $previousPackage['short'] ?? 'Flexible',
+        'popular' => !empty($post['popular']),
+        'image' => $image,
+        'image_customized' => $previousPackage['image_customized'] ?? false,
+        'price_regular' => trim((string) ($post['price_regular'] ?? '')),
+        'price_discount' => trim((string) ($post['price_discount'] ?? '')),
+        'season' => trim((string) ($post['season'] ?? 'All year')),
+        'start' => trim((string) ($post['start'] ?? 'Your home or hotel')),
+        'end' => trim((string) ($post['end'] ?? 'Your home or hotel')),
+        'route' => trim((string) ($post['route'] ?? '')),
+        'overview' => trim((string) ($post['overview'] ?? '')),
+        'highlights' => admin_lines((string) ($post['highlights'] ?? '')),
+        'days' => [],
+        '_slug_value' => admin_slug((string) ($post['slug'] ?? '')),
+        '_old_slug_value' => admin_slug((string) ($post['old_slug'] ?? '')),
+        '_highlights_text' => (string) ($post['highlights'] ?? ''),
+        '_days_text' => (string) ($post['days'] ?? ''),
+    ];
+}
+function admin_destination_form_from_post(array $post, array $previousDestination = []): array
+{
+    $imageChoice = trim((string) ($post['image_choice'] ?? ''));
+    $image = $imageChoice !== '' ? $imageChoice : trim((string) ($post['image'] ?? ''));
+    if ($image === '' && !empty($previousDestination['image'])) {
+        $image = (string) $previousDestination['image'];
+    }
+    return [
+        'name' => trim((string) ($post['name'] ?? '')),
+        'tagline' => trim((string) ($post['tagline'] ?? '')),
+        'image' => $image,
+        'altitude' => trim((string) ($post['altitude'] ?? 'Varies by route')),
+        'best' => trim((string) ($post['best'] ?? 'Plan around your dates')),
+        'drive' => trim((string) ($post['drive'] ?? 'Route planned around pickup')),
+        'text' => trim((string) ($post['text'] ?? '')),
+        'see' => admin_lines((string) ($post['see'] ?? '')),
+        'packages' => [],
+        '_slug_value' => admin_slug((string) ($post['slug'] ?? '')),
+        '_old_slug_value' => admin_slug((string) ($post['old_slug'] ?? '')),
+        '_see_text' => (string) ($post['see'] ?? ''),
+        '_image_choice' => $imageChoice,
+    ];
+}
+function admin_package_feature_image(array $post, array $destinations, string $fallback = 'hero-himachal'): string
+{
+    $slug = admin_slug((string) ($post['slug'] ?? $post['title'] ?? ''));
+    $haystackParts = [
+        $slug,
+        (string) ($post['title'] ?? ''),
+        (string) ($post['label'] ?? ''),
+        (string) ($post['route'] ?? ''),
+        (string) ($post['overview'] ?? ''),
+        (string) ($post['highlights'] ?? ''),
+    ];
+    $haystack = admin_slug(implode(' ', $haystackParts));
+    $bestImage = '';
+    $bestScore = 0;
+
+    foreach ($destinations as $destinationSlug => $destination) {
+        $image = (string) ($destination['image'] ?? '');
+        if ($image === '') continue;
+
+        $needles = array_merge(
+            [(string) $destinationSlug, (string) ($destination['name'] ?? '')],
+            array_map('strval', $destination['see'] ?? []),
+            array_map('strval', $destination['packages'] ?? [])
+        );
+        $score = 0;
+        foreach ($needles as $needle) {
+            $needleSlug = admin_slug($needle);
+            if (strlen($needleSlug) < 3) continue;
+            if ($needleSlug === $slug || str_contains($haystack, $needleSlug)) {
+                $score += $needleSlug === $slug ? 8 : 2;
+            }
+        }
+
+        foreach ($destination['packages'] ?? [] as $packageSlug) {
+            if ((string) $packageSlug === $slug) {
+                $score += 12;
+            }
+        }
+
+        if ($score > $bestScore) {
+            $bestScore = $score;
+            $bestImage = $image;
+        }
+    }
+
+    return $bestImage !== '' ? $bestImage : $fallback;
+}
+$failedFormKind = '';
+$failedForm = [];
+$failedFormFlash = $_SESSION['admin_failed_form'] ?? null;
+unset($_SESSION['admin_failed_form']);
+if (is_array($failedFormFlash)) {
+    $flashKind = (string) ($failedFormFlash['kind'] ?? '');
+    $flashForm = $failedFormFlash['form'] ?? [];
+    $flashError = (string) ($failedFormFlash['error'] ?? '');
+    if (in_array($flashKind, ['package', 'destination'], true) && is_array($flashForm)) {
+        $failedFormKind = $flashKind;
+        $failedForm = $flashForm;
+        if ($flashError !== '') {
+            $error = $flashError;
+        }
+    }
+}
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     if (!hash_equals(admin_csrf(), (string) ($_POST['csrf'] ?? ''))) {
         $error = 'Your session expired. Refresh the page and try again.';
@@ -225,7 +344,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $categoryValues = array_values(array_unique(array_filter(array_map('strval', $categoryValues), static fn($category) => $category !== '')));
                     $previousSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
                     $previousPackage = $packages[$previousSlug] ?? $packages[$slug] ?? [];
-                    $image = $previousPackage['image'] ?? 'hero-himachal';
+                    $image = !empty($previousPackage['image_customized'])
+                        ? (string) ($previousPackage['image'] ?? 'hero-himachal')
+                        : admin_package_feature_image($_POST, $destinations, (string) ($previousPackage['image'] ?? 'hero-himachal'));
                     if (!$categoryValues || array_diff($categoryValues, array_keys($categories))) throw new RuntimeException('Choose at least one valid package category.');
                     $highlights = admin_lines((string) ($_POST['highlights'] ?? ''));
                     $days = [];
@@ -233,7 +354,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         $parts = explode('|', $line, 2);
                         if (count($parts) === 2 && trim($parts[0]) !== '' && trim($parts[1]) !== '') $days[] = [trim($parts[0]), trim($parts[1])];
                     }
-                    if (!$highlights || !$days) throw new RuntimeException('Add at least one highlight and one day formatted as “Title | details”.');
+                    if (!$highlights || !$days) throw new RuntimeException('Add at least one highlight and one day formatted as "Title | details".');
                     $regularPriceInput = trim((string) ($_POST['price_regular'] ?? ''));
                     $discountPriceInput = trim((string) ($_POST['price_discount'] ?? ''));
                     foreach (['Regular price' => $regularPriceInput, 'Discount price' => $discountPriceInput] as $priceLabel => $priceInput) {
@@ -247,7 +368,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         throw new RuntimeException('Enter a regular price before adding a discount price.');
                     }
                     if ($regularPrice !== null && $discountPrice !== null && $discountPrice >= $regularPrice) {
-                        throw new RuntimeException('Discount price must be lower than regular price.');
+                        throw new RuntimeException('Discount price should be less than Regular price (INR).');
                     }
                     $record = [
                         'title' => $name, 'label' => trim((string) ($_POST['label'] ?? '')), 'cat' => implode(' ', $categoryValues),
@@ -280,6 +401,22 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 admin_redirect();
             } catch (Throwable $exception) {
                 $error = $exception instanceof RuntimeException ? $exception->getMessage() : 'Could not save to the database. Initialize it first and check MySQL permissions.';
+                if (($action ?? '') === 'save' && in_array(($kind ?? ''), ['package', 'destination'], true)) {
+                    $postedSlug = admin_slug((string) ($_POST['slug'] ?? ''));
+                    $postedOldSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
+                    if ($kind === 'package') {
+                        $previousPackage = $packages[$postedOldSlug] ?? $packages[$postedSlug] ?? [];
+                        $form = admin_package_form_from_post($_POST, $previousPackage);
+                        $redirectTab = 'packages';
+                    } else {
+                        $previousDestination = $destinations[$postedOldSlug] ?? $destinations[$postedSlug] ?? [];
+                        $form = admin_destination_form_from_post($_POST, $previousDestination);
+                        $redirectTab = 'destinations';
+                    }
+                    $_SESSION['admin_failed_form'] = ['kind' => $kind, 'form' => $form, 'error' => $error];
+                    header('Location: index.php?tab=' . $redirectTab . '#editor');
+                    exit;
+                }
             }
         }
     }
@@ -293,10 +430,21 @@ $editingKind = (string) ($_GET['kind'] ?? '');
 if (!in_array($editingKind, ['package', 'taxi', 'destination'], true)) {
     $editingKind = ['packages' => 'package', 'taxis' => 'taxi', 'destinations' => 'destination'][$activeTab] ?? '';
 }
+if ($failedFormKind !== '') {
+    $editingKind = $failedFormKind;
+    $activeTab = $failedFormKind === 'destination' ? 'destinations' : 'packages';
+    $editingSlug = (string) ($failedForm['_old_slug_value'] ?: $failedForm['_slug_value'] ?: $editingSlug);
+}
 $packageForm = $editingKind === 'package' ? ($packages[$editingSlug] ?? []) : [];
 $destinationForm = $editingKind === 'destination' ? ($destinations[$editingSlug] ?? []) : [];
+if ($failedFormKind === 'package') {
+    $packageForm = $failedForm;
+}
+if ($failedFormKind === 'destination') {
+    $destinationForm = $failedForm;
+}
 $selectedDestinationImage = (string) ($destinationForm['image'] ?? '');
-$selectedDestinationImageName = pathinfo(basename($selectedDestinationImage), PATHINFO_FILENAME);
+$selectedDestinationImageName = (string) ($destinationForm['_image_choice'] ?? pathinfo(basename($selectedDestinationImage), PATHINFO_FILENAME));
 $destinationGroups = array_map(static function (array $destination): array {
     $destination['title'] = $destination['name'] ?? '';
     $destination['items'] = $destination['see'] ?? [];
@@ -377,10 +525,13 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
   <link rel="stylesheet" href="../assets/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="../style.css">
   <style>
+    html,body{width:100%;max-width:100%;overflow-x:hidden}.dash-header,.dash-main,.dash-panel{max-width:100%}.dash-row-main,.dash-section-title{min-width:0}@media(max-width:720px){.dash-main{width:100%;padding-left:14px;padding-right:14px}.dash-tabs{max-width:100%;overflow-x:auto}.dash-section-title{flex-wrap:wrap}.dash-row small,.dash-row strong{overflow-wrap:anywhere}}
     body{background:#f5f6f3;color:#24313a}.dash-header{background:#123b3a;color:#fff;padding:16px 24px}.dash-head-inner{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:18px}.dash-brand{color:#fff;font-weight:700;text-decoration:none;display:flex;align-items:center;gap:11px} .dash-brand small{display:block;font-size:12px;font-weight:400;opacity:.76}.dash-main{max-width:1200px;margin:28px auto;padding:0 18px}.dash-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:20px}.dash-top h1{font-size:30px;margin:0}.dash-top p{margin:5px 0 0;color:#68756f}.dash-status{padding:12px 15px;background:#fff;border:1px solid #dce2df;border-radius:5px;margin-bottom:18px}.dash-status.good{border-left:4px solid #25805e}.dash-status.bad{border-left:4px solid #bd483f}.dash-tabs{display:flex;gap:8px;border-bottom:1px solid #d7dfdb;margin-bottom:20px}.dash-tabs a{padding:12px 16px;text-decoration:none;color:#51605b;border-bottom:3px solid transparent;font-weight:600}.dash-tabs a.active{color:#146553;border-color:#cf9a3c}.dash-panel{background:#fff;border:1px solid #dce2df;border-radius:6px;padding:22px;margin-bottom:22px}.dash-panel h2{font-size:21px;margin:0 0 18px}.dash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.dash-grid label{display:block;font-size:13px;font-weight:600;color:#44534d}.dash-grid input,.dash-grid textarea,.dash-grid select{margin-top:5px;width:100%;border:1px solid #cbd4d0;border-radius:4px;padding:10px;color:#24313a;background:#fff}.dash-grid textarea{min-height:96px}.dash-wide{grid-column:1/-1}.dash-list{border-top:1px solid #e5e9e7}.dash-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid #e5e9e7}.dash-row-main{display:flex;align-items:center;gap:13px;min-width:0}.dash-thumb{width:68px;height:52px;object-fit:cover;border-radius:3px;background:#eee}.dash-row small{display:block;color:#74817b;margin-top:2px}.dash-actions{display:flex;gap:7px;flex-shrink:0}.dash-actions form{margin:0}.dash-actions .btn{border-radius:4px}.dash-note{color:#69766f;font-size:13px}.dash-empty{padding:16px 0;color:#69766f}.setup-box{max-width:520px;margin:70px auto}.dash-section-title{display:flex;justify-content:space-between;align-items:center;gap:14px}.dash-field-title{display:block;font-size:13px;font-weight:600;color:#44534d}.category-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:5px}.category-picker label{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid #dce2df;border-radius:4px;background:#fff;font-weight:500;cursor:pointer}.category-picker label:has(input:checked){border-color:#28705c;background:#f0f7f3}.category-picker input{width:16px;height:16px;margin:0;accent-color:#28705c;flex:0 0 auto}@media(max-width:720px){.dash-top{display:block}.dash-top .btn{margin-top:14px}.dash-grid{grid-template-columns:1fr}.dash-wide{grid-column:auto}.dash-row{align-items:flex-start;flex-direction:column}.dash-actions{flex-wrap:wrap}.dash-tabs a{padding:10px 12px}.dash-header{padding:14px}.dash-panel{padding:17px}}
     .dash-grid input::placeholder,.dash-grid textarea::placeholder{color:#89948f;opacity:1}.dash-note{display:block;margin-top:5px}
     .login-page{min-height:100vh;background:#f1f4f1;color:#203331}.login-page .dash-header{display:none}.login-main{display:grid;place-items:center;width:100%;max-width:none;min-height:100vh;margin:0;padding:32px}.login-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(380px,.85fr);width:min(1120px,100%);min-height:min(700px,calc(100vh - 64px));overflow:hidden;background:#fff;border:1px solid #e0e7e2;border-radius:8px;box-shadow:0 24px 70px rgba(22,55,47,.12)}.login-visual{position:relative;isolation:isolate;min-height:640px;overflow:hidden;background:#17413b;color:#fff}.login-visual>img{position:absolute;z-index:-2;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}.login-visual:after{position:absolute;z-index:-1;inset:0;background:rgba(9,38,35,.58);content:''}.login-visual-content{display:flex;flex-direction:column;justify-content:space-between;min-height:inherit;padding:38px 42px}.login-brand{display:inline-flex;align-items:center;gap:14px;width:max-content;color:#fff;text-decoration:none;font:700 18px/1.25 Montserrat,sans-serif}.login-brand img{flex:0 0 auto}.login-brand small{display:block;margin-top:6px;color:#e6c781;font:600 11px/1.4 'DM Sans',sans-serif}.login-intro{max-width:440px;margin-bottom:30px}.login-intro>span,.login-eyebrow{color:#a6c3b1;font-size:12px;font-weight:700}.login-intro h1{margin:14px 0;font:700 34px/1.2 Montserrat,sans-serif;color:#fff}.login-intro p{max-width:330px;margin:0;color:#e5eee9;font-size:16px;line-height:1.6}.login-panel{display:grid;place-items:center;padding:48px}.login-form-wrap{width:min(100%,360px)}.login-mark{display:grid;place-items:center;width:44px;height:44px;margin-bottom:30px;border-radius:6px;background:#edf3ef;color:#17604d;font-size:18px}.login-eyebrow{margin:0 0 8px;color:#497562}.login-panel h2{margin:0;color:#203331;font:700 30px/1.2 Montserrat,sans-serif}.login-copy{margin:10px 0 30px;color:#697973;font-size:15px;line-height:1.5}.login-form{display:grid;gap:9px}.login-form label{margin-top:8px;color:#31433e;font-size:13px;font-weight:700}.login-form .form-control{min-height:48px;border-color:#cad6cf;border-radius:4px;padding:11px 13px;color:#203331}.login-form .form-control:focus{border-color:#26725e;box-shadow:0 0 0 3px rgba(38,114,94,.14)}.login-submit{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin-top:14px;border:0;border-radius:4px;background:#174f43;color:#fff;font-weight:700}.login-submit:hover,.login-submit:focus-visible{background:#103d34;color:#fff}.login-back{display:inline-flex;align-items:center;gap:8px;margin-top:28px;color:#526a60;font-size:13px;font-weight:600;text-decoration:none}.login-back:hover{color:#174f43}.login-notice,.login-error{margin:0 0 18px;padding:11px 12px;border:1px solid #cde2d6;border-radius:4px;background:#f1f8f3;color:#275b40;font-size:13px}.login-error{border-color:#ebcbc7;background:#fff5f3;color:#993e36}@media(max-width:760px){.login-main{padding:14px}.login-layout{grid-template-columns:1fr;min-height:0}.login-visual{min-height:250px}.login-visual-content{min-height:250px;padding:24px}.login-intro{margin:30px 0 2px}.login-intro h1{font-size:26px;margin:8px 0}.login-intro p{font-size:14px}.login-brand img{width:44px;height:44px}.login-panel{padding:36px 24px 32px}.login-mark{margin-bottom:20px}.login-copy{margin-bottom:22px}}@media(max-width:420px){.login-visual{min-height:220px}.login-visual-content{min-height:220px;padding:20px}.login-intro{margin-top:24px}.login-panel{padding:30px 20px}}
+    @media(max-width:760px){.login-page{background:#f1f4f1}.login-main{align-items:start;place-items:start center;min-height:100svh;padding:12px}.login-layout{display:block;width:100%;overflow:hidden;background:#fff;border-radius:12px}.login-visual{min-height:150px}.login-visual-content{min-height:150px;padding:18px}.login-intro{display:none}.login-panel{position:relative;z-index:2;display:block;background:#fff;padding:28px 20px 24px}.login-form-wrap{width:100%;max-width:380px;margin:0 auto}.login-form .form-control{background:#fff}}@media(max-width:420px){.login-visual{min-height:128px}.login-visual-content{min-height:128px}.login-panel{padding:24px 18px}}
     body:not(.login-page){min-height:100vh;background:linear-gradient(135deg,#f7f5ed 0%,#eef4f0 42%,#f8f9f5 100%);color:#1f302c}.dash-header{position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,#0b302d,#174f43 58%,#8a6425);box-shadow:0 18px 50px rgba(13,47,42,.18)}.dash-head-inner{max-width:1280px}.dash-brand{font:800 17px/1.2 Montserrat,sans-serif;letter-spacing:.01em}.dash-brand img{width:50px;height:50px;padding:4px;border-radius:10px;background:rgba(255,255,255,.95)}.dash-brand small{margin-top:4px;color:#e8d09c;font-size:11px;text-transform:uppercase;letter-spacing:.14em}.dash-main{max-width:1280px;margin:34px auto 54px}.dash-top{align-items:center;margin-bottom:22px}.dash-kicker{display:block;margin-bottom:8px;color:#8a6425;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}.dash-top h1{color:#102c28;font:800 clamp(30px,4vw,46px)/1.05 Montserrat,sans-serif}.dash-top p{max-width:660px;color:#65736d;font-size:15px}.dash-status{border:0;border-radius:8px;box-shadow:0 12px 34px rgba(32,58,51,.09)}.dash-tabs{position:sticky;top:83px;z-index:15;overflow:auto;margin-bottom:24px;padding:8px;border:1px solid rgba(205,214,208,.75);border-radius:12px;background:rgba(255,255,255,.78);box-shadow:0 16px 40px rgba(24,54,49,.08);backdrop-filter:blur(18px)}.dash-tabs a{display:inline-flex;align-items:center;gap:9px;border:0;border-radius:8px;color:#52645e;white-space:nowrap}.dash-tabs a span{color:#8b9893;font-size:12px}.dash-tabs a.active{background:#123f38;color:#fff;box-shadow:0 10px 24px rgba(18,63,56,.22)}.dash-tabs a.active span{color:#d9c18c}.dash-panel{border:1px solid rgba(207,216,211,.8);border-radius:10px;background:rgba(255,255,255,.9);box-shadow:0 18px 52px rgba(31,61,54,.09)}.dash-panel h2{color:#1d332e;font:800 22px/1.2 Montserrat,sans-serif}.dash-panel-quiet{background:rgba(255,255,255,.72)}.dash-grid{gap:18px}.dash-grid label,.dash-field-title{color:#2d413b;font-size:12px;letter-spacing:.02em}.dash-grid input,.dash-grid textarea,.dash-grid select{min-height:46px;border-color:#d1d9d5;border-radius:7px;background:#fbfcfa}.dash-grid input:focus,.dash-grid textarea:focus,.dash-grid select:focus{border-color:#1d6d5a;box-shadow:0 0 0 3px rgba(29,109,90,.12);outline:0}.dash-grid textarea{min-height:118px}.category-picker{grid-template-columns:repeat(3,minmax(0,1fr))}.category-picker label{border-radius:7px;background:#fbfcfa}.dash-list{border-top:0}.dash-row{padding:15px 0;border-color:#e8ede9}.dash-row:first-child{padding-top:0}.dash-row:last-child{padding-bottom:0;border-bottom:0}.dash-row-compact{gap:10px}.dash-thumb{width:76px;height:56px;border-radius:8px;box-shadow:0 8px 20px rgba(20,45,39,.12)}.dash-row strong{color:#203631}.dash-row small{color:#718078}.dash-actions .btn,.dash-row .btn,.dash-section-title .btn{border-radius:7px;font-weight:700}.dash-section-title{margin-bottom:18px}.dash-section-title h2{margin:0}.btn-gold{border-color:#b9842e;background:#b9842e;color:#fff}.btn-gold:hover,.btn-gold:focus-visible{border-color:#94661e;background:#94661e;color:#fff}.dash-hero{display:block;margin-bottom:22px;padding:30px;border-radius:14px;background:linear-gradient(135deg,#113c36,#1d6657 58%,#b68131);color:#fff;box-shadow:0 24px 70px rgba(17,60,54,.23)}.dash-hero span{color:#e5c988;font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}.dash-hero h2{max-width:760px;margin:10px 0;color:#fff;font:800 clamp(28px,4vw,44px)/1.08 Montserrat,sans-serif}.dash-hero p{max-width:610px;margin:0;color:#edf5f1}.dash-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:22px}.dash-stat{display:flex;gap:14px;align-items:center;min-height:126px;padding:20px;border:1px solid rgba(207,216,211,.8);border-radius:10px;background:#fff;box-shadow:0 16px 42px rgba(31,61,54,.08)}.dash-stat i{display:grid;place-items:center;width:42px;height:42px;border-radius:9px;background:#eef6f2;color:#17604d;font-size:17px}.dash-stat strong,.dash-stat span,.dash-stat small{display:block}.dash-stat strong{color:#102c28;font:800 34px/1 Montserrat,sans-serif}.dash-stat span{margin-top:5px;color:#2d413b;font-weight:800}.dash-stat small{margin-top:3px;color:#7a8781}.dash-dashboard-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.dash-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.dash-action-grid a{display:flex;align-items:center;gap:12px;min-height:70px;padding:15px;border:1px solid #dfe7e2;border-radius:9px;background:#fbfcfa;color:#213a34;font-weight:800;text-decoration:none}.dash-action-grid a:hover{border-color:#b9842e;color:#123f38;box-shadow:0 12px 28px rgba(35,69,61,.09)}.dash-action-grid i{display:grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#123f38;color:#fff}.dash-health-list{display:grid;gap:11px}.dash-health-list div{display:grid;grid-template-columns:28px minmax(90px,1fr) minmax(0,1.4fr);align-items:center;gap:10px;padding:12px;border:1px solid #e5ebe7;border-radius:8px;background:#fbfcfa}.dash-health-list i{color:#17604d}.dash-health-list span{color:#75827c;font-size:13px}.dash-health-list strong{min-width:0;overflow:hidden;color:#233934;text-overflow:ellipsis;white-space:nowrap}.setup-box{border-radius:12px}.login-layout{border-radius:14px;box-shadow:0 30px 80px rgba(22,55,47,.18)}.login-submit,.login-mark{border-radius:8px}@media(max-width:980px){.dash-stat-grid,.dash-dashboard-grid{grid-template-columns:1fr 1fr}.category-picker{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:720px){.dash-main{margin-top:22px}.dash-tabs{top:79px;border-radius:10px}.dash-hero,.dash-panel{border-radius:10px}.dash-stat-grid,.dash-dashboard-grid,.dash-action-grid{grid-template-columns:1fr}.dash-health-list div{grid-template-columns:26px 1fr}.dash-health-list strong{grid-column:2}.category-picker{grid-template-columns:1fr}.dash-hero{padding:22px}.dash-hero h2{font-size:27px}}
+    @media(max-width:760px){body.login-page{background:#f1f4f1}.login-page .login-main{align-items:start;place-items:start center;width:100%;max-width:none;min-height:100svh;margin:0;padding:12px}.login-page .login-layout{display:block;width:100%;max-width:420px;min-height:0;overflow:hidden;background:#fff;border-radius:12px}.login-page .login-visual{min-height:150px}.login-page .login-visual-content{min-height:150px;padding:18px}.login-page .login-intro{display:none}.login-page .login-panel{position:relative;z-index:2;display:block;background:#fff;padding:28px 20px 24px}.login-page .login-form-wrap{width:100%;max-width:380px;margin:0 auto}.login-page .login-form .form-control{background:#fff}}@media(max-width:420px){.login-page .login-visual{min-height:128px}.login-page .login-visual-content{min-height:128px}.login-page .login-panel{padding:24px 18px}}
   </style>
   <style>
     .dash-image-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:8px}
@@ -543,22 +694,28 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
   <?php elseif ($selectedTab === 'packages'): ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $packageForm ? 'Update package' : 'Add package' ?></h2><?php if ($packageForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=packages">New package</a><?php endif; ?></div>
       <form method="post" data-package-form><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="save"><div class="dash-grid">
-        <input type="hidden" name="old_slug" value="<?= admin_h($editingKind === 'package' ? $editingSlug : '') ?>">
+        <input type="hidden" name="old_slug" value="<?= admin_h($packageForm['_old_slug_value'] ?? ($editingKind === 'package' ? $editingSlug : '')) ?>">
         <label>Package title<input name="title" required value="<?= admin_h($packageForm['title'] ?? '') ?>" placeholder="e.g. Jaipur & Jaisalmer Heritage Trail"></label>
-        <label>URL slug<input name="slug" data-package-slug value="<?= admin_h($editingKind === 'package' ? $editingSlug : '') ?>" placeholder="Generated from package title"></label>
+        <label>URL slug<input name="slug" data-package-slug value="<?= admin_h($packageForm['_slug_value'] ?? ($editingKind === 'package' ? $editingSlug : '')) ?>" placeholder="Generated from package title"></label>
         <label>Card label<input name="label" value="<?= admin_h($packageForm['label'] ?? '') ?>" placeholder="e.g. Desert & heritage"></label>
         <div class="dash-field"><span class="dash-field-title">Categories</span><div class="category-picker"><?php $selectedCategories = preg_split('/\s+/', (string) ($packageForm['cat'] ?? 'heritage')) ?: []; foreach ($categories as $key => $label): ?><label><input type="checkbox" name="cat[]" value="<?= admin_h($key) ?>"<?= in_array($key, $selectedCategories, true) ? ' checked' : '' ?>><span><?= admin_h($label) ?></span></label><?php endforeach; ?></div></div>
         <label>Duration<input name="duration" value="<?= admin_h($packageForm['duration'] ?? '') ?>" placeholder="e.g. 5 days · 4 nights"></label>
         <label>Regular price (INR)<input type="number" name="price_regular" min="0" step="1" inputmode="numeric" value="<?= admin_h($packageForm['price_regular'] ?? '') ?>" placeholder="Optional"></label>
         <label>Discount price (INR)<input type="number" name="price_discount" min="0" step="1" inputmode="numeric" value="<?= admin_h($packageForm['price_discount'] ?? '') ?>" placeholder="Optional"></label>
-        <p class="dash-wide dash-note">Leave prices blank to hide them. If both are entered, the discount must be lower than the regular price.</p>
+        <p class="dash-wide dash-note">Leave prices blank to hide them. Discount price should be less than Regular price (INR).</p>
         <label>Best season<input name="season" value="<?= admin_h($packageForm['season'] ?? 'All year') ?>" placeholder="e.g. October to March"></label>
         <label>Route<input name="route" value="<?= admin_h($packageForm['route'] ?? '') ?>" placeholder="e.g. Jaipur · Jodhpur · Jaisalmer"></label>
+<?php if (!empty($packageForm['image'])): ?>
+        <div class="dash-wide dash-note">
+          <span class="dash-field-title">Featured image</span>
+          <div class="dash-row-main mt-2"><img class="dash-thumb" src="<?= admin_h(preg_match('~^https?://~i', (string) $packageForm['image']) ? img((string) $packageForm['image'], true) : '../' . img((string) $packageForm['image'], true)) ?>" alt=""><small>Auto-selected from the relevant destination when this package is saved.</small></div>
+        </div>
+<?php endif; ?>
         <label>Pickup point<input name="start" list="package-pickup-options" value="<?= admin_h($packageForm['start'] ?? 'Your home or hotel') ?>" placeholder="Choose or enter a pickup point"><datalist id="package-pickup-options"><option value="Your home or hotel"><option value="Airport"><option value="Railway station"><option value="Bus stand"></datalist><span class="dash-note">Where the trip begins, such as an airport, station or hotel.</span></label>
         <label>Drop-off point<input name="end" list="package-dropoff-options" value="<?= admin_h($packageForm['end'] ?? 'Your home or hotel') ?>" placeholder="Choose or enter a drop-off point"><datalist id="package-dropoff-options"><option value="Your home or hotel"><option value="Airport"><option value="Railway station"><option value="Bus stand"></datalist><span class="dash-note">Where guests are dropped off at the end of the trip.</span></label>
         <label class="dash-wide">Overview<textarea name="overview" required placeholder="Describe the feel of the trip, who it suits and what guests can expect."><?= admin_h($packageForm['overview'] ?? '') ?></textarea></label>
-        <label class="dash-wide">Highlights<textarea name="highlights" required placeholder="Amber Fort at opening time&#10;Old-city food walk&#10;Sunset over the dunes"><?= admin_h(implode("\n", $packageForm['highlights'] ?? [])) ?></textarea><span class="dash-note">One highlight per line.</span></label>
-        <label class="dash-wide">Day-by-day plan<textarea name="days" required placeholder="Day 1: Arrival | Airport pickup and hotel check-in&#10;Day 2: Jaipur | Fort visit and old-city walk"><?= admin_h(implode("\n", array_map(static fn($day) => $day[0] . ' | ' . $day[1], $packageForm['days'] ?? []))) ?></textarea><span class="dash-note">One day per line: Day title | day description</span></label>
+        <label class="dash-wide">Highlights<textarea name="highlights" required placeholder="Amber Fort at opening time&#10;Old-city food walk&#10;Sunset over the dunes"><?= admin_h($packageForm['_highlights_text'] ?? implode("\n", $packageForm['highlights'] ?? [])) ?></textarea><span class="dash-note">One highlight per line.</span></label>
+        <label class="dash-wide">Day-by-day plan<textarea name="days" required placeholder="Day 1: Arrival | Airport pickup and hotel check-in&#10;Day 2: Jaipur | Fort visit and old-city walk"><?= admin_h($packageForm['_days_text'] ?? implode("\n", array_map(static fn($day) => $day[0] . ' | ' . $day[1], $packageForm['days'] ?? []))) ?></textarea><span class="dash-note">One day per line: Day title | day description</span></label>
         <label class="dash-popular-toggle">
           <input type="checkbox" name="popular" value="1"<?= !empty($packageForm['popular']) ? ' checked' : '' ?>>
           <span class="dash-popular-copy"><strong>Mark as popular</strong><small>Highlight this package with a popular badge.</small></span>
@@ -570,7 +727,7 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
   <?php elseif ($selectedTab === 'destinations'): ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $destinationForm ? 'Update destination' : 'Add destination' ?></h2><?php if ($destinationForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=destinations">New destination</a><?php endif; ?></div>
       <form method="post" enctype="multipart/form-data"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="save"><div class="dash-grid">
-        <input type="hidden" name="old_slug" value="<?= admin_h($editingKind === 'destination' ? $editingSlug : '') ?>">
+        <input type="hidden" name="old_slug" value="<?= admin_h($destinationForm['_old_slug_value'] ?? ($editingKind === 'destination' ? $editingSlug : '')) ?>">
         <input type="hidden" name="image" value="<?= admin_h($destinationForm['image'] ?? '') ?>">
         <label>Destination name<input name="name" required value="<?= admin_h($destinationForm['name'] ?? '') ?>" placeholder="e.g. Shimla"></label>
         <label>Tagline<input name="tagline" required value="<?= admin_h($destinationForm['tagline'] ?? '') ?>" placeholder="e.g. The Queen of Hills"></label>
@@ -592,7 +749,7 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <label>Altitude<input name="altitude" value="<?= admin_h($destinationForm['altitude'] ?? 'Varies by route') ?>" placeholder="e.g. 2,200 m"></label>
         <label>Best season<input name="best" value="<?= admin_h($destinationForm['best'] ?? 'Plan around your dates') ?>" placeholder="e.g. March-June"></label>
         <label class="dash-wide">Destination description<textarea name="text" required placeholder="A short introduction shown on the Destinations page."><?= admin_h($destinationForm['text'] ?? '') ?></textarea></label>
-        <label class="dash-wide">Sightseeing places<textarea name="see" required placeholder="The Ridge & Christ Church&#10;Mall Road&#10;Jakhu Temple"><?= admin_h(implode("\n", $destinationForm['see'] ?? [])) ?></textarea><span class="dash-note">One sightseeing place per line. These appear under Don't miss.</span></label>
+        <label class="dash-wide">Sightseeing places<textarea name="see" required placeholder="The Ridge & Christ Church&#10;Mall Road&#10;Jakhu Temple"><?= admin_h($destinationForm['_see_text'] ?? implode("\n", $destinationForm['see'] ?? [])) ?></textarea><span class="dash-note">One sightseeing place per line. These appear under Don't miss.</span></label>
       </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save destination</button></p></form>
     </section>
     <section class="dash-panel"><h2>All destinations</h2><div class="dash-list"><?php foreach ($destinationGroups as $slug => $group): ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($group['image'], true)) ?>" alt=""><div><strong><?= admin_h($group['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $group['items'])) ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=destinations&amp;kind=destination&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><form method="post" onsubmit="return confirm('Delete this destination?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
@@ -629,11 +786,37 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
   if (!form) return;
   const title = form.querySelector('[name="title"]');
   const slug = form.querySelector('[data-package-slug]');
+  const regularPrice = form.querySelector('[name="price_regular"]');
+  const discountPrice = form.querySelector('[name="price_discount"]');
   let slugWasEdited = false;
 
   const makeSlug = (value) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const validatePrices = () => {
+    if (!regularPrice || !discountPrice) return true;
+    const regular = regularPrice.value === '' ? null : Number(regularPrice.value);
+    const discount = discountPrice.value === '' ? null : Number(discountPrice.value);
+    let message = '';
+
+    if (discount !== null && regular === null) {
+      message = 'Enter Regular price (INR) before adding a discount price.';
+    } else if (regular !== null && discount !== null && discount >= regular) {
+      message = 'Discount price should be less than Regular price (INR).';
+    }
+
+    discountPrice.setCustomValidity(message);
+    return message === '';
+  };
+
   slug.addEventListener('input', () => { slugWasEdited = true; });
   title.addEventListener('input', () => { if (!slugWasEdited) slug.value = makeSlug(title.value); });
+  regularPrice?.addEventListener('input', validatePrices);
+  discountPrice?.addEventListener('input', validatePrices);
+  form.addEventListener('submit', (event) => {
+    if (!validatePrices()) {
+      event.preventDefault();
+      discountPrice.reportValidity();
+    }
+  });
 })();
 </script>
 <?php endif; ?>

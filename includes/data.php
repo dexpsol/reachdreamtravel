@@ -282,6 +282,19 @@ $packages += [
     'jim-corbett' => $customRoute('Jim Corbett Wildlife Trip', 'Forest & wildlife', 'nature', 'November–June; safari zones vary', 'Jim Corbett National Park · Kosi River', 'Plan a wildlife-focused break around available safari zones, park rules and your travel dates.', ['Jeep safari, subject to permits and zone availability', 'Wildlife spotting', 'Kosi River scenery'], 'jim-corbett'),
     'kashmir-valley' => $customRoute('Jammu and Kashmir Tour', 'Lakes, gardens & mountain valleys', 'north', 'April–October for sightseeing; November–February for snow', 'Srinagar · Gulmarg · Pahalgam · Sonamarg', 'Build a Jammu and Kashmir journey around Srinagar’s lake life, Gulmarg’s snow and gondola experiences, Pahalgam’s valleys and Sonamarg’s glacier views. Winter activities depend on weather and local operations.', ['Srinagar for Dal Lake shikara rides, houseboats, Shalimar Bagh and Nishat Garden', 'Gulmarg for skiing, Gulmarg Gondola and Apharwat Peak', 'Pahalgam for Betaab Valley, Aru Valley and the Lidder River', 'Sonamarg for Meadow of Gold scenery and Thajiwas Glacier'], 'srinagar'),
     'dharamshala-mcleodganj' => array_replace($customRoute('Dharamshala – McLeod Ganj', 'Nature, culture & trekking', 'nature trekking adventure', 'Plan around your dates', 'Dharamshala · McLeod Ganj · Dharamkot · Triund', 'A five-day mountain trip with a Triund trek and time around Dharamshala and McLeod Ganj. Trek conditions depend on weather and local guidance.', ['Triund Trek', 'Dharamkot', 'Dalai Lama visit', 'Cricket Stadium visit', 'Nandi visit'], 'dharamshala'), ['duration' => '5 days · 4 nights', 'short' => '5D · 4N']),
+    'triund-trek' => array_replace($customRoute('Triund Trek', 'Dharamshala / McLeodganj trek', 'trekking adventure himachal nature', 'March–June, September–November', 'Dharamshala · McLeodganj · Triund', 'A classic Dhauladhar trek from the Dharamshala and McLeodganj side, planned with local conditions, guide support and guest fitness in mind.', ['Location: Dharamshala / McLeodganj', 'Altitude: approx. 2,850 m (9,350 ft)', 'Dhauladhar views from the ridge', 'Trek pace planned around your group'], 'trek-lahaul'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
+    'kareri-lake-trek' => array_replace($customRoute('Kareri Lake Trek', 'Kangra high-altitude lake trek', 'trekking adventure himachal nature', 'May–June, September–October', 'Kangra · Kareri village · Kareri Lake', 'A scenic Kangra trek towards Kareri Lake, with forest trails, mountain views and logistics planned around route conditions.', ['Location: Kangra', 'Altitude: approx. 4,350 m (14,270 ft)', 'Lake-side Himalayan scenery', 'Guide, stays and transport planned on request'], 'dharamshala'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
+    'rupin-pass-trek' => array_replace($customRoute('Rupin Pass Trek', 'Shimla / Rohru region trek', 'trekking adventure himachal nature', 'May–June, September–October', 'Shimla · Rohru region · Rupin Pass', 'A high-altitude trek through the Shimla and Rohru side, planned carefully around weather, trail conditions and acclimatisation needs.', ['Location: Shimla / Rohru region', 'Altitude: approx. 4,572 m (15,000 ft)', 'High-pass Himalayan trail', 'Best planned with guide support and buffer time'], 'kinnaur-peaks'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
+    'buran-ghati-trek' => array_replace($customRoute('Buran Ghati Trek', 'Shimla region pass trek', 'trekking adventure himachal nature', 'May–June, September–October', 'Shimla region · Buran Ghati', 'A challenging Shimla-region trek with high mountain scenery, village approaches and pass-crossing planning based on current trail conditions.', ['Location: Shimla region', 'Altitude: approx. 4,572 m (15,000 ft)', 'High-pass trek experience', 'Route and camps planned around season and group pace'], 'shimla-snow'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
+    'prashar-lake-trek' => array_replace($customRoute('Prashar Lake Trek', 'Mandi lake trek', 'trekking adventure himachal nature', 'All year, best in clear weather', 'Mandi · Prashar Lake', 'A short and rewarding trek around Mandi leading to Prashar Lake, ideal for guests who want mountain views without a very long expedition.', ['Location: Mandi', 'Altitude: approx. 2,730 m (8,960 ft)', 'Prashar Lake and temple views', 'Good option for a shorter trek plan'], 'meadow'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
+    'bijli-mahadev-trek' => array_replace($customRoute('Bijli Mahadev Trek', 'Kullu temple trek', 'trekking adventure religious himachal nature', 'March–June, September–November', 'Kullu · Bijli Mahadev', 'A Kullu trek to the Bijli Mahadev temple area, combining a spiritual stop with open valley views and a flexible trek plan.', ['Location: Kullu', 'Altitude: approx. 2,438 m (8,000 ft)', 'Bijli Mahadev temple visit', 'Kullu valley views'], 'parvati'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
+    'indrahara-pass-trek' => array_replace($customRoute('Indrahara Pass Trek', 'Dharamshala high-pass trek', 'trekking adventure himachal nature', 'May–June, September–October', 'Dharamshala · McLeodganj · Indrahara Pass', 'A demanding Dharamshala-side trek towards Indrahara Pass, planned with guides, weather checks and a careful mountain pace.', ['Location: Dharamshala', 'Altitude: approx. 4,350 m (14,270 ft)', 'Dhauladhar high-pass scenery', 'Best suited to prepared trekkers'], 'trek-lahaul'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
+    'fairy-forest-pulga' => array_replace($customRoute('The Fairy Forest (Pulga)', 'Pulga forest escape', 'nature himachal', 'March–June, September–November', 'Kasol · Barshaini · Pulga · Fairy Forest', 'A nature-focused escape to Pulga and its Fairy Forest, planned around peaceful forest walks, village time and Parvati Valley scenery.', ['Location: Pulga, Parvati Valley', 'Forest walks around Pulga', 'Village cafes and slow nature time', 'Best planned with Kasol or Tosh'], 'kasol-town'), ['duration' => 'Custom duration', 'short' => 'Nature']),
+    'kalatop-wildlife-sanctuary' => array_replace($customRoute('Kalatop Wildlife Sanctuary', 'Dalhousie forest reserve', 'nature wildlife himachal', 'March–June, September–November', 'Dalhousie · Kalatop Wildlife Sanctuary · Khajjiar', 'A Dalhousie forest outing around Kalatop Wildlife Sanctuary, with deodar trails, quiet viewpoints and a relaxed nature-first plan.', ['Location: Dalhousie', 'Kalatop Wildlife Sanctuary forest trails', 'Combine with Khajjiar meadows', 'Good for families and nature lovers'], 'meadow'), ['duration' => 'Custom duration', 'short' => 'Nature']),
+    'shimla-water-catchment-wildlife-sanctuary' => array_replace($customRoute('Shimla Water Catchment Wildlife Sanctuary', 'Mashobra forest walk', 'nature wildlife himachal', 'March–June, September–November', 'Shimla · Mashobra · Water Catchment Wildlife Sanctuary', 'A peaceful forest-side Shimla plan around Mashobra and the Water Catchment Wildlife Sanctuary, ideal for slow walks and quiet hill time.', ['Location: Mashobra / Shimla', 'Shimla Water Catchment Wildlife Sanctuary', 'Cool forest trails near Shimla', 'Easy add-on to a Shimla stay'], 'shimla-lodge'), ['duration' => 'Custom duration', 'short' => 'Nature']),
+    'dhungri-van-vihar' => array_replace($customRoute('Dhungri Van Vihar', 'Manali cedar forest', 'nature himachal', 'All year', 'Manali · Dhungri Van Vihar · Hidimba Devi Temple', 'A Manali nature stop around Dhungri Van Vihar and the cedar forest near Hidimba Devi Temple, planned as a gentle local sightseeing experience.', ['Location: Manali', 'Dhungri Van Vihar cedar forest', 'Hidimba Devi Temple nearby', 'Easy walk for families and couples'], 'hidimba'), ['duration' => 'Custom duration', 'short' => 'Nature']),
+    'shoja-jibhi-forest-escape' => array_replace($customRoute('Shoja & Jibhi Forest Escape', 'Seraj valley forest villages', 'nature himachal', 'March–June, September–November', 'Aut · Banjar · Jibhi · Shoja', 'A quiet forest escape through Shoja and Jibhi, with riverside time, village stays and gentle walks in the Seraj valley.', ['Location: Shoja & Jibhi', 'Forest village atmosphere', 'Riverside walks and valley viewpoints', 'Good slow-travel nature break'], 'forest-river'), ['duration' => 'Custom duration', 'short' => 'Nature']),
+    'chail-wildlife-sanctuary' => array_replace($customRoute('Chail Wildlife Sanctuary', 'Chail forest retreat', 'nature wildlife himachal', 'March–June, September–November', 'Shimla · Chail · Chail Wildlife Sanctuary', 'A peaceful Chail forest retreat with sanctuary-side nature time, hill views and a slower alternative to busier Shimla routes.', ['Location: Chail', 'Chail Wildlife Sanctuary', 'Forest roads and hill viewpoints', 'Easy extension from Shimla'], 'shimla'), ['duration' => 'Custom duration', 'short' => 'Nature']),
     'dalhousie-khajjiar' => array_replace($customRoute('Dalhousie – Khajjiar', 'Nature & hill scenery', 'nature', 'Plan around your dates', 'Dalhousie · Khajjiar', 'A four-day nature break pairing Dalhousie with the meadows and mountain scenery of Khajjiar.', ['Dalhousie', 'Khajjiar meadows', 'Dhauladhar views'], 'meadow'), ['duration' => '4 days · 3 nights', 'short' => '4D · 3N']),
     'jammu-katra-patnitop' => $customRoute('Jammu, Katra & Patnitop', 'Pilgrimage & mountain air', 'heritage', 'Plan around your dates and local conditions', 'Jammu City · Katra · Vaishno Devi · Patnitop', 'Combine time in Jammu with a visit to Katra and the Vaishno Devi shrine, then add a relaxing stay in Patnitop.', ['Jammu City', 'Katra and Vaishno Devi shrine visit', 'Patnitop hill-station break'], 'snow-peaks'),
     'katra-vaishno-devi' => $customRoute('Katra / Vaishno Devi', 'Sacred pilgrimage base', 'religious north', 'Plan around your dates', 'Katra · Vaishno Devi Mandir', 'A focused pilgrimage package for Katra, the base town for the sacred journey to Vaishno Devi Mandir shrine.', ['Katra base town', 'Vaishno Devi Mandir shrine', 'Pilgrimage arrangements planned around your dates'], 'snow-peaks'),
@@ -317,6 +330,105 @@ foreach ($routeImages as $slug => $image) {
         $packages[$slug]['image'] = $image;
     }
 }
+function package_auto_image(string $slug, array $package): string
+{
+    $packageImages = [
+        'triund-trek' => 'trek-lahaul',
+        'kareri-lake-trek' => 'dharamshala',
+        'rupin-pass-trek' => 'kinnaur-peaks',
+        'buran-ghati-trek' => 'shimla-snow',
+        'prashar-lake-trek' => 'meadow',
+        'bijli-mahadev-trek' => 'parvati',
+        'indrahara-pass-trek' => 'trek-lahaul',
+        'fairy-forest-pulga' => 'kasol-town',
+        'kalatop-wildlife-sanctuary' => 'meadow',
+        'shimla-water-catchment-wildlife-sanctuary' => 'shimla-lodge',
+        'dhungri-van-vihar' => 'hidimba',
+        'shoja-jibhi-forest-escape' => 'forest-river',
+        'chail-wildlife-sanctuary' => 'shimla',
+    ];
+    if (isset($packageImages[$slug])) {
+        return $packageImages[$slug];
+    }
+
+    $text = strtolower($slug . ' ' . implode(' ', array_map('strval', [
+        $package['title'] ?? '',
+        $package['label'] ?? '',
+        $package['route'] ?? '',
+        $package['overview'] ?? '',
+        implode(' ', array_map('strval', $package['highlights'] ?? [])),
+    ])));
+
+    $keywordImages = [
+        'spiti' => 'spiti-key-sunset',
+        'kinnaur' => 'kinnaur-sangla',
+        'chitkul' => 'kinnaur-sangla',
+        'manali' => 'solang',
+        'solang' => 'solang',
+        'shimla' => 'shimla-city',
+        'kufri' => 'shimla-snow',
+        'narkanda' => 'shimla-lodge',
+        'kasol' => 'kasol-town',
+        'parvati' => 'parvati',
+        'chandratal' => 'chandratal',
+        'lahaul' => 'chandratal-b',
+        'delhi' => 'red-fort-delhi',
+        'agra' => 'taj-mahal-agra',
+        'taj' => 'taj-mahal-agra',
+        'jaipur' => 'hawa-mahal-jaipur',
+        'jaisalmer' => 'hawa-mahal-jaipur',
+        'jodhpur' => 'hawa-mahal-jaipur',
+        'rajasthan' => 'hawa-mahal-jaipur',
+        'desert' => 'hawa-mahal-jaipur',
+        'nainital' => 'nainital',
+        'mussoorie' => 'mussoorie',
+        'chakrata' => 'forest-river',
+        'tiger falls' => 'forest-river',
+        'rishikesh' => 'rishikesh',
+        'haridwar' => 'rishikesh',
+        'auli' => 'manali-snow',
+        'ski' => 'manali-snow',
+        'corbett' => 'jim-corbett',
+        'kashmir' => 'srinagar',
+        'srinagar' => 'srinagar',
+        'gulmarg' => 'snow-peaks',
+        'pahalgam' => 'forest-river',
+        'sonamarg' => 'snow-peaks',
+        'dharamshala' => 'dharamshala',
+        'mcleod' => 'dharamshala',
+        'triund' => 'trek-lahaul',
+        'dalhousie' => 'meadow',
+        'khajjiar' => 'meadow',
+        'katra' => 'ranjit-sagar-dam',
+        'vaishno' => 'ranjit-sagar-dam',
+        'jammu' => 'ranjit-sagar-dam',
+        'patnitop' => 'snow-peaks',
+        'char dham' => 'snow-peaks',
+        'kedarnath' => 'snow-peaks',
+        'badrinath' => 'snow-peaks',
+        'yamunotri' => 'snow-peaks',
+        'gangotri' => 'snow-peaks',
+        'hemkund' => 'snow-peaks',
+        'pathankot' => 'nurpur-fort',
+        'nurpur' => 'nurpur-fort',
+        'kangra' => 'nurpur-fort',
+        'amritsar' => 'amritsar-golden-temple',
+    ];
+
+    foreach ($keywordImages as $keyword => $image) {
+        if (str_contains($text, $keyword)) {
+            return $image;
+        }
+    }
+
+    return (string) ($package['image'] ?? 'hero-himachal');
+}
+foreach ($packages as $slug => &$package) {
+    if (empty($package['image_customized'])) {
+        $package['image'] = package_auto_image((string) $slug, $package);
+    }
+}
+unset($package);
 $publicPackages = array_filter($packages, static fn($package) => empty($package['deprecated_duplicate_of']));
 
 /* ---------------------------------------------------------------------------
