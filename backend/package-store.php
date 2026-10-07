@@ -41,7 +41,7 @@ function package_catalog(array $defaults): array
         $db->exec('CREATE TABLE IF NOT EXISTS hidden_packages (slug VARCHAR(190) PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         $hidden = $db->query('SELECT slug FROM hidden_packages')->fetchAll(PDO::FETCH_COLUMN);
         $hiddenMap = array_fill_keys($hidden, true);
-        $newSlugs = ['nainital', 'mussoorie', 'chakrata', 'rishikesh', 'haridwar', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'char-dham-hemkund-sahib-yatra', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra'];
+        $newSlugs = ['nainital', 'mussoorie', 'chakrata', 'rishikesh', 'solo-rishikesh-activity-break', 'solo-manali-adventure-break', 'solo-kasol-backpacking-break', 'solo-chakrata-nature-activity', 'solo-dharamshala-triund-activity', 'haridwar', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'char-dham-hemkund-sahib-yatra', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra', 'international-coming-soon'];
         $insert = $db->prepare('INSERT IGNORE INTO packages (slug, payload) VALUES (?, ?)');
         foreach ($newSlugs as $slug) {
             if (isset($defaults[$slug]) && !isset($databaseCatalog[$slug]) && !isset($hiddenMap[$slug])) {
@@ -68,7 +68,7 @@ function package_catalog(array $defaults): array
             }
         }
         $db->exec('CREATE TABLE IF NOT EXISTS catalog_migrations (migration_key VARCHAR(190) PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-        $migrationSlugs = ['shimla-local', 'shakti-peeths-himachal', 'chandratal-lahaul', 'nainital', 'mussoorie', 'chakrata', 'rishikesh', 'haridwar', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'char-dham-hemkund-sahib-yatra', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra'];
+        $migrationSlugs = ['shimla-local', 'shakti-peeths-himachal', 'chandratal-lahaul', 'nainital', 'mussoorie', 'chakrata', 'rishikesh', 'solo-rishikesh-activity-break', 'solo-manali-adventure-break', 'solo-kasol-backpacking-break', 'solo-chakrata-nature-activity', 'solo-dharamshala-triund-activity', 'haridwar', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'char-dham-hemkund-sahib-yatra', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra', 'international-coming-soon'];
         $migrationCheck = $db->prepare('SELECT 1 FROM catalog_migrations WHERE migration_key = ?');
         $migrationWrite = $db->prepare('INSERT IGNORE INTO catalog_migrations (migration_key) VALUES (?)');
         $packageUpdate = $db->prepare('UPDATE packages SET payload = ? WHERE slug = ?');
@@ -106,8 +106,8 @@ function package_catalog(array $defaults): array
             $migrationWrite->execute([$migrationKey]);
             $databaseCatalog['mussoorie'] = $updatedPackage;
         }
-        $refreshSlugs = ['mussoorie', 'chakrata', 'rishikesh', 'haridwar', 'kashmir-valley', 'jammu-katra-patnitop', 'katra-vaishno-devi'];
-        $migrationKey = 'requested-packages-refresh-2026-10-v1';
+        $refreshSlugs = ['mussoorie', 'chakrata', 'rishikesh', 'solo-rishikesh-activity-break', 'solo-manali-adventure-break', 'solo-kasol-backpacking-break', 'solo-chakrata-nature-activity', 'solo-dharamshala-triund-activity', 'haridwar', 'kashmir-valley', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'international-coming-soon'];
+        $migrationKey = 'requested-packages-refresh-2026-10-v3';
         $migrationCheck->execute([$migrationKey]);
         if (!$migrationCheck->fetchColumn()) {
             foreach ($refreshSlugs as $slug) {

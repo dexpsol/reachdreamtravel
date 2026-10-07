@@ -17,7 +17,7 @@ $loadImageLibrary = !empty($_SESSION['admin']) && (
     || ($_GET['tab'] ?? '') === 'destinations'
     || ($_GET['kind'] ?? '') === 'destination'
 );
-$categories = ['nature' => 'Nature', 'heritage' => 'Heritage', 'himachal' => 'Himachal tours', 'trekking' => 'Trekking', 'camping' => 'Camping', 'religious' => 'Religious / Temple', 'solo' => 'Solo trips', 'new-year' => 'New Year', 'group' => 'Group tours', 'adventure' => 'Adventure / Activities', 'special' => 'Special interest', 'hills' => 'Hill stations', 'road' => 'Long road trips', 'north' => 'Northern India'];
+$categories = ['domestic' => 'Domestic', 'international' => 'International', 'nature' => 'Nature', 'heritage' => 'Heritage', 'himachal' => 'Himachal tours', 'trekking' => 'Trekking', 'camping' => 'Camping', 'religious' => 'Religious / Temple', 'solo' => 'Solo trips', 'new-year' => 'New Year', 'group' => 'Group tours', 'adventure' => 'Adventure / Activities', 'special' => 'Special interest', 'hills' => 'Hill stations', 'road' => 'Long road trips', 'north' => 'Northern India'];
 $imageFiles = [];
 if ($loadImageLibrary) {
     foreach (['destinations', 'stays'] as $imageFolder) {

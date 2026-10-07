@@ -41,10 +41,12 @@ function package_card(string $slug, array $p): void
 {
     global $site;
     if (!empty($p['deprecated_duplicate_of'])) return;
+    $categoryKeys = preg_split('/\s+/', trim((string) ($p['cat'] ?? ''))) ?: [];
+    $isSolo = in_array('solo', $categoryKeys, true);
     $categoryLabels = package_category_labels($p);
     ?>
-            <article class="package-card" data-type="<?= e($p['cat']) ?>">
-              <a class="package-image" href="<?= e(package_url($slug)) ?>" tabindex="-1" aria-hidden="true"><img src="<?= e(img($p['image'], true)) ?>" alt="" loading="lazy" width="900" height="600"><?php if ($p['popular']): ?><span class="ribbon"><i class="fa-solid fa-route" aria-hidden="true"></i> Featured itinerary</span><?php endif; ?><span class="duration-badge"><i class="fa-solid fa-clock" aria-hidden="true"></i> <?= e($p['short']) ?></span></a>
+            <article class="package-card<?= $isSolo ? ' package-card-solo' : '' ?>" data-type="<?= e($p['cat']) ?>">
+              <a class="package-image" href="<?= e(package_url($slug)) ?>" tabindex="-1" aria-hidden="true"><img src="<?= e(img($p['image'], true)) ?>" alt="" loading="lazy" width="900" height="600"><?php if ($p['popular']): ?><span class="ribbon"><i class="fa-solid fa-route" aria-hidden="true"></i> Featured itinerary</span><?php endif; ?><?php if ($isSolo): ?><span class="solo-ribbon<?= !empty($p['popular']) ? ' solo-ribbon-stacked' : '' ?>"><i class="fa-solid fa-person-walking-luggage" aria-hidden="true"></i> Solo trip</span><?php endif; ?><span class="duration-badge"><i class="fa-solid fa-clock" aria-hidden="true"></i> <?= e($p['short']) ?></span></a>
               <div class="package-content">
                 <span class="package-label"><?= e($p['label']) ?></span>
                 <div class="package-tags package-category-tags" aria-label="Package categories">

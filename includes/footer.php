@@ -51,8 +51,8 @@ $footerPackages = array_slice($packages, 0, 4, true);
           <a class="brand footer-brand" href="index.php"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="170px" height="auto"></span></a>
           <p>Private road trips with a driver, vehicle and stays arranged around your route.</p>
           <div class="social-links">
-            <a class="s-instagram" href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
-            <a class="s-facebook" href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
+            <a class="s-instagram" href="https://www.instagram.com/reachdreamtravel" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
+            <a class="s-facebook" href="https://www.facebook.com/profile.php?id=61594993950885" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
             <a class="s-whatsapp" href="<?= e(wa_link()) ?>" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></a>
             <a class="s-email" href="mailto:<?= e($site['email']) ?>" aria-label="Email"><i class="fa-solid fa-envelope" aria-hidden="true"></i></a>
           </div>
