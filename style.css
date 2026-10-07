@@ -6582,8 +6582,8 @@ a.package-image {
 .footer-contact {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  padding: 36px 0 44px;
+  gap: 14px;
+  padding: 32px 0 38px;
   border-bottom: 1px solid rgba(255, 255, 255, .09)
 }
 
@@ -6592,9 +6592,10 @@ a.package-image {
   align-items: center;
   gap: 16px;
   min-width: 0;
-  padding: 18px 20px;
+  min-height: 92px;
+  padding: 16px 18px;
   border: 1px solid rgba(255, 255, 255, .1);
-  border-radius: 20px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, .04);
   backdrop-filter: blur(6px);
   color: #fff;
@@ -6613,7 +6614,7 @@ a.package-image {
   place-items: center;
   flex: 0 0 52px;
   height: 52px;
-  border-radius: 16px;
+  border-radius: 8px;
   font-size: 20px;
   transition: transform .6s var(--ease)
 }
@@ -6672,8 +6673,9 @@ a.package-image {
 /* Link columns */
 .footer-main {
   display: grid;
-  grid-template-columns: 1.35fr .8fr .95fr 1.3fr;
-  gap: 40px;
+  grid-template-columns: minmax(260px, 1.2fr) minmax(150px, .55fr) minmax(320px, 1.15fr);
+  align-items: start;
+  gap: 34px clamp(28px, 4vw, 58px);
   padding: 52px 0 48px
 }
 
@@ -6750,7 +6752,7 @@ a.package-image {
 
 .footer-col h3 {
   position: relative;
-  margin: 4px 0 20px;
+  margin: 2px 0 20px;
   padding-bottom: 12px;
   color: #fff;
   font: 700 15px Montserrat, sans-serif;
@@ -6775,6 +6777,7 @@ a.package-image {
   margin: 0 0 11px;
   color: rgba(255, 255, 255, .68);
   font-size: 15px;
+  line-height: 1.35;
   transition: color .25s, padding-left .3s var(--ease)
 }
 
@@ -6806,7 +6809,7 @@ a.package-image {
   gap: 14px;
   margin-bottom: 12px;
   padding: 8px;
-  border-radius: 16px;
+  border-radius: 8px;
   color: #fff;
   transition: background .3s
 }
@@ -6820,7 +6823,8 @@ a.package-image {
   flex: 0 0 64px;
   width: 64px;
   height: 52px;
-  border-radius: 12px;
+  border-radius: 8px;
+  object-fit: cover;
   transition: transform .5s var(--ease)
 }
 
@@ -6858,7 +6862,7 @@ a.package-image {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 12px 24px;
   padding: 22px 0 26px;
   border-top: 1px solid rgba(255, 255, 255, .09);
@@ -6909,8 +6913,8 @@ a.package-image {
 
 @media(max-width:1199.98px) {
   .footer-main {
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 36px 28px
+    grid-template-columns: minmax(0, 1fr) minmax(260px, .9fr);
+    gap: 36px 34px
   }
 
   .footer-about {
@@ -6931,15 +6935,25 @@ a.package-image {
   .footer-about p {
     max-width: 560px
   }
+
+  .footer-tours {
+    max-width: 520px
+  }
 }
 
 @media(max-width:991.98px) {
   .footer-contact {
-    grid-template-columns: 1fr
+    grid-template-columns: 1fr;
+    padding-top: 28px
   }
 
   .fc-card {
+    min-height: 78px;
     padding: 14px 16px
+  }
+
+  .footer-main {
+    grid-template-columns: .8fr 1.2fr
   }
 }
 
@@ -6953,7 +6967,7 @@ a.package-image {
     flex-basis: 44px;
     height: 44px;
     font-size: 17px;
-    border-radius: 13px
+    border-radius: 8px
   }
 
   .fc-text b {
@@ -6961,8 +6975,8 @@ a.package-image {
   }
 
   .footer-main {
-    grid-template-columns: 1fr 1fr;
-    gap: 32px 20px;
+    grid-template-columns: 1fr;
+    gap: 30px;
     padding: 40px 0 36px
   }
 
@@ -6975,13 +6989,19 @@ a.package-image {
   }
 
   .footer-tours {
-    grid-column: 1 / -1
+    grid-column: auto;
+    max-width: none
   }
 
   .footer-bottom {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
     gap: 10px
+  }
+
+  .footer-legal {
+    justify-content: center
   }
 
   .footer-watermark {

@@ -92,6 +92,7 @@ function destination_url(string $slug): string
  * 'cat' drives the filters on packages.php.
  * ------------------------------------------------------------------------- */
 $packageCategories = ['all' => 'All packages', 'domestic' => 'Domestic', 'international' => 'International', 'nature' => 'Nature', 'heritage' => 'Heritage', 'himachal' => 'Himachal tours', 'trekking' => 'Trekking', 'camping' => 'Camping', 'religious' => 'Religious / Temple', 'solo' => 'Solo trips', 'new-year' => 'New Year', 'group' => 'Group tours', 'adventure' => 'Adventure / Activities', 'special' => 'Special interest', 'hills' => 'Hill stations', 'road' => 'Long road trips', 'north' => 'Northern India'];
+$packageFilterCategories = ['all' => 'All packages', 'nature' => 'Nature', 'heritage' => 'Heritage', 'himachal' => 'Himachal tours', 'trekking' => 'Trekking', 'camping' => 'Camping', 'religious' => 'Religious / Temple', 'solo' => 'Solo trips', 'group' => 'Group tours', 'adventure' => 'Adventure / Activities'];
 
 $customRoute = static function (string $title, string $label, string $category, string $season, string $route, string $overview, array $highlights, string $image): array {
     return [

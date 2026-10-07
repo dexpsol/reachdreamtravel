@@ -63,17 +63,9 @@ $footerPackages = array_slice($packages, 0, 4, true);
           <a href="index.php">Home</a>
           <a href="about.php">About us</a>
           <a href="packages.php">Tour packages</a>
-          <a href="destinations.php">Destinations</a>
           <a href="vehicles.php">Vehicles</a>
           <a href="gallery.php">Gallery</a>
           <a href="contact.php">Contact</a>
-        </nav>
-
-        <nav class="footer-col" aria-label="Destinations">
-          <h3>Destinations</h3>
-<?php foreach ($destinations as $destSlug => $dest): ?>
-          <a href="<?= e(destination_url($destSlug)) ?>"><?= e($dest['name']) ?></a>
-<?php endforeach; ?>
         </nav>
 
         <div class="footer-col footer-tours">

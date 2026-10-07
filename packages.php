@@ -17,13 +17,9 @@ require __DIR__ . '/includes/header.php';
     <section class="section section-packages packages-page">
       <div class="container">
         <div class="gallery-toolbar">
-<?php filter_bar($packageCategories, '.packages-page .package-card', 'Filter packages'); ?>
+<?php filter_bar($packageFilterCategories, '.packages-page .package-card', 'Filter packages'); ?>
           <a class="text-link" href="contact.php">Plan a custom trip <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
-        <nav class="package-subnav" aria-label="Package type pages">
-          <a href="packages-domestic.php"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Domestic packages</a>
-          <a href="packages-international.php"><i class="fa-solid fa-plane-departure" aria-hidden="true"></i> International packages</a>
-        </nav>
         <div class="group-travel" aria-labelledby="groupTravelTitle">
           <div class="group-travel-copy">
             <h2 id="groupTravelTitle">Who are you travelling with?</h2>

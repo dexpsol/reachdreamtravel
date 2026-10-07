@@ -12,9 +12,10 @@ function package_category_labels(array $package): array
 {
     global $packageCategories;
     $keys = preg_split('/\s+/', trim((string) ($package['cat'] ?? ''))) ?: [];
+    $hiddenKeys = ['all', 'domestic', 'international'];
     return array_values(array_map(
         static fn($key) => $packageCategories[$key] ?? ucwords(str_replace('-', ' ', $key)),
-        array_filter($keys, static fn($key) => $key !== '' && $key !== 'all')
+        array_filter($keys, static fn($key) => $key !== '' && !in_array($key, $hiddenKeys, true))
     ));
 }
 
