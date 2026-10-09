@@ -5007,6 +5007,73 @@ a.package-image {
   color: #fff
 }
 
+.packages-solo-feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, .85fr) auto;
+  gap: 24px;
+  align-items: center;
+  margin: 28px 0 42px;
+  padding: 28px;
+  border: 1px solid rgba(207, 216, 211, .9);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f7fbf8, #fff7e3);
+  box-shadow: 0 18px 44px rgba(11, 31, 51, .08)
+}
+
+.packages-solo-copy h2 {
+  margin: 7px 0 10px;
+  color: var(--navy);
+  font: 800 30px/1.12 Montserrat, sans-serif
+}
+
+.packages-solo-copy p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65
+}
+
+.packages-solo-points {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  color: #344942;
+  font-weight: 700
+}
+
+.packages-solo-points li {
+  display: flex;
+  align-items: center;
+  gap: 10px
+}
+
+.packages-solo-points i {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #e7f5ed;
+  color: #157c5d
+}
+
+@media(max-width:991.98px) {
+  .packages-solo-feature {
+    grid-template-columns: 1fr;
+    align-items: start
+  }
+}
+
+@media(max-width:575.98px) {
+  .packages-solo-feature {
+    padding: 22px
+  }
+
+  .packages-solo-copy h2 {
+    font-size: 26px
+  }
+}
+
 /* ---- Package detail ---- */
 .pd-layout {
   display: grid;
@@ -7236,4 +7303,129 @@ a.package-image {
   color: #7f1d1d;
   background: #fee2e2;
   border-color: #fca5a5
+}
+
+/* ---- Solo page ---- */
+.solo-intro {
+  padding-bottom: 36px
+}
+
+.solo-intro-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, .9fr);
+  gap: 30px;
+  align-items: start
+}
+
+.solo-intro h2 {
+  max-width: 720px;
+  margin: 8px 0 14px;
+  color: var(--navy);
+  font: 800 clamp(30px, 4vw, 48px)/1.08 Montserrat, sans-serif
+}
+
+.solo-intro p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.75
+}
+
+.solo-planning-card {
+  padding: 26px;
+  border: 1px solid rgba(207, 216, 211, .9);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 18px 46px rgba(31, 61, 54, .08)
+}
+
+.solo-planning-card h3 {
+  margin: 0 0 16px;
+  color: var(--navy);
+  font: 800 22px/1.2 Montserrat, sans-serif
+}
+
+.solo-planning-card ul {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 22px
+}
+
+.solo-planning-card li {
+  display: flex;
+  gap: 10px;
+  color: #344942;
+  line-height: 1.5
+}
+
+.solo-planning-card li i {
+  margin-top: 4px;
+  color: #157c5d
+}
+
+.solo-activities {
+  padding-top: 34px;
+  background: #f6f8f4
+}
+
+.solo-activity-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px
+}
+
+.solo-activity-card {
+  min-height: 210px;
+  padding: 22px;
+  border: 1px solid rgba(207, 216, 211, .9);
+  border-radius: 8px;
+  background: #fff
+}
+
+.solo-activity-card>i {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 18px;
+  border-radius: 8px;
+  background: #123f38;
+  color: #fff;
+  font-size: 18px
+}
+
+.solo-activity-card h3 {
+  margin: 0 0 9px;
+  color: var(--navy);
+  font: 800 18px/1.25 Montserrat, sans-serif
+}
+
+.solo-activity-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6
+}
+
+.solo-packages {
+  padding-top: 70px
+}
+
+@media(max-width:991.98px) {
+  .solo-intro-grid,
+  .solo-activity-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+  }
+}
+
+@media(max-width:767.98px) {
+  .solo-intro-grid,
+  .solo-activity-grid {
+    grid-template-columns: 1fr
+  }
+
+  .solo-planning-card,
+  .solo-activity-card {
+    padding: 20px
+  }
 }

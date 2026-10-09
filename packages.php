@@ -29,7 +29,6 @@ require __DIR__ . '/includes/header.php';
             <a href="contact.php?travelling=Couple">Couple</a>
             <a href="contact.php?travelling=Family">Family</a>
             <a href="contact.php?travelling=Friends">Friends</a>
-            <a href="contact.php?travelling=Solo">Solo</a>
             <a href="contact.php?travelling=Seniors">Seniors</a>
           </nav>
         </div>
@@ -44,11 +43,23 @@ require __DIR__ . '/includes/header.php';
             <a href="contact.php?interest=adventure">Trek &amp; camping</a>
             <a href="contact.php?interest=activities">Games &amp; activities</a>
             <a href="contact.php?interest=special">Special interests</a>
-            <a href="contact.php?interest=solo">Solo trip</a>
             <a href="contact.php?interest=new-year">New Year plan</a>
             <a href="contact.php?interest=group">Group tour</a>
           </nav>
         </div>
+        <section class="packages-solo-feature" aria-labelledby="packagesSoloTitle">
+          <div class="packages-solo-copy">
+            <span class="eyebrow">Solo travel</span>
+            <h2 id="packagesSoloTitle">Planning a solo trip?</h2>
+            <p>Explore solo-friendly routes with activity ideas, flexible stays, private cab options and local planning support for a comfortable independent journey.</p>
+          </div>
+          <ul class="packages-solo-points list-unstyled" aria-label="Solo trip highlights">
+            <li><i class="fa-solid fa-person-walking-luggage" aria-hidden="true"></i> Solo-friendly routes</li>
+            <li><i class="fa-solid fa-spa" aria-hidden="true"></i> Activities and slow travel</li>
+            <li><i class="fa-solid fa-phone-volume" aria-hidden="true"></i> Planning support</li>
+          </ul>
+          <a class="btn btn-gold" href="solo.php">View solo trips <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </section>
         <div class="package-grid">
 <?php foreach ($publicPackages as $slug => $package) { package_card($slug, $package); } ?>
         </div>

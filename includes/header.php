@@ -3,8 +3,8 @@
  * Common header: <head>, site navigation and (for inner pages) the page banner with breadcrumb.
  *
  * Set before including:
- *   $pageKey         Nav key of the current page ('home', 'packages', 'destinations', 'vehicles',
- *                    'stays', 'gallery', 'about', 'contact') or any other key for pages outside the nav
+ *   $pageKey         Nav key of the current page ('home', 'packages', 'solo', 'destinations',
+ *                    'vehicles', 'stays', 'gallery', 'about', 'contact') or any other key for pages outside the nav
  *   $pageTitle       Title shown in the browser tab (site name is appended)
  *   $pageDescription Meta description
  *   $pageHero        (inner pages) ['title', 'lead', 'image', 'eyebrow']

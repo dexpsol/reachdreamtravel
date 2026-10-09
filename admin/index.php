@@ -424,7 +424,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
 $authenticated = !empty($_SESSION['admin']);
 $requestedTab = (string) ($_GET['tab'] ?? 'dashboard');
-$activeTab = in_array($requestedTab, ['dashboard', 'packages', 'taxis', 'destinations', 'enquiries'], true) ? $requestedTab : 'dashboard';
+$activeTab = in_array($requestedTab, ['dashboard', 'packages', 'solo', 'taxis', 'destinations', 'enquiries'], true) ? $requestedTab : 'dashboard';
 $editingSlug = (string) ($_GET['edit'] ?? '');
 $editingKind = (string) ($_GET['kind'] ?? '');
 if (!in_array($editingKind, ['package', 'taxi', 'destination'], true)) {
@@ -456,6 +456,11 @@ $destinationGroups = array_map(static function (array $destination): array {
 $taxiForm = [];
 foreach ($vehicles as $vehicle) if (($vehicle['_slug'] ?? admin_slug($vehicle['name'])) === $editingSlug && $editingKind === 'taxi') $taxiForm = $vehicle;
 $selectedTab = ['package' => 'packages', 'taxi' => 'taxis', 'destination' => 'destinations'][$editingKind] ?? $activeTab;
+$soloPackages = array_filter($packages, static function (array $package): bool {
+    $categories = preg_split('/\s+/', trim((string) ($package['cat'] ?? ''))) ?: [];
+    return empty($package['deprecated_duplicate_of']) && in_array('solo', $categories, true);
+});
+$soloAdminActivities = ['River rafting', 'Yoga and wellness', 'Short treks', 'Camping add-ons', 'Snow and mountain drives', 'Cafe and slow travel', 'Waterfalls and caves', 'Culture and temples'];
 $dbPackages = app_db_catalog('packages');
 $dbTaxis = app_db_catalog('taxis');
 $dbDestinationGroups = app_db_catalog('destination_groups');
@@ -610,7 +615,7 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
   </div>
 <?php else: ?>
   <div class="dash-top"><div><span class="dash-kicker">Reach Dream Travel Admin</span><h1><?= $selectedTab === 'dashboard' ? 'Dashboard' : ($selectedTab === 'enquiries' ? 'Enquiries' : 'Content studio') ?></h1><p><?= $selectedTab === 'enquiries' ? 'Review trip requests submitted through your website.' : 'Manage trips, destination collections and vehicles shown on your website.' ?></p></div><?php if (!$dbReady): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="initialize_database" value="1"><i class="fa-solid fa-database" aria-hidden="true"></i> Initialize database</button></form><?php endif; ?></div>
-  <nav class="dash-tabs" aria-label="Admin sections"><a class="<?= $selectedTab === 'dashboard' ? 'active' : '' ?>" href="?tab=dashboard"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Dashboard</a><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'destinations' ? 'active' : '' ?>" href="?tab=destinations"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Destinations <span>(<?= count($destinations) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a><a class="<?= $selectedTab === 'enquiries' ? 'active' : '' ?>" href="?tab=enquiries"><i class="fa-solid fa-inbox" aria-hidden="true"></i> Enquiries <span>(<?= $enquiryCount ?>)</span></a></nav>
+  <nav class="dash-tabs" aria-label="Admin sections"><a class="<?= $selectedTab === 'dashboard' ? 'active' : '' ?>" href="?tab=dashboard"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Dashboard</a><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'solo' ? 'active' : '' ?>" href="?tab=solo"><i class="fa-solid fa-person-walking-luggage" aria-hidden="true"></i> Solo <span>(<?= count($soloPackages) ?>)</span></a><a class="<?= $selectedTab === 'destinations' ? 'active' : '' ?>" href="?tab=destinations"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Destinations <span>(<?= count($destinations) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a><a class="<?= $selectedTab === 'enquiries' ? 'active' : '' ?>" href="?tab=enquiries"><i class="fa-solid fa-inbox" aria-hidden="true"></i> Enquiries <span>(<?= $enquiryCount ?>)</span></a></nav>
   <?php if ($selectedTab === 'dashboard'): ?>
     <section class="dash-hero" aria-label="Dashboard overview">
       <div>
@@ -691,6 +696,22 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <?php endif; ?>
       <?php endif; ?>
     </section>
+  <?php elseif ($selectedTab === 'solo'): ?>
+    <section class="dash-panel">
+      <div class="dash-section-title"><h2>Solo page</h2><a class="btn btn-sm btn-outline-success" target="_blank" href="../solo.php">View page</a></div>
+      <p class="dash-note">The Solo page automatically shows every package that has the Solo trips category selected. Edit a package below or add a new package with the Solo trips category.</p>
+      <div class="dash-action-grid mt-3">
+        <a href="?tab=packages#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add solo package</a>
+        <a href="../solo.php" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Open public Solo page</a>
+      </div>
+    </section>
+    <section class="dash-panel">
+      <div class="dash-section-title"><h2>Activities mentioned</h2><span class="dash-note"><?= count($soloAdminActivities) ?> activities</span></div>
+      <div class="category-picker">
+        <?php foreach ($soloAdminActivities as $activity): ?><label><input type="checkbox" checked disabled><span><?= admin_h($activity) ?></span></label><?php endforeach; ?>
+      </div>
+    </section>
+    <section class="dash-panel"><h2>Solo packages</h2><?php if (!$soloPackages): ?><p class="dash-empty mb-0">No solo packages yet. Add or edit a package and select Solo trips in Categories.</p><?php else: ?><div class="dash-list"><?php foreach ($soloPackages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a></div></div><?php endforeach; ?></div><?php endif; ?></section>
   <?php elseif ($selectedTab === 'packages'): ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $packageForm ? 'Update package' : 'Add package' ?></h2><?php if ($packageForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=packages">New package</a><?php endif; ?></div>
       <form method="post" data-package-form><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="save"><div class="dash-grid">
