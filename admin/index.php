@@ -290,6 +290,10 @@ function admin_destination_form_from_post(array $post, array $previousDestinatio
 function admin_package_feature_image(array $post, array $destinations, string $fallback = 'hero-himachal'): string
 {
     $slug = admin_slug((string) ($post['slug'] ?? $post['title'] ?? ''));
+    $curatedImage = package_curated_image($slug);
+    if ($curatedImage !== null) {
+        return $curatedImage;
+    }
     $haystackParts = [
         $slug,
         (string) ($post['title'] ?? ''),

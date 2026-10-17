@@ -81,7 +81,7 @@ $footerPackages = array_slice($packages, 0, 4, true);
 
       <div class="footer-bottom">
         <span>© <?= date('Y') ?> <?= e($site['name']) ?>. All rights reserved.</span>
-        <nav class="footer-legal" aria-label="Legal"><a href="privacy.php">Privacy</a><a href="terms.php">Terms</a></nav>
+        <nav class="footer-legal" aria-label="Legal"><a href="privacy.php">Privacy</a><a href="terms.php">Terms</a><a href="photo-credits.php">Photo credits</a></nav>
         <!-- <span class="footer-made">Made with <i class="fa-solid fa-heart" aria-hidden="true"></i><span class="visually-hidden">love</span> in the Himalaya</span> -->
       </div>
     </div>

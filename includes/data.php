@@ -341,6 +341,14 @@ $packages += [
     'international-coming-soon' => array_replace($customRoute('International Packages', 'Coming soon', 'international', 'Coming soon', 'Coming Soon', 'International tour packages are coming soon. Contact us and we will help you plan once routes are announced.', ['International packages coming soon', 'Tell us your dream destination', 'We will update this section shortly'], 'hero-himachal'), ['duration' => 'Coming soon', 'short' => 'Soon']),
 ];
 
+require_once __DIR__ . '/package-photos.php';
+foreach ($packages as $slug => &$package) {
+    $curatedImage = package_curated_image((string) $slug);
+    if ($curatedImage !== null && empty($package['image_customized'])) {
+        $package['image'] = $curatedImage;
+    }
+}
+unset($package);
 $defaultPackages = $packages;
 require_once dirname(__DIR__) . '/backend/package-store.php';
 $packages = package_catalog($packages);
@@ -364,6 +372,10 @@ foreach ($routeImages as $slug => $image) {
 }
 function package_auto_image(string $slug, array $package): string
 {
+    $curatedImage = package_curated_image($slug);
+    if ($curatedImage !== null) {
+        return $curatedImage;
+    }
     $packageImages = [
         'triund-trek' => 'triund-dhauladhar',
         'kareri-lake-trek' => 'dharamshala',
