@@ -110,7 +110,7 @@ require_once __DIR__ . '/includes/components.php';
           <a class="text-link" href="contact.php">Plan a custom trip <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
         <div class="row g-4">
-<?php foreach (['shimla-spiti-kinnaur', 'golden-triangle-delhi-agra-jaipur', 'rajasthan-heritage-trail'] as $slug): $package = $packages[$slug]; ?>
+<?php foreach (['shimla-spiti-kinnaur', 'golden-triangle-delhi-agra-jaipur', 'rajasthan-heritage-trail'] as $slug): if (!isset($packages[$slug])) continue; $package = $packages[$slug]; ?>
           <div class="col-12 col-md-6 col-lg-4">
 <?php package_card($slug, $package); ?>
           </div>

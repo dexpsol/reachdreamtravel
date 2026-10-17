@@ -5,6 +5,10 @@ session_start();
 require_once dirname(__DIR__) . '/includes/data.php';
 require_once dirname(__DIR__) . '/backend/database.php';
 
+// Admin must retain inactive records so they can be edited and reactivated.
+$packages = $allPackages;
+$destinations = $allDestinations;
+
 $root = dirname(__DIR__);
 $db = app_db();
 $setupNeeded = true;
@@ -81,6 +85,24 @@ function admin_redirect(): void
     exit;
 }
 
+function admin_status_control(string $kind, string $slug, array $record): void
+{
+    $active = app_catalog_is_active($record);
+    ?>
+    <form method="post" class="dash-status-toggle">
+      <input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>">
+      <input type="hidden" name="kind" value="<?= admin_h($kind) ?>">
+      <input type="hidden" name="slug" value="<?= admin_h($slug) ?>">
+      <input type="hidden" name="action" value="set_status">
+      <input type="hidden" name="active" value="<?= $active ? '1' : '0' ?>">
+      <label class="dash-toggle-label">
+        <input type="checkbox" role="switch" class="dash-toggle-input"<?= $active ? ' checked' : '' ?> aria-label="<?= admin_h('Active status for ' . ($record['title'] ?? $record['name'] ?? $slug)) ?>" onchange="this.form.elements.active.value = this.checked ? '1' : '0'; this.form.requestSubmit()">
+        <span><?= $active ? 'Active' : 'Inactive' ?></span>
+      </label>
+    </form>
+    <?php
+}
+
 function admin_lines(string $value): array
 {
     $lines = preg_split('/\r?\n/', $value) ?: [];
@@ -130,7 +152,7 @@ function admin_days_from_text(string $value): array
     return $days;
 }
 
-function admin_destination_upload(string $slug, string $root): string
+function admin_catalog_image_upload(string $slug, string $root, string $kind = 'destination'): string
 {
     $file = $_FILES['image_upload'] ?? null;
 
@@ -139,32 +161,32 @@ function admin_destination_upload(string $slug, string $root): string
     }
 
     if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-        throw new RuntimeException('Destination image upload failed. Try another image.');
+        throw new RuntimeException(ucfirst($kind) . ' image upload failed. Try another image.');
     }
 
     if ((int) ($file['size'] ?? 0) > 6 * 1024 * 1024) {
-        throw new RuntimeException('Destination image must be 6 MB or smaller.');
+        throw new RuntimeException(ucfirst($kind) . ' image must be 6 MB or smaller.');
     }
 
-    $info = getimagesize((string) $file['tmp_name']);
+    $info = @getimagesize((string) $file['tmp_name']);
     $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
     $extension = $extensions[$info['mime'] ?? ''] ?? '';
 
     if ($extension === '') {
-        throw new RuntimeException('Upload a JPG, PNG or WebP destination image.');
+        throw new RuntimeException('Upload a JPG, PNG or WebP ' . $kind . ' image.');
     }
 
     $folder = $root . '/assets/images/destinations';
 
     if (!is_dir($folder) && !mkdir($folder, 0775, true)) {
-        throw new RuntimeException('Could not create the destination image folder.');
+        throw new RuntimeException('Could not create the image folder.');
     }
 
-    $fileBase = ($slug !== '' ? $slug : 'destination') . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(3));
+    $fileBase = ($kind === 'package' ? 'package-' : '') . ($slug !== '' ? $slug : $kind) . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(3));
     $target = $folder . '/' . $fileBase . '.' . $extension;
 
     if (!move_uploaded_file((string) $file['tmp_name'], $target)) {
-        throw new RuntimeException('Could not save the uploaded destination image.');
+        throw new RuntimeException('Could not save the uploaded ' . $kind . ' image.');
     }
 
     return $fileBase;
@@ -213,6 +235,7 @@ function admin_package_form_from_post(array $post, array $previousPackage = []):
 
     return [
         'title' => trim((string) ($post['title'] ?? '')),
+        'active' => ($post['active'] ?? '1') === '1',
         'label' => trim((string) ($post['label'] ?? '')),
         'cat' => implode(' ', $categoryValues),
         'duration' => trim((string) ($post['duration'] ?? '')),
@@ -247,6 +270,7 @@ function admin_destination_form_from_post(array $post, array $previousDestinatio
 
     return [
         'name' => trim((string) ($post['name'] ?? '')),
+        'active' => ($post['active'] ?? '1') === '1',
         'tagline' => trim((string) ($post['tagline'] ?? '')),
         'image' => $image,
         'altitude' => trim((string) ($post['altitude'] ?? 'Varies by route')),
@@ -402,6 +426,30 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     throw new RuntimeException('Start MySQL and use Initialize database before saving records.');
                 }
 
+                if (!in_array($action, ['save', 'delete', 'set_status'], true)) {
+                    throw new RuntimeException('Choose a valid action.');
+                }
+
+                if ($action === 'set_status') {
+                    if (!in_array($kind, ['package', 'destination'], true) || !in_array($_POST['active'] ?? '', ['0', '1'], true)) {
+                        throw new RuntimeException('Choose a valid status.');
+                    }
+                    $catalog = $kind === 'package' ? $packages : $destinations;
+                    if (!isset($catalog[$slug])) {
+                        throw new RuntimeException('Record not found.');
+                    }
+                    $find = $db->prepare('SELECT payload FROM `' . $table . '` WHERE slug = ?');
+                    $find->execute([$slug]);
+                    $payload = $find->fetchColumn();
+                    $record = $payload !== false ? json_decode($payload, true, 512, JSON_THROW_ON_ERROR) : $catalog[$slug];
+                    $record['active'] = $_POST['active'] === '1';
+                    $statement = $db->prepare('INSERT INTO `' . $table . '` (slug, payload) VALUES (?, ?) ON DUPLICATE KEY UPDATE payload = VALUES(payload)');
+                    $statement->execute([$slug, json_encode($record, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
+                    $_SESSION['notice'] = ucfirst($kind) . ($record['active'] ? ' activated.' : ' deactivated.');
+                    header('Location: index.php?tab=' . ($kind === 'package' ? 'packages' : 'destinations'));
+                    exit;
+                }
+
                 if ($action === 'delete') {
                     if ($table === 'packages') {
                         $db->exec('CREATE TABLE IF NOT EXISTS hidden_packages (slug VARCHAR(190) PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
@@ -457,7 +505,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $previousDestination = $destinations[$previousSlug] ?? $destinations[$slug] ?? [];
                     $imageChoice = trim((string) ($_POST['image_choice'] ?? ''));
                     $image = $imageChoice !== '' ? $imageChoice : trim((string) ($_POST['image'] ?? ''));
-                    $uploadedImage = admin_destination_upload($slug, $root);
+                    $uploadedImage = admin_catalog_image_upload($slug, $root);
                     if ($uploadedImage !== '') {
                         $image = $uploadedImage;
                     } elseif ($image === '' && !empty($previousDestination['image'])) {
@@ -528,6 +576,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         throw new RuntimeException('Discount price should be less than Regular price (INR).');
                     }
 
+                    $uploadedImage = admin_catalog_image_upload($slug, $root, 'package');
+                    if ($uploadedImage !== '') {
+                        $image = $uploadedImage;
+                    }
+
                     $record = [
                         'title' => $name,
                         'label' => trim((string) ($_POST['label'] ?? '')),
@@ -536,7 +589,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         'short' => $previousPackage['short'] ?? 'Flexible',
                         'popular' => !empty($_POST['popular']),
                         'image' => $image,
-                        'image_customized' => $previousPackage['image_customized'] ?? false,
+                        'image_customized' => $uploadedImage !== '' || !empty($previousPackage['image_customized']),
                         'price_regular' => $regularPrice,
                         'price_discount' => $discountPrice,
                         'season' => trim((string) ($_POST['season'] ?? 'All year')),
@@ -547,6 +600,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         'highlights' => $highlights,
                         'days' => $days,
                     ];
+                }
+                if (in_array($kind, ['package', 'destination'], true)) {
+                    if (!in_array($_POST['active'] ?? '1', ['0', '1'], true)) {
+                        throw new RuntimeException('Choose a valid status.');
+                    }
+                    $record['active'] = ($_POST['active'] ?? '1') === '1';
                 }
                 $oldSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
                 if ($oldSlug !== '' && $oldSlug !== $slug) {
@@ -744,6 +803,13 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
     @media(max-width:760px){.login-page{background:#f1f4f1}.login-main{align-items:start;place-items:start center;min-height:100svh;padding:12px}.login-layout{display:block;width:100%;overflow:hidden;background:#fff;border-radius:12px}.login-visual{min-height:150px}.login-visual-content{min-height:150px;padding:18px}.login-intro{display:none}.login-panel{position:relative;z-index:2;display:block;background:#fff;padding:28px 20px 24px}.login-form-wrap{width:100%;max-width:380px;margin:0 auto}.login-form .form-control{background:#fff}}@media(max-width:420px){.login-visual{min-height:128px}.login-visual-content{min-height:128px}.login-panel{padding:24px 18px}}
     body:not(.login-page){min-height:100vh;background:linear-gradient(135deg,#f7f5ed 0%,#eef4f0 42%,#f8f9f5 100%);color:#1f302c}.dash-header{position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.12);background:linear-gradient(135deg,#0b302d,#174f43 58%,#8a6425);box-shadow:0 18px 50px rgba(13,47,42,.18)}.dash-head-inner{max-width:1280px}.dash-brand{font:800 17px/1.2 Montserrat,sans-serif;letter-spacing:.01em}.dash-brand img{width:50px;height:50px;padding:4px;border-radius:10px;background:rgba(255,255,255,.95)}.dash-brand small{margin-top:4px;color:#e8d09c;font-size:11px;text-transform:uppercase;letter-spacing:.14em}.dash-main{max-width:1280px;margin:34px auto 54px}.dash-top{align-items:center;margin-bottom:22px}.dash-kicker{display:block;margin-bottom:8px;color:#8a6425;font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}.dash-top h1{color:#102c28;font:800 clamp(30px,4vw,46px)/1.05 Montserrat,sans-serif}.dash-top p{max-width:660px;color:#65736d;font-size:15px}.dash-status{border:0;border-radius:8px;box-shadow:0 12px 34px rgba(32,58,51,.09)}.dash-tabs{position:sticky;top:83px;z-index:15;overflow:auto;margin-bottom:24px;padding:8px;border:1px solid rgba(205,214,208,.75);border-radius:12px;background:rgba(255,255,255,.78);box-shadow:0 16px 40px rgba(24,54,49,.08);backdrop-filter:blur(18px)}.dash-tabs a{display:inline-flex;align-items:center;gap:9px;border:0;border-radius:8px;color:#52645e;white-space:nowrap}.dash-tabs a span{color:#8b9893;font-size:12px}.dash-tabs a.active{background:#123f38;color:#fff;box-shadow:0 10px 24px rgba(18,63,56,.22)}.dash-tabs a.active span{color:#d9c18c}.dash-panel{border:1px solid rgba(207,216,211,.8);border-radius:10px;background:rgba(255,255,255,.9);box-shadow:0 18px 52px rgba(31,61,54,.09)}.dash-panel h2{color:#1d332e;font:800 22px/1.2 Montserrat,sans-serif}.dash-panel-quiet{background:rgba(255,255,255,.72)}.dash-grid{gap:18px}.dash-grid label,.dash-field-title{color:#2d413b;font-size:12px;letter-spacing:.02em}.dash-grid input,.dash-grid textarea,.dash-grid select{min-height:46px;border-color:#d1d9d5;border-radius:7px;background:#fbfcfa}.dash-grid input:focus,.dash-grid textarea:focus,.dash-grid select:focus{border-color:#1d6d5a;box-shadow:0 0 0 3px rgba(29,109,90,.12);outline:0}.dash-grid textarea{min-height:118px}.category-picker{grid-template-columns:repeat(3,minmax(0,1fr))}.category-picker label{border-radius:7px;background:#fbfcfa}.dash-list{border-top:0}.dash-row{padding:15px 0;border-color:#e8ede9}.dash-row:first-child{padding-top:0}.dash-row:last-child{padding-bottom:0;border-bottom:0}.dash-row-compact{gap:10px}.dash-thumb{width:76px;height:56px;border-radius:8px;box-shadow:0 8px 20px rgba(20,45,39,.12)}.dash-row strong{color:#203631}.dash-row small{color:#718078}.dash-actions .btn,.dash-row .btn,.dash-section-title .btn{border-radius:7px;font-weight:700}.dash-section-title{margin-bottom:18px}.dash-section-title h2{margin:0}.btn-gold{border-color:#b9842e;background:#b9842e;color:#fff}.btn-gold:hover,.btn-gold:focus-visible{border-color:#94661e;background:#94661e;color:#fff}.dash-hero{display:block;margin-bottom:22px;padding:30px;border-radius:14px;background:linear-gradient(135deg,#113c36,#1d6657 58%,#b68131);color:#fff;box-shadow:0 24px 70px rgba(17,60,54,.23)}.dash-hero span{color:#e5c988;font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}.dash-hero h2{max-width:760px;margin:10px 0;color:#fff;font:800 clamp(28px,4vw,44px)/1.08 Montserrat,sans-serif}.dash-hero p{max-width:610px;margin:0;color:#edf5f1}.dash-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:22px}.dash-stat{display:flex;gap:14px;align-items:center;min-height:126px;padding:20px;border:1px solid rgba(207,216,211,.8);border-radius:10px;background:#fff;box-shadow:0 16px 42px rgba(31,61,54,.08)}.dash-stat i{display:grid;place-items:center;width:42px;height:42px;border-radius:9px;background:#eef6f2;color:#17604d;font-size:17px}.dash-stat strong,.dash-stat span,.dash-stat small{display:block}.dash-stat strong{color:#102c28;font:800 34px/1 Montserrat,sans-serif}.dash-stat span{margin-top:5px;color:#2d413b;font-weight:800}.dash-stat small{margin-top:3px;color:#7a8781}.dash-dashboard-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.dash-action-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.dash-action-grid a{display:flex;align-items:center;gap:12px;min-height:70px;padding:15px;border:1px solid #dfe7e2;border-radius:9px;background:#fbfcfa;color:#213a34;font-weight:800;text-decoration:none}.dash-action-grid a:hover{border-color:#b9842e;color:#123f38;box-shadow:0 12px 28px rgba(35,69,61,.09)}.dash-action-grid i{display:grid;place-items:center;width:36px;height:36px;border-radius:8px;background:#123f38;color:#fff}.dash-health-list{display:grid;gap:11px}.dash-health-list div{display:grid;grid-template-columns:28px minmax(90px,1fr) minmax(0,1.4fr);align-items:center;gap:10px;padding:12px;border:1px solid #e5ebe7;border-radius:8px;background:#fbfcfa}.dash-health-list i{color:#17604d}.dash-health-list span{color:#75827c;font-size:13px}.dash-health-list strong{min-width:0;overflow:hidden;color:#233934;text-overflow:ellipsis;white-space:nowrap}.setup-box{border-radius:12px}.login-layout{border-radius:14px;box-shadow:0 30px 80px rgba(22,55,47,.18)}.login-submit,.login-mark{border-radius:8px}@media(max-width:980px){.dash-stat-grid,.dash-dashboard-grid{grid-template-columns:1fr 1fr}.category-picker{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:720px){.dash-main{margin-top:22px}.dash-tabs{top:79px;border-radius:10px}.dash-hero,.dash-panel{border-radius:10px}.dash-stat-grid,.dash-dashboard-grid,.dash-action-grid{grid-template-columns:1fr}.dash-health-list div{grid-template-columns:26px 1fr}.dash-health-list strong{grid-column:2}.category-picker{grid-template-columns:1fr}.dash-hero{padding:22px}.dash-hero h2{font-size:27px}}
     @media(max-width:760px){body.login-page{background:#f1f4f1}.login-page .login-main{align-items:start;place-items:start center;width:100%;max-width:none;min-height:100svh;margin:0;padding:12px}.login-page .login-layout{display:block;width:100%;max-width:420px;min-height:0;overflow:hidden;background:#fff;border-radius:12px}.login-page .login-visual{min-height:150px}.login-page .login-visual-content{min-height:150px;padding:18px}.login-page .login-intro{display:none}.login-page .login-panel{position:relative;z-index:2;display:block;background:#fff;padding:28px 20px 24px}.login-page .login-form-wrap{width:100%;max-width:380px;margin:0 auto}.login-page .login-form .form-control{background:#fff}}@media(max-width:420px){.login-page .login-visual{min-height:128px}.login-page .login-visual-content{min-height:128px}.login-page .login-panel{padding:24px 18px}}
+    .dash-status-toggle{display:flex;align-items:center;min-width:110px}
+    .dash-toggle-label{display:inline-flex;align-items:center;gap:8px;margin:0;cursor:pointer;font-size:13px;color:#44534d}
+    .dash-toggle-input{appearance:none;-webkit-appearance:none;position:relative;width:40px;height:24px;margin:0;border:1px solid #87958e;border-radius:999px;background:#87958e;cursor:pointer;flex-shrink:0;transition:background .15s,border-color .15s}
+    .dash-toggle-input::before{content:"";position:absolute;width:18px;height:18px;left:2px;top:2px;border-radius:50%;background:#fff;transition:transform .15s}
+    .dash-toggle-input:checked{background:#25805e;border-color:#25805e}
+    .dash-toggle-input:checked::before{transform:translateX(16px)}
+    .dash-toggle-input:focus-visible{outline:3px solid #cf9a3c;outline-offset:3px}
   </style>
   <style>
     .dash-image-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:8px}
@@ -918,13 +984,18 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <?php foreach ($soloAdminActivities as $activity): ?><label><input type="checkbox" checked disabled><span><?= admin_h($activity) ?></span></label><?php endforeach; ?>
       </div>
     </section>
-    <section class="dash-panel"><h2>Solo packages</h2><?php if (!$soloPackages): ?><p class="dash-empty mb-0">No solo packages yet. Add or edit a package and select Solo trips in Categories.</p><?php else: ?><div class="dash-list"><?php foreach ($soloPackages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a></div></div><?php endforeach; ?></div><?php endif; ?></section>
+    <section class="dash-panel"><h2>Solo packages</h2><?php if (!$soloPackages): ?><p class="dash-empty mb-0">No solo packages yet. Add or edit a package and select Solo trips in Categories.</p><?php else: ?><div class="dash-list"><?php foreach ($soloPackages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?></small></div></div><div class="dash-actions"><?php admin_status_control('package', (string) $slug, $package); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a></div></div><?php endforeach; ?></div><?php endif; ?></section>
   <?php elseif ($selectedTab === 'packages'): ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $packageForm ? 'Update package' : 'Add package' ?></h2><?php if ($packageForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=packages">New package</a><?php endif; ?></div>
-      <form method="post" data-package-form><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="save"><div class="dash-grid">
+      <form method="post" enctype="multipart/form-data" data-package-form><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="save"><div class="dash-grid">
         <input type="hidden" name="old_slug" value="<?= admin_h($packageForm['_old_slug_value'] ?? ($editingKind === 'package' ? $editingSlug : '')) ?>">
+        <label>Status<select name="active"><option value="1"<?= app_catalog_is_active($packageForm) ? ' selected' : '' ?>>Active</option><option value="0"<?= !app_catalog_is_active($packageForm) ? ' selected' : '' ?>>Inactive</option></select><span class="dash-note">Only active entries appear on the site.</span></label>
         <label>Package title<input name="title" required value="<?= admin_h($packageForm['title'] ?? '') ?>" placeholder="e.g. Jaipur & Jaisalmer Heritage Trail"></label>
         <label>URL slug<input name="slug" data-package-slug value="<?= admin_h($packageForm['_slug_value'] ?? ($editingKind === 'package' ? $editingSlug : '')) ?>" placeholder="Generated from package title"></label>
+        <label>Package image<input type="file" name="image_upload" accept="image/jpeg,image/png,image/webp"><span class="dash-note">Upload a JPG, PNG or WebP image up to 6 MB. Leave blank to keep the current image.</span></label>
+        <?php if (!empty($packageForm['image'])): ?>
+          <div class="dash-field"><span class="dash-field-title">Current package image</span><img src="<?= admin_h('../' . img($packageForm['image'], true)) ?>" alt="Current package image" style="display:block;max-width:240px;width:100%;height:150px;object-fit:cover;border-radius:4px;margin-top:5px"></div>
+        <?php endif; ?>
         <label>Card label<input name="label" value="<?= admin_h($packageForm['label'] ?? '') ?>" placeholder="e.g. Desert & heritage"></label>
         <div class="dash-field"><span class="dash-field-title">Categories</span><div class="category-picker"><?php $selectedCategories = preg_split('/\s+/', (string) ($packageForm['cat'] ?? 'heritage')) ?: []; foreach ($categories as $key => $label): ?><label><input type="checkbox" name="cat[]" value="<?= admin_h($key) ?>"<?= in_array($key, $selectedCategories, true) ? ' checked' : '' ?>><span><?= admin_h($label) ?></span></label><?php endforeach; ?></div></div>
         <label>Duration<input name="duration" value="<?= admin_h($packageForm['duration'] ?? '') ?>" placeholder="e.g. 5 days · 4 nights"></label>
@@ -951,12 +1022,13 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         </label>
       </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save package</button></p></form>
     </section>
-    <section class="dash-panel"><h2>All packages</h2><div class="dash-list"><?php foreach ($packages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?><?php if (!empty($package['deprecated_duplicate_of'])): ?> · Saved duplicate of <?= admin_h($packages[$package['deprecated_duplicate_of']]['title'] ?? $package['deprecated_duplicate_of']) ?><?php endif; ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a><form method="post" onsubmit="return confirm('Delete this package?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <section class="dash-panel"><h2>All packages</h2><div class="dash-list"><?php foreach ($packages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?><?php if (!empty($package['deprecated_duplicate_of'])): ?> · Saved duplicate of <?= admin_h($packages[$package['deprecated_duplicate_of']]['title'] ?? $package['deprecated_duplicate_of']) ?><?php endif; ?></small></div></div><div class="dash-actions"><?php admin_status_control('package', (string) $slug, $package); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a><form method="post" onsubmit="return confirm('Delete this package?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
   <?php elseif ($selectedTab === 'destinations'): ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $destinationForm ? 'Update destination' : 'Add destination' ?></h2><?php if ($destinationForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=destinations">New destination</a><?php endif; ?></div>
       <form method="post" enctype="multipart/form-data"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="save"><div class="dash-grid">
         <input type="hidden" name="old_slug" value="<?= admin_h($destinationForm['_old_slug_value'] ?? ($editingKind === 'destination' ? $editingSlug : '')) ?>">
         <input type="hidden" name="image" value="<?= admin_h($destinationForm['image'] ?? '') ?>">
+        <label>Status<select name="active"><option value="1"<?= app_catalog_is_active($destinationForm) ? ' selected' : '' ?>>Active</option><option value="0"<?= !app_catalog_is_active($destinationForm) ? ' selected' : '' ?>>Inactive</option></select><span class="dash-note">Only active entries appear on the site.</span></label>
         <label>Destination name<input name="name" required value="<?= admin_h($destinationForm['name'] ?? '') ?>" placeholder="e.g. Shimla"></label>
         <label>Tagline<input name="tagline" required value="<?= admin_h($destinationForm['tagline'] ?? '') ?>" placeholder="e.g. The Queen of Hills"></label>
         <div class="dash-wide">
@@ -980,7 +1052,7 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <label class="dash-wide">Sightseeing places<textarea name="see" required placeholder="The Ridge & Christ Church&#10;Mall Road&#10;Jakhu Temple"><?= admin_h($destinationForm['_see_text'] ?? implode("\n", $destinationForm['see'] ?? [])) ?></textarea><span class="dash-note">One sightseeing place per line. These appear under Don't miss.</span></label>
       </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save destination</button></p></form>
     </section>
-    <section class="dash-panel"><h2>All destinations</h2><div class="dash-list"><?php foreach ($destinationGroups as $slug => $group): ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($group['image'], true)) ?>" alt=""><div><strong><?= admin_h($group['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $group['items'])) ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=destinations&amp;kind=destination&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><form method="post" onsubmit="return confirm('Delete this destination?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <section class="dash-panel"><h2>All destinations</h2><div class="dash-list"><?php foreach ($destinationGroups as $slug => $group): ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($group['image'], true)) ?>" alt=""><div><strong><?= admin_h($group['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $group['items'])) ?></small></div></div><div class="dash-actions"><?php admin_status_control('destination', (string) $slug, $group); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=destinations&amp;kind=destination&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><form method="post" onsubmit="return confirm('Delete this destination?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
   <?php else: ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $taxiForm ? 'Update taxi' : 'Add taxi' ?></h2><?php if ($taxiForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=taxis">New taxi</a><?php endif; ?></div>
       <form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="taxi"><input type="hidden" name="action" value="save"><div class="dash-grid">

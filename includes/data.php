@@ -462,6 +462,8 @@ foreach ($packages as $slug => &$package) {
     }
 }
 unset($package);
+$allPackages = $packages;
+$packages = array_filter($packages, 'app_catalog_is_active');
 $publicPackages = array_filter($packages, static fn($package) => empty($package['deprecated_duplicate_of']));
 
 /* ---------------------------------------------------------------------------
@@ -608,6 +610,7 @@ if ($storedDestinations !== null) {
             $updateDestination = $db->prepare('INSERT INTO destination_groups (slug, payload) VALUES (?, ?) ON DUPLICATE KEY UPDATE payload = VALUES(payload)');
             foreach ($refreshDestinationSlugs as $slug) {
                 if (!isset($destinations[$slug])) continue;
+                $destinations[$slug]['active'] = app_catalog_is_active($storedDestinations[$slug] ?? []);
                 $updateDestination->execute([$slug, json_encode($destinations[$slug], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
                 $storedDestinations[$slug] = $destinations[$slug];
             }
@@ -617,6 +620,7 @@ if ($storedDestinations !== null) {
         $migrationKey = 'mussoorie-george-everest-destination-2026-10-v1';
         $migrationCheck->execute([$migrationKey]);
         if (!$migrationCheck->fetchColumn() && isset($destinations['mussoorie'])) {
+            $destinations['mussoorie']['active'] = app_catalog_is_active($storedDestinations['mussoorie'] ?? []);
             $updateDestination = $db->prepare('INSERT INTO destination_groups (slug, payload) VALUES (?, ?) ON DUPLICATE KEY UPDATE payload = VALUES(payload)');
             $updateDestination->execute(['mussoorie', json_encode($destinations['mussoorie'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
             $storedDestinations['mussoorie'] = $destinations['mussoorie'];
@@ -629,7 +633,10 @@ if ($storedDestinations !== null) {
         $destinations = array_replace($destinations, $dynamicDestinations);
     }
 }
+$allDestinations = $destinations;
+$destinations = array_filter($destinations, 'app_catalog_is_active');
 $destinationGroups = $destinations;
+$driveTimes = array_values(array_filter($driveTimes, static fn($drive) => isset($destinations[$drive[2]])));
 
 /* ---------------------------------------------------------------------------
  * Vehicles. 'group' lists the group-size filters a vehicle suits.

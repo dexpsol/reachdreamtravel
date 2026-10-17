@@ -1,4 +1,10 @@
 <?php
+// Records created before status controls were introduced remain active.
+function app_catalog_is_active(array $record): bool
+{
+    return (bool) ($record['active'] ?? true);
+}
+
 function app_load_env(): void
 {
     static $loaded = false;
