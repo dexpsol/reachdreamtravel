@@ -79,9 +79,9 @@ function admin_csrf(): string
     return $_SESSION['csrf'];
 }
 
-function admin_redirect(): void
+function admin_redirect(string $tab = ''): void
 {
-    header('Location: index.php');
+    header('Location: index.php' . ($tab !== '' ? '?tab=' . rawurlencode($tab) : ''));
     exit;
 }
 
@@ -94,6 +94,7 @@ function admin_status_control(string $kind, string $slug, array $record): void
       <input type="hidden" name="kind" value="<?= admin_h($kind) ?>">
       <input type="hidden" name="slug" value="<?= admin_h($slug) ?>">
       <input type="hidden" name="action" value="set_status">
+      <input type="hidden" name="return_tab" value="<?= $kind === 'package' && ($_GET['tab'] ?? '') === 'solo' ? 'solo' : '' ?>">
       <input type="hidden" name="active" value="<?= $active ? '1' : '0' ?>">
       <label class="dash-toggle-label">
         <input type="checkbox" role="switch" class="dash-toggle-input"<?= $active ? ' checked' : '' ?> aria-label="<?= admin_h('Active status for ' . ($record['title'] ?? $record['name'] ?? $slug)) ?>" onchange="this.form.elements.active.value = this.checked ? '1' : '0'; this.form.requestSubmit()">
@@ -446,7 +447,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $statement = $db->prepare('INSERT INTO `' . $table . '` (slug, payload) VALUES (?, ?) ON DUPLICATE KEY UPDATE payload = VALUES(payload)');
                     $statement->execute([$slug, json_encode($record, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
                     $_SESSION['notice'] = ucfirst($kind) . ($record['active'] ? ' activated.' : ' deactivated.');
-                    header('Location: index.php?tab=' . ($kind === 'package' ? 'packages' : 'destinations'));
+                    admin_redirect($kind === 'package' && ($_POST['return_tab'] ?? '') === 'solo' ? 'solo' : ($kind === 'package' ? 'packages' : 'destinations'));
                     exit;
                 }
 
@@ -459,7 +460,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $statement = $db->prepare('DELETE FROM `' . $table . '` WHERE slug = ?');
                     $statement->execute([$slug]);
                     $_SESSION['notice'] = ucfirst($kind) . ' deleted.';
-                    admin_redirect();
+                    admin_redirect($kind === 'package' && ($_POST['return_tab'] ?? '') === 'solo' ? 'solo' : ['package' => 'packages', 'destination' => 'destinations', 'taxi' => 'taxis'][$kind]);
                 }
 
                 $name = trim((string) ($_POST['name'] ?? $_POST['title'] ?? ''));
@@ -625,7 +626,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 $statement = $db->prepare('INSERT INTO `' . $table . '` (slug, payload) VALUES (?, ?) ON DUPLICATE KEY UPDATE payload = VALUES(payload)');
                 $statement->execute([$slug, json_encode($record, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
                 $_SESSION['notice'] = ucfirst($kind) . ' saved.';
-                admin_redirect();
+                admin_redirect($kind === 'package' && ($_POST['return_tab'] ?? '') === 'solo' ? 'solo' : ['package' => 'packages', 'destination' => 'destinations', 'taxi' => 'taxis'][$kind]);
             } catch (Throwable $exception) {
                 $error = $exception instanceof RuntimeException ? $exception->getMessage() : 'Could not save to the database. Initialize it first and check MySQL permissions.';
                 if (($action ?? '') === 'save' && in_array(($kind ?? ''), ['package', 'destination'], true)) {
@@ -634,7 +635,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     if ($kind === 'package') {
                         $previousPackage = $packages[$postedOldSlug] ?? $packages[$postedSlug] ?? [];
                         $form = admin_package_form_from_post($_POST, $previousPackage);
-                        $redirectTab = 'packages';
+                        $redirectTab = ($_POST['return_tab'] ?? '') === 'solo' ? 'solo' : 'packages';
                     } else {
                         $previousDestination = $destinations[$postedOldSlug] ?? $destinations[$postedSlug] ?? [];
                         $form = admin_destination_form_from_post($_POST, $previousDestination);
@@ -659,6 +660,7 @@ $editingKind = (string) ($_GET['kind'] ?? '');
 if (!in_array($editingKind, ['package', 'taxi', 'destination'], true)) {
     $tabEditingKinds = [
         'packages' => 'package',
+        'solo' => 'package',
         'taxis' => 'taxi',
         'destinations' => 'destination',
     ];
@@ -668,7 +670,7 @@ if (!in_array($editingKind, ['package', 'taxi', 'destination'], true)) {
 
 if ($failedFormKind !== '') {
     $editingKind = $failedFormKind;
-    $activeTab = $failedFormKind === 'destination' ? 'destinations' : 'packages';
+    $activeTab = $failedFormKind === 'destination' ? 'destinations' : ($activeTab === 'solo' ? 'solo' : 'packages');
     $editingSlug = (string) ($failedForm['_old_slug_value'] ?: $failedForm['_slug_value'] ?: $editingSlug);
 }
 
@@ -710,6 +712,14 @@ $kindTabs = [
     'destination' => 'destinations',
 ];
 $selectedTab = $kindTabs[$editingKind] ?? $activeTab;
+if ($activeTab === 'solo' && $editingKind === 'package') {
+    $selectedTab = 'solo';
+}
+$showCatalogEditor = ($_GET['new'] ?? '') === '1'
+    || $failedFormKind !== ''
+    || (in_array($selectedTab, ['packages', 'solo'], true) && !empty($packageForm))
+    || ($selectedTab === 'taxis' && !empty($taxiForm))
+    || ($selectedTab === 'destinations' && !empty($destinationForm));
 $soloPackages = array_filter($packages, static function (array $package): bool {
     $categories = preg_split('/\s+/', trim((string) ($package['cat'] ?? ''))) ?: [];
 
@@ -906,9 +916,9 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
       <section class="dash-panel dash-panel-quiet">
         <div class="dash-section-title"><h2>Quick actions</h2><span class="dash-note">Fast paths for regular updates</span></div>
         <div class="dash-action-grid">
-          <a href="?tab=packages#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i><span>Add package</span></a>
-          <a href="?tab=destinations#editor"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Add destination</span></a>
-          <a href="?tab=taxis#editor"><i class="fa-solid fa-car" aria-hidden="true"></i><span>Add taxi</span></a>
+          <a href="?tab=packages&amp;new=1#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i><span>Add package</span></a>
+          <a href="?tab=destinations&amp;new=1#editor"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Add destination</span></a>
+          <a href="?tab=taxis&amp;new=1#editor"><i class="fa-solid fa-car" aria-hidden="true"></i><span>Add taxi</span></a>
           <a href="?tab=enquiries"><i class="fa-solid fa-inbox" aria-hidden="true"></i><span>View enquiries (<?= $enquiryCount ?>)</span></a>
           <a href="../index.php" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i><span>View website</span></a>
         </div>
@@ -969,12 +979,12 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <?php endif; ?>
       <?php endif; ?>
     </section>
-  <?php elseif ($selectedTab === 'solo'): ?>
+  <?php elseif ($selectedTab === 'solo' && !$showCatalogEditor): ?>
     <section class="dash-panel">
       <div class="dash-section-title"><h2>Solo page</h2><a class="btn btn-sm btn-outline-success" target="_blank" href="../solo.php">View page</a></div>
       <p class="dash-note">The Solo page automatically shows every package that has the Solo trips category selected. Edit a package below or add a new package with the Solo trips category.</p>
       <div class="dash-action-grid mt-3">
-        <a href="?tab=packages#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add solo package</a>
+        <a href="?tab=solo&amp;new=1#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add solo package</a>
         <a href="../solo.php" target="_blank"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Open public Solo page</a>
       </div>
     </section>
@@ -984,10 +994,11 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <?php foreach ($soloAdminActivities as $activity): ?><label><input type="checkbox" checked disabled><span><?= admin_h($activity) ?></span></label><?php endforeach; ?>
       </div>
     </section>
-    <section class="dash-panel"><h2>Solo packages</h2><?php if (!$soloPackages): ?><p class="dash-empty mb-0">No solo packages yet. Add or edit a package and select Solo trips in Categories.</p><?php else: ?><div class="dash-list"><?php foreach ($soloPackages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?></small></div></div><div class="dash-actions"><?php admin_status_control('package', (string) $slug, $package); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a></div></div><?php endforeach; ?></div><?php endif; ?></section>
-  <?php elseif ($selectedTab === 'packages'): ?>
-    <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $packageForm ? 'Update package' : 'Add package' ?></h2><?php if ($packageForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=packages">New package</a><?php endif; ?></div>
-      <form method="post" enctype="multipart/form-data" data-package-form><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="save"><div class="dash-grid">
+    <section class="dash-panel"><h2>Solo packages</h2><?php if (!$soloPackages): ?><p class="dash-empty mb-0">No solo packages yet. Add or edit a package and select Solo trips in Categories.</p><?php else: ?><div class="dash-list"><?php foreach ($soloPackages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?></small></div></div><div class="dash-actions"><?php admin_status_control('package', (string) $slug, $package); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=solo&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a></div></div><?php endforeach; ?></div><?php endif; ?></section>
+  <?php elseif (in_array($selectedTab, ['packages', 'solo'], true)): ?>
+    <?php if ($showCatalogEditor): ?>
+    <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $packageForm ? 'Update package' : 'Add package' ?></h2><a class="btn btn-outline-secondary btn-sm" href="?tab=<?= $selectedTab === 'solo' ? 'solo' : 'packages' ?>">Back to <?= $selectedTab === 'solo' ? 'solo packages' : 'packages' ?></a></div>
+      <form method="post" enctype="multipart/form-data" data-package-form><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="return_tab" value="<?= $selectedTab === 'solo' ? 'solo' : 'packages' ?>"><input type="hidden" name="action" value="save"><div class="dash-grid">
         <input type="hidden" name="old_slug" value="<?= admin_h($packageForm['_old_slug_value'] ?? ($editingKind === 'package' ? $editingSlug : '')) ?>">
         <label>Status<select name="active"><option value="1"<?= app_catalog_is_active($packageForm) ? ' selected' : '' ?>>Active</option><option value="0"<?= !app_catalog_is_active($packageForm) ? ' selected' : '' ?>>Inactive</option></select><span class="dash-note">Only active entries appear on the site.</span></label>
         <label>Package title<input name="title" required value="<?= admin_h($packageForm['title'] ?? '') ?>" placeholder="e.g. Jaipur & Jaisalmer Heritage Trail"></label>
@@ -997,7 +1008,7 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
           <div class="dash-field"><span class="dash-field-title">Current package image</span><img src="<?= admin_h('../' . img($packageForm['image'], true)) ?>" alt="Current package image" style="display:block;max-width:240px;width:100%;height:150px;object-fit:cover;border-radius:4px;margin-top:5px"></div>
         <?php endif; ?>
         <label>Card label<input name="label" value="<?= admin_h($packageForm['label'] ?? '') ?>" placeholder="e.g. Desert & heritage"></label>
-        <div class="dash-field"><span class="dash-field-title">Categories</span><div class="category-picker"><?php $selectedCategories = preg_split('/\s+/', (string) ($packageForm['cat'] ?? 'heritage')) ?: []; foreach ($categories as $key => $label): ?><label><input type="checkbox" name="cat[]" value="<?= admin_h($key) ?>"<?= in_array($key, $selectedCategories, true) ? ' checked' : '' ?>><span><?= admin_h($label) ?></span></label><?php endforeach; ?></div></div>
+        <div class="dash-field"><span class="dash-field-title">Categories</span><div class="category-picker"><?php $selectedCategories = preg_split('/\s+/', (string) ($packageForm['cat'] ?? ($selectedTab === 'solo' ? 'solo' : 'heritage'))) ?: []; foreach ($categories as $key => $label): ?><label><input type="checkbox" name="cat[]" value="<?= admin_h($key) ?>"<?= in_array($key, $selectedCategories, true) ? ' checked' : '' ?>><span><?= admin_h($label) ?></span></label><?php endforeach; ?></div></div>
         <label>Duration<input name="duration" value="<?= admin_h($packageForm['duration'] ?? '') ?>" placeholder="e.g. 5 days · 4 nights"></label>
         <label>Regular price (INR)<input type="number" name="price_regular" min="0" step="1" inputmode="numeric" value="<?= admin_h($packageForm['price_regular'] ?? '') ?>" placeholder="Optional"></label>
         <label>Discount price (INR)<input type="number" name="price_discount" min="0" step="1" inputmode="numeric" value="<?= admin_h($packageForm['price_discount'] ?? '') ?>" placeholder="Optional"></label>
@@ -1022,9 +1033,12 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         </label>
       </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save package</button></p></form>
     </section>
-    <section class="dash-panel"><h2>All packages</h2><div class="dash-list"><?php foreach ($packages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?><?php if (!empty($package['deprecated_duplicate_of'])): ?> · Saved duplicate of <?= admin_h($packages[$package['deprecated_duplicate_of']]['title'] ?? $package['deprecated_duplicate_of']) ?><?php endif; ?></small></div></div><div class="dash-actions"><?php admin_status_control('package', (string) $slug, $package); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a><form method="post" onsubmit="return confirm('Delete this package?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <?php else: ?>
+    <section class="dash-panel"><div class="dash-section-title"><h2>All packages</h2><a class="btn btn-gold btn-sm" href="?tab=packages&amp;new=1#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add package</a></div><div class="dash-list"><?php foreach ($packages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?><?php if (!empty($package['deprecated_duplicate_of'])): ?> · Saved duplicate of <?= admin_h($packages[$package['deprecated_duplicate_of']]['title'] ?? $package['deprecated_duplicate_of']) ?><?php endif; ?></small></div></div><div class="dash-actions"><?php admin_status_control('package', (string) $slug, $package); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a><form method="post" onsubmit="return confirm('Delete this package?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <?php endif; ?>
   <?php elseif ($selectedTab === 'destinations'): ?>
-    <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $destinationForm ? 'Update destination' : 'Add destination' ?></h2><?php if ($destinationForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=destinations">New destination</a><?php endif; ?></div>
+    <?php if ($showCatalogEditor): ?>
+    <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $destinationForm ? 'Update destination' : 'Add destination' ?></h2><a class="btn btn-outline-secondary btn-sm" href="?tab=destinations">Back to destinations</a></div>
       <form method="post" enctype="multipart/form-data"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="save"><div class="dash-grid">
         <input type="hidden" name="old_slug" value="<?= admin_h($destinationForm['_old_slug_value'] ?? ($editingKind === 'destination' ? $editingSlug : '')) ?>">
         <input type="hidden" name="image" value="<?= admin_h($destinationForm['image'] ?? '') ?>">
@@ -1052,9 +1066,12 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <label class="dash-wide">Sightseeing places<textarea name="see" required placeholder="The Ridge & Christ Church&#10;Mall Road&#10;Jakhu Temple"><?= admin_h($destinationForm['_see_text'] ?? implode("\n", $destinationForm['see'] ?? [])) ?></textarea><span class="dash-note">One sightseeing place per line. These appear under Don't miss.</span></label>
       </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save destination</button></p></form>
     </section>
-    <section class="dash-panel"><h2>All destinations</h2><div class="dash-list"><?php foreach ($destinationGroups as $slug => $group): ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($group['image'], true)) ?>" alt=""><div><strong><?= admin_h($group['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $group['items'])) ?></small></div></div><div class="dash-actions"><?php admin_status_control('destination', (string) $slug, $group); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=destinations&amp;kind=destination&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><form method="post" onsubmit="return confirm('Delete this destination?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <?php else: ?>
+    <section class="dash-panel"><div class="dash-section-title"><h2>All destinations</h2><a class="btn btn-gold btn-sm" href="?tab=destinations&amp;new=1#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add destination</a></div><div class="dash-list"><?php foreach ($destinationGroups as $slug => $group): ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($group['image'], true)) ?>" alt=""><div><strong><?= admin_h($group['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $group['items'])) ?></small></div></div><div class="dash-actions"><?php admin_status_control('destination', (string) $slug, $group); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=destinations&amp;kind=destination&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><form method="post" onsubmit="return confirm('Delete this destination?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <?php endif; ?>
   <?php else: ?>
-    <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $taxiForm ? 'Update taxi' : 'Add taxi' ?></h2><?php if ($taxiForm): ?><a class="btn btn-outline-secondary btn-sm" href="?tab=taxis">New taxi</a><?php endif; ?></div>
+    <?php if ($showCatalogEditor): ?>
+    <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $taxiForm ? 'Update taxi' : 'Add taxi' ?></h2><a class="btn btn-outline-secondary btn-sm" href="?tab=taxis">Back to taxis</a></div>
       <form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="taxi"><input type="hidden" name="action" value="save"><div class="dash-grid">
         <input type="hidden" name="old_slug" value="<?= admin_h($taxiForm['_slug'] ?? '') ?>"><label>Taxi name<input name="name" required value="<?= admin_h($taxiForm['name'] ?? '') ?>"></label>
         <label>URL slug<input name="slug" value="<?= admin_h($editingKind === 'taxi' ? $editingSlug : '') ?>" placeholder="made-from-name"></label>
@@ -1075,11 +1092,13 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <label class="dash-wide">Recommended routes<textarea name="routes"><?= admin_h(implode("\n", $taxiForm['routes'] ?? [])) ?></textarea><span class="dash-note">One route per line.</span></label>
       </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save taxi</button></p></form>
     </section>
-    <section class="dash-panel"><h2>All taxis</h2><div class="dash-list"><?php foreach ($vehicles as $vehicle): $slug = $vehicle['_slug'] ?? admin_slug($vehicle['name']); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . $vehicle['image']) ?>" alt=""><div><strong><?= admin_h($vehicle['name']) ?></strong><small><?= admin_h($vehicle['tag']) ?> · <?= admin_h($vehicle['seats']) ?> seats · <?= admin_h($vehicle['best']) ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=taxis&amp;kind=taxi&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" href="../vehicles.php#fleet">View fleet</a><form method="post" onsubmit="return confirm('Delete this taxi?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="taxi"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <?php else: ?>
+    <section class="dash-panel"><div class="dash-section-title"><h2>All taxis</h2><a class="btn btn-gold btn-sm" href="?tab=taxis&amp;new=1#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add taxi</a></div><div class="dash-list"><?php foreach ($vehicles as $vehicle): $slug = $vehicle['_slug'] ?? admin_slug($vehicle['name']); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . $vehicle['image']) ?>" alt=""><div><strong><?= admin_h($vehicle['name']) ?></strong><small><?= admin_h($vehicle['tag']) ?> · <?= admin_h($vehicle['seats']) ?> seats · <?= admin_h($vehicle['best']) ?></small></div></div><div class="dash-actions"><a class="btn btn-sm btn-outline-secondary" href="?tab=taxis&amp;kind=taxi&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" href="../vehicles.php#fleet">View fleet</a><form method="post" onsubmit="return confirm('Delete this taxi?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="taxi"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <?php endif; ?>
   <?php endif; ?>
 <?php endif; ?>
 </main>
-<?php if ($selectedTab === 'packages'): ?>
+<?php if (in_array($selectedTab, ['packages', 'solo'], true)): ?>
 <script>
 (() => {
   const form = document.querySelector('[data-package-form]');
