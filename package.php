@@ -112,7 +112,7 @@ $related = array_slice($related, 0, 3, true);
                 <p class="form-status" role="status" aria-live="polite" hidden></p>
               </form>
               <div class="pd-card-foot">
-                <a href="tel:<?= e($site['phoneLink']) ?>"><i class="fa-solid fa-phone" aria-hidden="true"></i> <?= e($site['phone']) ?></a>
+                <a href="tel:<?= e($site['phoneLink']) ?>"><i class="fa-solid fa-phone" aria-hidden="true"></i> <?= e(site_phone_text()) ?></a>
                 <a href="<?= e(wa_link($enquiry)) ?>" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Quick chat</a>
               </div>
             </div>

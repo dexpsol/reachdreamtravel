@@ -6803,6 +6803,13 @@ a.package-image {
   white-space: nowrap
 }
 
+.fc-card[href^="tel:"] .fc-text b {
+  overflow: visible;
+  line-height: 1.25;
+  text-overflow: clip;
+  white-space: normal
+}
+
 .fc-arrow {
   color: rgba(255, 255, 255, .35);
   transition: transform .3s, color .3s

@@ -17,7 +17,24 @@ $loadImageLibrary = !empty($_SESSION['admin']) && (
     || ($_GET['tab'] ?? '') === 'destinations'
     || ($_GET['kind'] ?? '') === 'destination'
 );
-$categories = ['domestic' => 'Domestic', 'international' => 'International', 'nature' => 'Nature', 'heritage' => 'Heritage', 'himachal' => 'Himachal tours', 'trekking' => 'Trekking', 'camping' => 'Camping', 'religious' => 'Religious / Temple', 'solo' => 'Solo trips', 'new-year' => 'New Year', 'group' => 'Group tours', 'adventure' => 'Adventure / Activities', 'special' => 'Special interest', 'hills' => 'Hill stations', 'road' => 'Long road trips', 'north' => 'Northern India'];
+$categories = [
+    'domestic' => 'Domestic',
+    'international' => 'International',
+    'nature' => 'Nature',
+    'heritage' => 'Heritage',
+    'himachal' => 'Himachal tours',
+    'trekking' => 'Trekking',
+    'camping' => 'Camping',
+    'religious' => 'Religious / Temple',
+    'solo' => 'Solo trips',
+    'new-year' => 'New Year',
+    'group' => 'Group tours',
+    'adventure' => 'Adventure / Activities',
+    'special' => 'Special interest',
+    'hills' => 'Hill stations',
+    'road' => 'Long road trips',
+    'north' => 'Northern India',
+];
 $imageFiles = [];
 if ($loadImageLibrary) {
     foreach (['destinations', 'stays'] as $imageFolder) {
@@ -44,54 +61,136 @@ $message = (string) ($_SESSION['notice'] ?? '');
 $error = '';
 unset($_SESSION['notice']);
 
-function admin_h($value): string { return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8'); }
+function admin_h($value): string
+{
+    return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
 function admin_csrf(): string
 {
-    if (empty($_SESSION['csrf'])) $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    if (empty($_SESSION['csrf'])) {
+        $_SESSION['csrf'] = bin2hex(random_bytes(32));
+    }
+
     return $_SESSION['csrf'];
 }
+
 function admin_redirect(): void
 {
     header('Location: index.php');
     exit;
 }
+
 function admin_lines(string $value): array
 {
-    return array_values(array_filter(array_map('trim', preg_split('/\r?\n/', $value) ?: []), static fn($line) => $line !== ''));
+    $lines = preg_split('/\r?\n/', $value) ?: [];
+    $lines = array_map('trim', $lines);
+
+    return array_values(array_filter($lines, static fn($line) => $line !== ''));
 }
+
 function admin_slug(string $value): string
 {
     return trim(strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $value)), '-');
 }
+
+function admin_categories_from_post(array $post): array
+{
+    $categories = $post['cat'] ?? ['heritage'];
+
+    if (!is_array($categories)) {
+        $categories = [$categories];
+    }
+
+    $categories = array_map('strval', $categories);
+    $categories = array_filter($categories, static fn($category) => $category !== '');
+
+    return array_values(array_unique($categories));
+}
+
+function admin_days_from_text(string $value): array
+{
+    $days = [];
+
+    foreach (admin_lines($value) as $line) {
+        $parts = explode('|', $line, 2);
+
+        if (count($parts) !== 2) {
+            continue;
+        }
+
+        $title = trim($parts[0]);
+        $details = trim($parts[1]);
+
+        if ($title !== '' && $details !== '') {
+            $days[] = [$title, $details];
+        }
+    }
+
+    return $days;
+}
+
 function admin_destination_upload(string $slug, string $root): string
 {
     $file = $_FILES['image_upload'] ?? null;
-    if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return '';
-    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) throw new RuntimeException('Destination image upload failed. Try another image.');
-    if ((int) ($file['size'] ?? 0) > 6 * 1024 * 1024) throw new RuntimeException('Destination image must be 6 MB or smaller.');
+
+    if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return '';
+    }
+
+    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+        throw new RuntimeException('Destination image upload failed. Try another image.');
+    }
+
+    if ((int) ($file['size'] ?? 0) > 6 * 1024 * 1024) {
+        throw new RuntimeException('Destination image must be 6 MB or smaller.');
+    }
 
     $info = getimagesize((string) $file['tmp_name']);
     $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
     $extension = $extensions[$info['mime'] ?? ''] ?? '';
-    if ($extension === '') throw new RuntimeException('Upload a JPG, PNG or WebP destination image.');
+
+    if ($extension === '') {
+        throw new RuntimeException('Upload a JPG, PNG or WebP destination image.');
+    }
 
     $folder = $root . '/assets/images/destinations';
-    if (!is_dir($folder) && !mkdir($folder, 0775, true)) throw new RuntimeException('Could not create the destination image folder.');
+
+    if (!is_dir($folder) && !mkdir($folder, 0775, true)) {
+        throw new RuntimeException('Could not create the destination image folder.');
+    }
+
     $fileBase = ($slug !== '' ? $slug : 'destination') . '-' . date('YmdHis') . '-' . bin2hex(random_bytes(3));
     $target = $folder . '/' . $fileBase . '.' . $extension;
-    if (!move_uploaded_file((string) $file['tmp_name'], $target)) throw new RuntimeException('Could not save the uploaded destination image.');
+
+    if (!move_uploaded_file((string) $file['tmp_name'], $target)) {
+        throw new RuntimeException('Could not save the uploaded destination image.');
+    }
+
     return $fileBase;
 }
 function admin_match_destination_packages(array $destination, array $packages): array
 {
     $needles = array_merge([(string) ($destination['name'] ?? '')], $destination['see'] ?? []);
-    $needles = array_values(array_unique(array_filter(array_map(static fn($value) => admin_slug((string) $value), $needles), static fn($value) => strlen($value) > 2)));
+    $needles = array_map(static fn($value) => admin_slug((string) $value), $needles);
+    $needles = array_filter($needles, static fn($value) => strlen($value) > 2);
+    $needles = array_values(array_unique($needles));
+
     $matches = [];
+
     foreach ($packages as $slug => $package) {
-        if (!empty($package['deprecated_duplicate_of'])) continue;
+        if (!empty($package['deprecated_duplicate_of'])) {
+            continue;
+        }
+
         $parts = [$slug, $package['title'] ?? '', $package['route'] ?? '', $package['overview'] ?? ''];
-        foreach ($package['highlights'] ?? [] as $highlight) $parts[] = $highlight;
+
+        foreach ($package['highlights'] ?? [] as $highlight) {
+            $parts[] = $highlight;
+        }
+
         $haystack = admin_slug(implode(' ', array_map('strval', $parts)));
+
         foreach ($needles as $needle) {
             if (str_contains($haystack, $needle)) {
                 $matches[] = $slug;
@@ -99,17 +198,19 @@ function admin_match_destination_packages(array $destination, array $packages): 
             }
         }
     }
+
     return $matches;
 }
+
 function admin_package_form_from_post(array $post, array $previousPackage = []): array
 {
     global $destinations;
-    $categoryValues = $post['cat'] ?? ['heritage'];
-    if (!is_array($categoryValues)) $categoryValues = [$categoryValues];
-    $categoryValues = array_values(array_unique(array_filter(array_map('strval', $categoryValues), static fn($category) => $category !== '')));
+
+    $categoryValues = admin_categories_from_post($post);
     $image = !empty($previousPackage['image_customized'])
         ? (string) ($previousPackage['image'] ?? 'hero-himachal')
         : admin_package_feature_image($post, $destinations, (string) ($previousPackage['image'] ?? 'hero-himachal'));
+
     return [
         'title' => trim((string) ($post['title'] ?? '')),
         'label' => trim((string) ($post['label'] ?? '')),
@@ -134,13 +235,16 @@ function admin_package_form_from_post(array $post, array $previousPackage = []):
         '_days_text' => (string) ($post['days'] ?? ''),
     ];
 }
+
 function admin_destination_form_from_post(array $post, array $previousDestination = []): array
 {
     $imageChoice = trim((string) ($post['image_choice'] ?? ''));
     $image = $imageChoice !== '' ? $imageChoice : trim((string) ($post['image'] ?? ''));
+
     if ($image === '' && !empty($previousDestination['image'])) {
         $image = (string) $previousDestination['image'];
     }
+
     return [
         'name' => trim((string) ($post['name'] ?? '')),
         'tagline' => trim((string) ($post['tagline'] ?? '')),
@@ -157,6 +261,7 @@ function admin_destination_form_from_post(array $post, array $previousDestinatio
         '_image_choice' => $imageChoice,
     ];
 }
+
 function admin_package_feature_image(array $post, array $destinations, string $fallback = 'hero-himachal'): string
 {
     $slug = admin_slug((string) ($post['slug'] ?? $post['title'] ?? ''));
@@ -174,7 +279,10 @@ function admin_package_feature_image(array $post, array $destinations, string $f
 
     foreach ($destinations as $destinationSlug => $destination) {
         $image = (string) ($destination['image'] ?? '');
-        if ($image === '') continue;
+
+        if ($image === '') {
+            continue;
+        }
 
         $needles = array_merge(
             [(string) $destinationSlug, (string) ($destination['name'] ?? '')],
@@ -184,7 +292,11 @@ function admin_package_feature_image(array $post, array $destinations, string $f
         $score = 0;
         foreach ($needles as $needle) {
             $needleSlug = admin_slug($needle);
-            if (strlen($needleSlug) < 3) continue;
+
+            if (strlen($needleSlug) < 3) {
+                continue;
+            }
+
             if ($needleSlug === $slug || str_contains($haystack, $needleSlug)) {
                 $score += $needleSlug === $slug ? 8 : 2;
             }
@@ -282,9 +394,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 if (!in_array($kind, ['package', 'taxi', 'destination'], true)) {
                     throw new RuntimeException('Choose a valid content type.');
                 }
+
                 $table = ['package' => 'packages', 'taxi' => 'taxis', 'destination' => 'destination_groups'][$kind];
                 $db = app_db();
-                if (!$db) throw new RuntimeException('Start MySQL and use Initialize database before saving records.');
+
+                if (!$db) {
+                    throw new RuntimeException('Start MySQL and use Initialize database before saving records.');
+                }
+
                 if ($action === 'delete') {
                     if ($table === 'packages') {
                         $db->exec('CREATE TABLE IF NOT EXISTS hidden_packages (slug VARCHAR(190) PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
@@ -296,20 +413,43 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $_SESSION['notice'] = ucfirst($kind) . ' deleted.';
                     admin_redirect();
                 }
+
                 $name = trim((string) ($_POST['name'] ?? $_POST['title'] ?? ''));
-                if ($slug === '') $slug = admin_slug($name);
-                if ($slug === '' || $name === '') throw new RuntimeException($kind === 'destination' ? 'Add a destination name.' : 'Add a name and a valid URL slug.');
+
+                if ($slug === '') {
+                    $slug = admin_slug($name);
+                }
+
+                if ($slug === '' || $name === '') {
+                    throw new RuntimeException($kind === 'destination' ? 'Add a destination name.' : 'Add a name and a valid URL slug.');
+                }
+
                 if ($kind === 'taxi') {
                     $image = (string) ($_POST['image'] ?? '');
-                    if (!in_array($image, $taxiImages, true)) throw new RuntimeException('Choose one of the available fleet photos.');
+
+                    if (!in_array($image, $taxiImages, true)) {
+                        throw new RuntimeException('Choose one of the available fleet photos.');
+                    }
+
                     $record = [
-                        'name' => $name, 'type' => trim((string) ($_POST['type'] ?? 'car')), 'tag' => trim((string) ($_POST['tag'] ?? '')),
-                        'group' => trim((string) ($_POST['group'] ?? 'small')), 'image' => $image, 'alt' => trim((string) ($_POST['alt'] ?? $name)),
-                        'summary' => trim((string) ($_POST['summary'] ?? '')), 'details' => trim((string) ($_POST['details'] ?? '')),
-                        'seats' => trim((string) ($_POST['seats'] ?? '')), 'bags' => trim((string) ($_POST['bags'] ?? '')),
-                        'extra' => [trim((string) ($_POST['extra_icon'] ?? 'fa-snowflake')), trim((string) ($_POST['extra_label'] ?? 'AC'))],
-                        'best' => trim((string) ($_POST['best'] ?? '')), 'terrain' => trim((string) ($_POST['terrain'] ?? '')),
-                        'features' => admin_lines((string) ($_POST['features'] ?? '')), 'routes' => admin_lines((string) ($_POST['routes'] ?? '')),
+                        'name' => $name,
+                        'type' => trim((string) ($_POST['type'] ?? 'car')),
+                        'tag' => trim((string) ($_POST['tag'] ?? '')),
+                        'group' => trim((string) ($_POST['group'] ?? 'small')),
+                        'image' => $image,
+                        'alt' => trim((string) ($_POST['alt'] ?? $name)),
+                        'summary' => trim((string) ($_POST['summary'] ?? '')),
+                        'details' => trim((string) ($_POST['details'] ?? '')),
+                        'seats' => trim((string) ($_POST['seats'] ?? '')),
+                        'bags' => trim((string) ($_POST['bags'] ?? '')),
+                        'extra' => [
+                            trim((string) ($_POST['extra_icon'] ?? 'fa-snowflake')),
+                            trim((string) ($_POST['extra_label'] ?? 'AC')),
+                        ],
+                        'best' => trim((string) ($_POST['best'] ?? '')),
+                        'terrain' => trim((string) ($_POST['terrain'] ?? '')),
+                        'features' => admin_lines((string) ($_POST['features'] ?? '')),
+                        'routes' => admin_lines((string) ($_POST['routes'] ?? '')),
                     ];
                 } elseif ($kind === 'destination') {
                     $see = admin_lines((string) ($_POST['see'] ?? ''));
@@ -323,8 +463,15 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     } elseif ($image === '' && !empty($previousDestination['image'])) {
                         $image = (string) $previousDestination['image'];
                     }
-                    if (!$see) throw new RuntimeException('Add at least one sightseeing place.');
-                    if ($image === '' || ($uploadedImage === '' && !in_array($image, $imageNames, true) && !preg_match('~^https?://~i', $image))) throw new RuntimeException('Upload a destination image.');
+
+                    if (!$see) {
+                        throw new RuntimeException('Add at least one sightseeing place.');
+                    }
+
+                    if ($image === '' || ($uploadedImage === '' && !in_array($image, $imageNames, true) && !preg_match('~^https?://~i', $image))) {
+                        throw new RuntimeException('Upload a destination image.');
+                    }
+
                     $record = [
                         'name' => $name,
                         'tagline' => trim((string) ($_POST['tagline'] ?? '')),
@@ -336,48 +483,69 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         'see' => $see,
                         'packages' => [],
                     ];
-                    if ($record['tagline'] === '' || $record['text'] === '') throw new RuntimeException('Add a tagline and destination description.');
+
+                    if ($record['tagline'] === '' || $record['text'] === '') {
+                        throw new RuntimeException('Add a tagline and destination description.');
+                    }
+
                     $record['packages'] = admin_match_destination_packages($record, $packages);
                 } else {
-                    $categoryValues = $_POST['cat'] ?? ['heritage'];
-                    if (!is_array($categoryValues)) $categoryValues = [$categoryValues];
-                    $categoryValues = array_values(array_unique(array_filter(array_map('strval', $categoryValues), static fn($category) => $category !== '')));
+                    $categoryValues = admin_categories_from_post($_POST);
                     $previousSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
                     $previousPackage = $packages[$previousSlug] ?? $packages[$slug] ?? [];
                     $image = !empty($previousPackage['image_customized'])
                         ? (string) ($previousPackage['image'] ?? 'hero-himachal')
                         : admin_package_feature_image($_POST, $destinations, (string) ($previousPackage['image'] ?? 'hero-himachal'));
-                    if (!$categoryValues || array_diff($categoryValues, array_keys($categories))) throw new RuntimeException('Choose at least one valid package category.');
-                    $highlights = admin_lines((string) ($_POST['highlights'] ?? ''));
-                    $days = [];
-                    foreach (admin_lines((string) ($_POST['days'] ?? '')) as $line) {
-                        $parts = explode('|', $line, 2);
-                        if (count($parts) === 2 && trim($parts[0]) !== '' && trim($parts[1]) !== '') $days[] = [trim($parts[0]), trim($parts[1])];
+
+                    if (!$categoryValues || array_diff($categoryValues, array_keys($categories))) {
+                        throw new RuntimeException('Choose at least one valid package category.');
                     }
-                    if (!$highlights || !$days) throw new RuntimeException('Add at least one highlight and one day formatted as "Title | details".');
+
+                    $highlights = admin_lines((string) ($_POST['highlights'] ?? ''));
+                    $days = admin_days_from_text((string) ($_POST['days'] ?? ''));
+
+                    if (!$highlights || !$days) {
+                        throw new RuntimeException('Add at least one highlight and one day formatted as "Title | details".');
+                    }
+
                     $regularPriceInput = trim((string) ($_POST['price_regular'] ?? ''));
                     $discountPriceInput = trim((string) ($_POST['price_discount'] ?? ''));
+
                     foreach (['Regular price' => $regularPriceInput, 'Discount price' => $discountPriceInput] as $priceLabel => $priceInput) {
                         if ($priceInput !== '' && !preg_match('/^\d{1,10}$/', $priceInput)) {
                             throw new RuntimeException($priceLabel . ' must be a whole amount in INR, or left blank.');
                         }
                     }
+
                     $regularPrice = $regularPriceInput === '' ? null : (int) $regularPriceInput;
                     $discountPrice = $discountPriceInput === '' ? null : (int) $discountPriceInput;
+
                     if ($discountPrice !== null && $regularPrice === null) {
                         throw new RuntimeException('Enter a regular price before adding a discount price.');
                     }
+
                     if ($regularPrice !== null && $discountPrice !== null && $discountPrice >= $regularPrice) {
                         throw new RuntimeException('Discount price should be less than Regular price (INR).');
                     }
+
                     $record = [
-                        'title' => $name, 'label' => trim((string) ($_POST['label'] ?? '')), 'cat' => implode(' ', $categoryValues),
-                        'duration' => trim((string) ($_POST['duration'] ?? '')) ?: 'Custom duration', 'short' => $previousPackage['short'] ?? 'Flexible',
-                        'popular' => !empty($_POST['popular']), 'image' => $image, 'image_customized' => $previousPackage['image_customized'] ?? false,
-                        'price_regular' => $regularPrice, 'price_discount' => $discountPrice,
-                        'season' => trim((string) ($_POST['season'] ?? 'All year')), 'start' => trim((string) ($_POST['start'] ?? 'Your home or hotel')),
-                        'end' => trim((string) ($_POST['end'] ?? 'Your home or hotel')), 'route' => trim((string) ($_POST['route'] ?? '')),
-                        'overview' => trim((string) ($_POST['overview'] ?? '')), 'highlights' => $highlights, 'days' => $days,
+                        'title' => $name,
+                        'label' => trim((string) ($_POST['label'] ?? '')),
+                        'cat' => implode(' ', $categoryValues),
+                        'duration' => trim((string) ($_POST['duration'] ?? '')) ?: 'Custom duration',
+                        'short' => $previousPackage['short'] ?? 'Flexible',
+                        'popular' => !empty($_POST['popular']),
+                        'image' => $image,
+                        'image_customized' => $previousPackage['image_customized'] ?? false,
+                        'price_regular' => $regularPrice,
+                        'price_discount' => $discountPrice,
+                        'season' => trim((string) ($_POST['season'] ?? 'All year')),
+                        'start' => trim((string) ($_POST['start'] ?? 'Your home or hotel')),
+                        'end' => trim((string) ($_POST['end'] ?? 'Your home or hotel')),
+                        'route' => trim((string) ($_POST['route'] ?? '')),
+                        'overview' => trim((string) ($_POST['overview'] ?? '')),
+                        'highlights' => $highlights,
+                        'days' => $days,
                     ];
                 }
                 $oldSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
@@ -424,25 +592,38 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
 $authenticated = !empty($_SESSION['admin']);
 $requestedTab = (string) ($_GET['tab'] ?? 'dashboard');
-$activeTab = in_array($requestedTab, ['dashboard', 'packages', 'solo', 'taxis', 'destinations', 'enquiries'], true) ? $requestedTab : 'dashboard';
+$adminTabs = ['dashboard', 'packages', 'solo', 'taxis', 'destinations', 'enquiries'];
+$activeTab = in_array($requestedTab, $adminTabs, true) ? $requestedTab : 'dashboard';
 $editingSlug = (string) ($_GET['edit'] ?? '');
 $editingKind = (string) ($_GET['kind'] ?? '');
+
 if (!in_array($editingKind, ['package', 'taxi', 'destination'], true)) {
-    $editingKind = ['packages' => 'package', 'taxis' => 'taxi', 'destinations' => 'destination'][$activeTab] ?? '';
+    $tabEditingKinds = [
+        'packages' => 'package',
+        'taxis' => 'taxi',
+        'destinations' => 'destination',
+    ];
+
+    $editingKind = $tabEditingKinds[$activeTab] ?? '';
 }
+
 if ($failedFormKind !== '') {
     $editingKind = $failedFormKind;
     $activeTab = $failedFormKind === 'destination' ? 'destinations' : 'packages';
     $editingSlug = (string) ($failedForm['_old_slug_value'] ?: $failedForm['_slug_value'] ?: $editingSlug);
 }
+
 $packageForm = $editingKind === 'package' ? ($packages[$editingSlug] ?? []) : [];
 $destinationForm = $editingKind === 'destination' ? ($destinations[$editingSlug] ?? []) : [];
+
 if ($failedFormKind === 'package') {
     $packageForm = $failedForm;
 }
+
 if ($failedFormKind === 'destination') {
     $destinationForm = $failedForm;
 }
+
 $selectedDestinationImage = (string) ($destinationForm['image'] ?? '');
 $selectedDestinationImageName = (string) ($destinationForm['_image_choice'] ?? pathinfo(basename($selectedDestinationImage), PATHINFO_FILENAME));
 $destinationGroups = array_map(static function (array $destination): array {
@@ -454,13 +635,37 @@ $destinationGroups = array_map(static function (array $destination): array {
     return $destination;
 }, $destinations);
 $taxiForm = [];
-foreach ($vehicles as $vehicle) if (($vehicle['_slug'] ?? admin_slug($vehicle['name'])) === $editingSlug && $editingKind === 'taxi') $taxiForm = $vehicle;
-$selectedTab = ['package' => 'packages', 'taxi' => 'taxis', 'destination' => 'destinations'][$editingKind] ?? $activeTab;
+
+foreach ($vehicles as $vehicle) {
+    $vehicleSlug = $vehicle['_slug'] ?? admin_slug($vehicle['name']);
+
+    if ($vehicleSlug === $editingSlug && $editingKind === 'taxi') {
+        $taxiForm = $vehicle;
+        break;
+    }
+}
+
+$kindTabs = [
+    'package' => 'packages',
+    'taxi' => 'taxis',
+    'destination' => 'destinations',
+];
+$selectedTab = $kindTabs[$editingKind] ?? $activeTab;
 $soloPackages = array_filter($packages, static function (array $package): bool {
     $categories = preg_split('/\s+/', trim((string) ($package['cat'] ?? ''))) ?: [];
+
     return empty($package['deprecated_duplicate_of']) && in_array('solo', $categories, true);
 });
-$soloAdminActivities = ['River rafting', 'Yoga and wellness', 'Short treks', 'Camping add-ons', 'Snow and mountain drives', 'Cafe and slow travel', 'Waterfalls and caves', 'Culture and temples'];
+$soloAdminActivities = [
+    'River rafting',
+    'Yoga and wellness',
+    'Short treks',
+    'Camping add-ons',
+    'Snow and mountain drives',
+    'Cafe and slow travel',
+    'Waterfalls and caves',
+    'Culture and temples',
+];
 $dbPackages = app_db_catalog('packages');
 $dbTaxis = app_db_catalog('taxis');
 $dbDestinationGroups = app_db_catalog('destination_groups');
@@ -484,7 +689,9 @@ if ($authenticated && $db && in_array($selectedTab, ['dashboard', 'enquiries'], 
         }
     } catch (Throwable $exception) {
         error_log('Admin enquiry list failed: ' . $exception->getMessage());
-        if ($selectedTab === 'enquiries') $error = 'Could not load enquiries. Check the database connection.';
+        if ($selectedTab === 'enquiries') {
+            $error = 'Could not load enquiries. Check the database connection.';
+        }
     }
 }
 $enquiryLabels = [

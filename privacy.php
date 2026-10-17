@@ -60,7 +60,7 @@ $sections = [
 <?php endforeach; ?>
             <section id="contact-us">
               <h2>Contact us</h2>
-              <p>Questions about this policy? Email <a href="mailto:<?= e($site['email']) ?>"><?= e($site['email']) ?></a> or call <a href="tel:<?= e($site['phoneLink']) ?>"><?= e($site['phone']) ?></a>.</p>
+              <p>Questions about this policy? Email <a href="mailto:<?= e($site['email']) ?>"><?= e($site['email']) ?></a> or call <a href="tel:<?= e($site['phoneLink']) ?>"><?= e(site_phone_text()) ?></a>.</p>
             </section>
           </article>
         </div>

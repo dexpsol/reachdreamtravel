@@ -10,7 +10,10 @@ $site = [
     'name'      => 'Reach Dream Travel',
     'phone'     => '+91 98883 51723',
     'phoneLink' => '+919888351723',
-    'whatsapp'  => '919780434402', // Also update whatsappNumber in script.js.
+    'otherPhones' => [
+        ['phone' => '+91 98054 02695', 'phoneLink' => '+919805402695'],
+    ],
+    'whatsapp'  => '919816716800', // Also update whatsappNumber in script.js.
     'email'     => 'reachdreamtravel@gmail.com',
 ];
 
@@ -30,6 +33,34 @@ $driveTimes = [
 function e($value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
+}
+
+function site_phone_numbers(): array
+{
+    global $site;
+
+    $phones = [[
+        'phone' => (string) ($site['phone'] ?? ''),
+        'phoneLink' => (string) ($site['phoneLink'] ?? ''),
+    ]];
+
+    foreach (($site['otherPhones'] ?? []) as $phone) {
+        if (!is_array($phone)) {
+            continue;
+        }
+
+        $phones[] = [
+            'phone' => (string) ($phone['phone'] ?? ''),
+            'phoneLink' => (string) ($phone['phoneLink'] ?? ''),
+        ];
+    }
+
+    return array_values(array_filter($phones, static fn($phone) => $phone['phone'] !== '' && $phone['phoneLink'] !== ''));
+}
+
+function site_phone_text(string $separator = ' / '): string
+{
+    return implode($separator, array_column(site_phone_numbers(), 'phone'));
 }
 
 function format_price($amount): string
@@ -237,7 +268,7 @@ $packages = [
     'rajasthan-heritage-trail' => [
         'title' => 'Rajasthan Heritage Trail', 'label' => 'Palaces, forts & desert nights', 'cat' => 'heritage',
         'duration' => '6 days · 5 nights', 'short' => '6D · 5N', 'popular' => false,
-        'image' => 'hawa-mahal-jaipur', 'difficulty' => 'Easy', 'season' => 'October – March',
+        'image' => 'jodhpur-jaswant-thada', 'difficulty' => 'Easy', 'season' => 'October – March',
         'start' => 'Delhi airport or hotel', 'end' => 'Delhi airport or hotel',
         'route' => 'Jaipur · Jodhpur · Jaisalmer · Udaipur',
         'overview' => 'A royal route through Rajasthan’s forts, havelis and desert towns. The trip balances heritage sightseeing with relaxed evenings and local food.',
@@ -269,7 +300,8 @@ $packages = [
 
 $packages += [
     'nainital' => $customRoute('Nainital Holiday', 'Lake views & easy hill walks', 'north', 'March–June, September–November', 'Naini Lake · Mall Road · Naina Devi Temple', 'A relaxed Kumaon hill break centred on Naini Lake, with time for boating, Mall Road and a visit to Naina Devi Temple.', ['Boating on Naini Lake', 'Walk along Mall Road', 'Visit Naina Devi Temple'], 'nainital'),
-    'mussoorie' => $customRoute('Mussoorie Holiday', 'The Queen of Hills', 'north', 'September–June', 'Mall Road · Mussoorie Lake · Ropeway to Bhatta Falls · Lal Tibba · Scenic Cafe · Cloud End · Kempty Water Fall', 'Take in Mussoorie’s mountain viewpoints, lakes, waterfalls and forest edges, with scenic walks and unhurried time on Mall Road.', ['Mall Road', 'Mussoorie Lake', 'Ropeway to Bhatta Falls', 'Lal Tibba', 'Scenic Cafe', 'Cloud End', 'Kempty Water Fall'], 'mussoorie'),
+    'bhimtal' => $customRoute('Bhimtal Lake Holiday', 'Lake island & quiet hill views', 'north nature hills', 'March-June, September-November', 'Bhimtal Lake - Lake island - Boating - Kumaon viewpoints', 'A peaceful Kumaon lake break in Bhimtal, with boating on Bhimtal Lake, views of the lake island and easy time around nearby hill viewpoints.', ['Boating on Bhimtal Lake', 'Views of the island in the lake', 'Slow walks by the lakeside', 'Nearby Kumaon hill viewpoints'], 'bhimtal'),
+    'mussoorie' => $customRoute('Mussoorie Holiday', 'The Queen of Hills', 'north', 'September–June', 'George Everest Peak · Mall Road · Mussoorie Lake · Ropeway to Bhatta Falls · Lal Tibba · Scenic Cafe · Cloud End · Kempty Water Fall', 'Take in sunrise views from George Everest Peak, Mussoorie’s mountain viewpoints, lakes, waterfalls and forest edges, with scenic walks and unhurried time on Mall Road.', ['George Everest Peak sunrise', 'Mall Road', 'Mussoorie Lake', 'Ropeway to Bhatta Falls', 'Lal Tibba', 'Scenic Cafe', 'Cloud End', 'Kempty Water Fall'], 'george-everest-peak'),
     'chakrata' => $customRoute('Chakrata Holiday', 'Quiet hills & forest viewpoints', 'north nature hills', 'March–June, September–November', 'Chakrata View Point · Tiger Falls · Budher Caves · Deoban Chakrata · Chilmiri Neck · Ram Tal Horticultural Garden', 'A peaceful Chakrata hill break with waterfalls, viewpoints, forest drives and relaxed time around its quieter mountain roads.', ['Chakrata View Point', 'Tiger Falls', 'Budher Caves', 'Deoban Chakrata', 'Chilmiri Neck', 'Ram Tal Horticultural Garden'], 'snow-peaks'),
     'rishikesh' => $customRoute('Rishikesh Getaway', 'River, yoga & adventure', 'north adventure religious', 'February–May, August–October', 'Lakshman Jhula · Beatles Ashram · River Rafting · Yoga Retreats', 'A riverside Rishikesh escape with spiritual landmarks, yoga retreats and seasonal river rafting.', ['Lakshman Jhula', 'Beatles Ashram', 'River rafting, when available', 'Yoga retreats'], 'rishikesh'),
     'solo-rishikesh-activity-break' => array_replace($customRoute('Solo Rishikesh Activity Break', 'Solo river & yoga escape', 'solo adventure north', 'February–May, August–October', 'Lakshman Jhula · Beatles Ashram · River Rafting · Yoga Retreats', 'A flexible solo-friendly Rishikesh trip with rafting, yoga, cafe time and easy sightseeing around the Ganga.', ['River rafting, when available', 'Yoga retreat or drop-in sessions', 'Beatles Ashram visit', 'Lakshman Jhula and riverfront cafes'], 'rishikesh'), ['duration' => '3 days · 2 nights', 'short' => '3D · 2N']),
@@ -282,7 +314,7 @@ $packages += [
     'jim-corbett' => $customRoute('Jim Corbett Wildlife Trip', 'Forest & wildlife', 'nature', 'November–June; safari zones vary', 'Jim Corbett National Park · Kosi River', 'Plan a wildlife-focused break around available safari zones, park rules and your travel dates.', ['Jeep safari, subject to permits and zone availability', 'Wildlife spotting', 'Kosi River scenery'], 'jim-corbett'),
     'kashmir-valley' => $customRoute('Jammu and Kashmir Tour', 'Lakes, gardens & mountain valleys', 'north', 'April–October for sightseeing; November–February for snow', 'Srinagar · Gulmarg · Pahalgam · Sonamarg', 'Build a Jammu and Kashmir journey around Srinagar’s lake life, Gulmarg’s snow and gondola experiences, Pahalgam’s valleys and Sonamarg’s glacier views. Winter activities depend on weather and local operations.', ['Srinagar for Dal Lake shikara rides, houseboats, Shalimar Bagh and Nishat Garden', 'Gulmarg for skiing, Gulmarg Gondola and Apharwat Peak', 'Pahalgam for Betaab Valley, Aru Valley and the Lidder River', 'Sonamarg for Meadow of Gold scenery and Thajiwas Glacier'], 'srinagar'),
     'dharamshala-mcleodganj' => array_replace($customRoute('Dharamshala – McLeod Ganj', 'Nature, culture & trekking', 'nature trekking adventure', 'Plan around your dates', 'Dharamshala · McLeod Ganj · Dharamkot · Triund', 'A five-day mountain trip with a Triund trek and time around Dharamshala and McLeod Ganj. Trek conditions depend on weather and local guidance.', ['Triund Trek', 'Dharamkot', 'Dalai Lama visit', 'Cricket Stadium visit', 'Nandi visit'], 'dharamshala'), ['duration' => '5 days · 4 nights', 'short' => '5D · 4N']),
-    'triund-trek' => array_replace($customRoute('Triund Trek', 'Dharamshala / McLeodganj trek', 'trekking adventure himachal nature', 'March–June, September–November', 'Dharamshala · McLeodganj · Triund', 'A classic Dhauladhar trek from the Dharamshala and McLeodganj side, planned with local conditions, guide support and guest fitness in mind.', ['Location: Dharamshala / McLeodganj', 'Altitude: approx. 2,850 m (9,350 ft)', 'Dhauladhar views from the ridge', 'Trek pace planned around your group'], 'trek-lahaul'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
+    'triund-trek' => array_replace($customRoute('Triund Trek', 'Dharamshala / McLeodganj trek', 'trekking adventure himachal nature', 'March–June, September–November', 'Dharamshala · McLeodganj · Triund', 'A classic Dhauladhar trek from the Dharamshala and McLeodganj side, planned with local conditions, guide support and guest fitness in mind.', ['Location: Dharamshala / McLeodganj', 'Altitude: approx. 2,850 m (9,350 ft)', 'Dhauladhar views from the ridge', 'Trek pace planned around your group'], 'triund-dhauladhar'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
     'kareri-lake-trek' => array_replace($customRoute('Kareri Lake Trek', 'Kangra high-altitude lake trek', 'trekking adventure himachal nature', 'May–June, September–October', 'Kangra · Kareri village · Kareri Lake', 'A scenic Kangra trek towards Kareri Lake, with forest trails, mountain views and logistics planned around route conditions.', ['Location: Kangra', 'Altitude: approx. 4,350 m (14,270 ft)', 'Lake-side Himalayan scenery', 'Guide, stays and transport planned on request'], 'dharamshala'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
     'rupin-pass-trek' => array_replace($customRoute('Rupin Pass Trek', 'Shimla / Rohru region trek', 'trekking adventure himachal nature', 'May–June, September–October', 'Shimla · Rohru region · Rupin Pass', 'A high-altitude trek through the Shimla and Rohru side, planned carefully around weather, trail conditions and acclimatisation needs.', ['Location: Shimla / Rohru region', 'Altitude: approx. 4,572 m (15,000 ft)', 'High-pass Himalayan trail', 'Best planned with guide support and buffer time'], 'kinnaur-peaks'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
     'buran-ghati-trek' => array_replace($customRoute('Buran Ghati Trek', 'Shimla region pass trek', 'trekking adventure himachal nature', 'May–June, September–October', 'Shimla region · Buran Ghati', 'A challenging Shimla-region trek with high mountain scenery, village approaches and pass-crossing planning based on current trail conditions.', ['Location: Shimla region', 'Altitude: approx. 4,572 m (15,000 ft)', 'High-pass trek experience', 'Route and camps planned around season and group pace'], 'shimla-snow'), ['duration' => 'Custom trek duration', 'short' => 'Trek']),
@@ -295,7 +327,7 @@ $packages += [
     'dhungri-van-vihar' => array_replace($customRoute('Dhungri Van Vihar', 'Manali cedar forest', 'nature himachal', 'All year', 'Manali · Dhungri Van Vihar · Hidimba Devi Temple', 'A Manali nature stop around Dhungri Van Vihar and the cedar forest near Hidimba Devi Temple, planned as a gentle local sightseeing experience.', ['Location: Manali', 'Dhungri Van Vihar cedar forest', 'Hidimba Devi Temple nearby', 'Easy walk for families and couples'], 'hidimba'), ['duration' => 'Custom duration', 'short' => 'Nature']),
     'shoja-jibhi-forest-escape' => array_replace($customRoute('Shoja & Jibhi Forest Escape', 'Seraj valley forest villages', 'nature himachal', 'March–June, September–November', 'Aut · Banjar · Jibhi · Shoja', 'A quiet forest escape through Shoja and Jibhi, with riverside time, village stays and gentle walks in the Seraj valley.', ['Location: Shoja & Jibhi', 'Forest village atmosphere', 'Riverside walks and valley viewpoints', 'Good slow-travel nature break'], 'forest-river'), ['duration' => 'Custom duration', 'short' => 'Nature']),
     'chail-wildlife-sanctuary' => array_replace($customRoute('Chail Wildlife Sanctuary', 'Chail forest retreat', 'nature wildlife himachal', 'March–June, September–November', 'Shimla · Chail · Chail Wildlife Sanctuary', 'A peaceful Chail forest retreat with sanctuary-side nature time, hill views and a slower alternative to busier Shimla routes.', ['Location: Chail', 'Chail Wildlife Sanctuary', 'Forest roads and hill viewpoints', 'Easy extension from Shimla'], 'shimla'), ['duration' => 'Custom duration', 'short' => 'Nature']),
-    'dalhousie-khajjiar' => array_replace($customRoute('Dalhousie – Khajjiar', 'Nature & hill scenery', 'nature', 'Plan around your dates', 'Dalhousie · Khajjiar', 'A four-day nature break pairing Dalhousie with the meadows and mountain scenery of Khajjiar.', ['Dalhousie', 'Khajjiar meadows', 'Dhauladhar views'], 'meadow'), ['duration' => '4 days · 3 nights', 'short' => '4D · 3N']),
+    'dalhousie-khajjiar' => array_replace($customRoute('Dalhousie – Khajjiar', 'Nature & hill scenery', 'nature', 'Plan around your dates', 'Dalhousie · Khajjiar', 'A four-day nature break pairing Dalhousie with the meadows and mountain scenery of Khajjiar.', ['Dalhousie', 'Khajjiar meadows', 'Dhauladhar views'], 'khajjiar'), ['duration' => '4 days · 3 nights', 'short' => '4D · 3N']),
     'jammu-katra-patnitop' => $customRoute('Jammu, Katra & Patnitop', 'Pilgrimage & mountain air', 'heritage', 'Plan around your dates and local conditions', 'Jammu City · Katra · Vaishno Devi · Patnitop', 'Combine time in Jammu with a visit to Katra and the Vaishno Devi shrine, then add a relaxing stay in Patnitop.', ['Jammu City', 'Katra and Vaishno Devi shrine visit', 'Patnitop hill-station break'], 'snow-peaks'),
     'katra-vaishno-devi' => $customRoute('Katra / Vaishno Devi', 'Sacred pilgrimage base', 'religious north', 'Plan around your dates', 'Katra · Vaishno Devi Mandir', 'A focused pilgrimage package for Katra, the base town for the sacred journey to Vaishno Devi Mandir shrine.', ['Katra base town', 'Vaishno Devi Mandir shrine', 'Pilgrimage arrangements planned around your dates'], 'snow-peaks'),
     'char-dham-hemkund-sahib-yatra' => array_replace($customRoute('Char Dham & Hemkund Sahib Yatra', 'Sacred Uttarakhand pilgrimage', 'religious north', 'May–October, subject to route and shrine openings', 'Yamunotri · Gangotri · Kedarnath · Badrinath · Hemkund Sahib', 'A devotional Uttarakhand journey linking the Char Dham shrines with Hemkund Sahib. The route, halt points and trek days are planned around opening dates, road conditions and your group pace.', ['Yamunotri, source of the River Yamuna and known for natural hot springs', 'Gangotri, origin of the holy River Ganga in the greater Himalayas', 'Kedarnath, one of the 12 sacred Jyotirlingas of Lord Shiva', 'Badrinath, the revered holy shrine dedicated to Lord Vishnu', 'Hemkund Sahib, the high-altitude Gurudwara by a glacial lake'], 'snow-peaks'), ['duration' => 'Custom yatra duration', 'short' => 'Yatra']),
@@ -303,7 +335,7 @@ $packages += [
     'amritsar-pathankot-dalhousie' => array_replace($customRoute('Amritsar – Pathankot – Dalhousie', 'Punjab & Himachal tour', 'heritage nature', 'Plan around your dates', 'Amritsar · Pathankot · Dalhousie', 'A six-day route from Amritsar through Pathankot to Dalhousie, with sightseeing planned around your travel dates.', ['Amritsar', 'Pathankot', 'Dalhousie'], 'amritsar-golden-temple'), ['duration' => '6 days · 5 nights', 'short' => '6D · 5N']),
     'amritsar-katra' => array_replace($customRoute('Amritsar – Katra', 'Religious & pilgrimage tour', 'religious', 'Plan around your dates', 'Amritsar · Katra · Vaishno Devi', 'A four-day pilgrimage route from Amritsar to Katra. Shrine access and visit arrangements depend on permits and local conditions.', ['Amritsar', 'Katra', 'Vaishno Devi shrine'], 'amritsar-golden-temple'), ['duration' => '4 days · 3 nights', 'short' => '4D · 3N']),
     'dharamshala-mcleod-ganj-trek' => array_replace($customRoute('Dharamshala – McLeod Ganj', 'Nature, culture & trekking', 'nature trekking adventure', 'Plan around your dates', 'Dharamshala · McLeod Ganj · Dharamkot · Triund', 'A five-day mountain trip with a Triund trek and visits around Dharamshala and McLeod Ganj. Trek conditions depend on weather and local guidance.', ['Triund Trek', 'Dharamkot', 'Dalai Lama Temple complex', 'Cricket Stadium visit', 'Nandi visit'], 'dharamshala'), ['duration' => '5 days · 4 nights', 'short' => '5D · 4N', 'deprecated_duplicate_of' => 'dharamshala-mcleodganj']),
-    'dalhousie-khajjiar-nature' => array_replace($customRoute('Dalhousie – Khajjiar', 'Nature & hill scenery', 'nature', 'Plan around your dates', 'Dalhousie · Khajjiar', 'A four-day nature break pairing Dalhousie with the meadows and mountain scenery of Khajjiar.', ['Dalhousie', 'Khajjiar meadows', 'Dhauladhar views'], 'meadow'), ['duration' => '4 days · 3 nights', 'short' => '4D · 3N', 'deprecated_duplicate_of' => 'dalhousie-khajjiar']),
+    'dalhousie-khajjiar-nature' => array_replace($customRoute('Dalhousie – Khajjiar', 'Nature & hill scenery', 'nature', 'Plan around your dates', 'Dalhousie · Khajjiar', 'A four-day nature break pairing Dalhousie with the meadows and mountain scenery of Khajjiar.', ['Dalhousie', 'Khajjiar meadows', 'Dhauladhar views'], 'khajjiar'), ['duration' => '4 days · 3 nights', 'short' => '4D · 3N', 'deprecated_duplicate_of' => 'dalhousie-khajjiar']),
     'shimla-kufri-narkanda' => array_replace($customRoute('Shimla – Kufri – Narkanda', 'Nature & hill station', 'nature hills', 'Plan around your dates', 'Shimla · Kufri · Narkanda', 'A five-day hill-station route through Shimla, Kufri and Narkanda, with sightseeing paced to your dates.', ['Shimla', 'Kufri', 'Narkanda'], 'shimla-city'), ['duration' => '5 days · 4 nights', 'short' => '5D · 4N', 'deprecated_duplicate_of' => 'shimla-local']),
     'himachal-six-shakti-peeth' => array_replace($customRoute('Himachal Pradesh – 6 Shakti Peeth', 'Temple & pilgrimage circuit', 'religious heritage', 'Plan around your dates', 'Chintpurni · Jwalamukhi · Kangra · Chamunda Devi · Baglamukhi · Naina Devi', 'A three-day pilgrimage circuit covering the six temples specified for this route. The temple order and driving plan can be confirmed around your dates.', ['Chintpurni Temple', 'Jwalamukhi Temple', 'Kangra Temple', 'Chamunda Devi Temple', 'Baglamukhi Temple', 'Naina Devi Temple'], 'hidimba'), ['duration' => '3 days · 2 nights', 'short' => '3D · 2N', 'deprecated_duplicate_of' => 'shakti-peeths-himachal']),
     'international-coming-soon' => array_replace($customRoute('International Packages', 'Coming soon', 'international', 'Coming soon', 'Coming Soon', 'International tour packages are coming soon. Contact us and we will help you plan once routes are announced.', ['International packages coming soon', 'Tell us your dream destination', 'We will update this section shortly'], 'hero-himachal'), ['duration' => 'Coming soon', 'short' => 'Soon']),
@@ -323,7 +355,7 @@ unset($package);
 $routeImages = [
     'delhi-agra-weekend' => 'taj-mahal-agra',
     'golden-triangle-delhi-agra-jaipur' => 'taj-mahal-agra',
-    'rajasthan-heritage-trail' => 'hawa-mahal-jaipur',
+    'rajasthan-heritage-trail' => 'jodhpur-jaswant-thada',
 ];
 foreach ($routeImages as $slug => $image) {
     if (isset($packages[$slug]) && empty($packages[$slug]['image_customized'])) {
@@ -333,7 +365,7 @@ foreach ($routeImages as $slug => $image) {
 function package_auto_image(string $slug, array $package): string
 {
     $packageImages = [
-        'triund-trek' => 'trek-lahaul',
+        'triund-trek' => 'triund-dhauladhar',
         'kareri-lake-trek' => 'dharamshala',
         'rupin-pass-trek' => 'kinnaur-peaks',
         'buran-ghati-trek' => 'shimla-snow',
@@ -377,11 +409,12 @@ function package_auto_image(string $slug, array $package): string
         'taj' => 'taj-mahal-agra',
         'jaipur' => 'hawa-mahal-jaipur',
         'jaisalmer' => 'hawa-mahal-jaipur',
-        'jodhpur' => 'hawa-mahal-jaipur',
+        'jodhpur' => 'jodhpur-jaswant-thada',
         'rajasthan' => 'hawa-mahal-jaipur',
         'desert' => 'hawa-mahal-jaipur',
         'nainital' => 'nainital',
-        'mussoorie' => 'mussoorie',
+        'bhimtal' => 'bhimtal',
+        'mussoorie' => 'george-everest-peak',
         'chakrata' => 'forest-river',
         'tiger falls' => 'forest-river',
         'rishikesh' => 'rishikesh',
@@ -393,12 +426,12 @@ function package_auto_image(string $slug, array $package): string
         'srinagar' => 'srinagar',
         'gulmarg' => 'snow-peaks',
         'pahalgam' => 'forest-river',
-        'sonamarg' => 'snow-peaks',
+        'sonamarg' => 'sonamarg',
         'dharamshala' => 'dharamshala',
         'mcleod' => 'dharamshala',
-        'triund' => 'trek-lahaul',
+        'triund' => 'triund-dhauladhar',
         'dalhousie' => 'meadow',
-        'khajjiar' => 'meadow',
+        'khajjiar' => 'khajjiar',
         'katra' => 'ranjit-sagar-dam',
         'vaishno' => 'ranjit-sagar-dam',
         'jammu' => 'ranjit-sagar-dam',
@@ -490,7 +523,8 @@ $destinations = [
         'packages' => ['rajasthan-heritage-trail', 'golden-triangle-delhi-agra-jaipur'],
     ],
     'nainital' => ['name' => 'Nainital', 'tagline' => 'A hill town around a lake', 'image' => 'nainital', 'altitude' => 'Varies by route', 'best' => 'March–June, September–November', 'drive' => 'Route planned around pickup', 'text' => 'Spend time by Naini Lake, browse Mall Road and visit Naina Devi Temple on a relaxed Kumaon hill-station break.', 'see' => ['Boating on Naini Lake', 'Mall Road', 'Naina Devi Temple'], 'packages' => ['nainital']],
-    'mussoorie' => ['name' => 'Mussoorie', 'tagline' => 'The Queen of Hills', 'image' => 'mussoorie', 'altitude' => 'Varies by route', 'best' => 'September–June', 'drive' => 'Route planned around pickup', 'text' => 'Waterfalls, viewpoints, lakes and scenic walks make Mussoorie an easy-going hill escape.', 'see' => ['Mall Road', 'Mussoorie Lake', 'Ropeway to Bhatta Falls', 'Lal Tibba', 'Scenic Cafe', 'Cloud End', 'Kempty Water Fall'], 'packages' => ['mussoorie']],
+    'bhimtal' => ['name' => 'Bhimtal Lake', 'tagline' => 'Lake island in the Kumaon hills', 'image' => 'bhimtal', 'altitude' => 'Varies by route', 'best' => 'March-June, September-November', 'drive' => 'Route planned around pickup', 'text' => 'Bhimtal Lake sits in the hill town of Bhimtal, Uttarakhand, with calm water, boating and views of the small island at the centre of the lake.', 'see' => ['Bhimtal Lake', 'Lake island views', 'Boating', 'Lakeside walks'], 'packages' => ['bhimtal']],
+    'mussoorie' => ['name' => 'Mussoorie', 'tagline' => 'The Queen of Hills', 'image' => 'george-everest-peak', 'altitude' => 'Varies by route', 'best' => 'September–June', 'drive' => 'Route planned around pickup', 'text' => 'Sunrise from George Everest Peak, waterfalls, viewpoints, lakes and scenic walks make Mussoorie an easy-going hill escape.', 'see' => ['George Everest Peak', 'Mall Road', 'Mussoorie Lake', 'Ropeway to Bhatta Falls', 'Lal Tibba', 'Scenic Cafe', 'Cloud End', 'Kempty Water Fall'], 'packages' => ['mussoorie']],
     'chakrata' => ['name' => 'Chakrata', 'tagline' => 'Quiet hills, forests & waterfalls', 'image' => 'snow-peaks', 'altitude' => 'Varies by route', 'best' => 'March–June, September–November', 'drive' => 'Route planned around pickup', 'text' => 'Chakrata is a peaceful hill destination known for forest viewpoints, waterfalls, caves and a slower mountain pace.', 'see' => ['Chakrata View Point', 'Tiger Falls', 'Budher Caves', 'Deoban Chakrata', 'Chilmiri Neck', 'Ram Tal Horticultural Garden'], 'packages' => ['chakrata', 'solo-chakrata-nature-activity']],
     'rishikesh' => ['name' => 'Rishikesh', 'tagline' => 'The Ganges, yoga & adventure', 'image' => 'rishikesh', 'altitude' => 'Varies by route', 'best' => 'February–May, August–October', 'drive' => 'Route planned around pickup', 'text' => 'A riverside town known for yoga, spiritual landmarks, Beatles Ashram and seasonal river rafting.', 'see' => ['Lakshman Jhula', 'Beatles Ashram', 'River rafting, when available', 'Yoga retreats'], 'packages' => ['rishikesh', 'solo-rishikesh-activity-break']],
     'haridwar' => ['name' => 'Haridwar', 'tagline' => 'Ganga aarti & temple town', 'image' => 'rishikesh', 'altitude' => 'Varies by route', 'best' => 'All year', 'drive' => 'Route planned around pickup', 'text' => 'Haridwar is a sacred Ganga city known for Har Ki Pauri, evening aarti and hilltop temple visits.', 'see' => ['Har Ki Pauri', 'Mansa Devi Temple', 'Chandi Devi Temple'], 'packages' => ['haridwar']],
@@ -504,22 +538,22 @@ $destinations = [
     'srinagar' => ['name' => 'Srinagar', 'tagline' => 'Dal Lake, houseboats & Mughal gardens', 'image' => 'srinagar', 'altitude' => 'Varies by route', 'best' => 'April–October for sightseeing', 'drive' => 'Route planned around pickup', 'text' => 'Srinagar is famous for Dal Lake shikara rides, houseboats and Mughal gardens like Shalimar Bagh and Nishat Garden.', 'see' => ['Dal Lake shikara rides', 'Houseboats', 'Shalimar Bagh', 'Nishat Garden'], 'packages' => ['kashmir-valley']],
     'gulmarg' => ['name' => 'Gulmarg', 'tagline' => 'Skiing, gondola & Apharwat Peak', 'image' => 'snow-peaks', 'altitude' => 'Varies by route', 'best' => 'April–October for meadows; winter for snow', 'drive' => 'Route planned around pickup', 'text' => 'Gulmarg is known for skiing, the high-altitude Gulmarg Gondola and views around Apharwat Peak.', 'see' => ['Skiing in winter', 'Gulmarg Gondola', 'Apharwat Peak', 'Alpine meadows'], 'packages' => ['kashmir-valley']],
     'pahalgam' => ['name' => 'Pahalgam', 'tagline' => 'Betaab Valley, Aru Valley & Lidder River', 'image' => 'forest-river', 'altitude' => 'Varies by route', 'best' => 'April–October', 'drive' => 'Route planned around pickup', 'text' => 'Pahalgam is a scenic health resort featuring Betaab Valley, Aru Valley and the Lidder River.', 'see' => ['Betaab Valley', 'Aru Valley', 'Lidder River', 'Pine forest scenery'], 'packages' => ['kashmir-valley']],
-    'sonamarg' => ['name' => 'Sonamarg', 'tagline' => 'The Meadow of Gold', 'image' => 'snow-peaks', 'altitude' => 'Varies by route', 'best' => 'April–October', 'drive' => 'Route planned around pickup', 'text' => 'Sonamarg, called the Meadow of Gold, offers glacier views and access to the Thajiwas Glacier.', 'see' => ['Meadow of Gold scenery', 'Thajiwas Glacier', 'Glacier views', 'High mountain trails'], 'packages' => ['kashmir-valley']],
+    'sonamarg' => ['name' => 'Sonamarg', 'tagline' => 'The Meadow of Gold', 'image' => 'sonamarg', 'altitude' => 'Varies by route', 'best' => 'April–October', 'drive' => 'Route planned around pickup', 'text' => 'Sonamarg, called the Meadow of Gold, offers glacier views, green valley scenery and access to the Thajiwas Glacier.', 'see' => ['Meadow of Gold scenery', 'Thajiwas Glacier', 'Kashmir Valley views', 'High mountain trails'], 'packages' => ['kashmir-valley']],
     'jammu-katra' => ['name' => 'Katra / Vaishno Devi', 'tagline' => 'Base town for Vaishno Devi Mandir', 'image' => 'snow-peaks', 'altitude' => 'Varies by route', 'best' => 'Plan around your dates', 'drive' => 'Route planned around pickup', 'text' => 'Katra is the base town for the sacred pilgrimage to the Vaishno Devi Mandir shrine.', 'see' => ['Katra base town', 'Vaishno Devi Mandir shrine', 'Pilgrimage route arrangements'], 'packages' => ['katra-vaishno-devi', 'jammu-katra-patnitop']],
     'patnitop' => ['name' => 'Patnitop', 'tagline' => 'A quiet Jammu hill escape', 'image' => 'snow-peaks', 'altitude' => 'Varies by route', 'best' => 'Plan around your dates', 'drive' => 'Route planned around pickup', 'text' => 'Add a restorative mountain stay in Patnitop to a Jammu and Katra pilgrimage or holiday route.', 'see' => ['Mountain scenery', 'Easy walks', 'A relaxed stop after Katra'], 'packages' => ['jammu-katra-patnitop']],
     'dharamshala' => ['name' => 'Dharamshala', 'tagline' => 'Dhauladhar views & local heritage', 'image' => 'dharamshala', 'altitude' => 'Varies by route', 'best' => 'Plan around your dates', 'drive' => 'Route planned around pickup', 'text' => 'A Kangra Valley city set against the Dhauladhar range, with cultural landmarks, forest walks and a celebrated cricket ground.', 'see' => ['HPCA Cricket Stadium', 'War Memorial', 'Norbulingka Institute', 'St. John in the Wilderness Church', 'Kangra Art Museum'], 'packages' => ['dharamshala-mcleodganj', 'solo-dharamshala-triund-activity']],
-    'amritsar' => ['name' => 'Amritsar', 'tagline' => 'Sikh heritage & Punjabi hospitality', 'image' => 'amritsar-golden-temple', 'image_credit' => ['Oleg Yunakov · CC BY-SA 3.0', 'https://commons.wikimedia.org/wiki/File:Hamandir_Sahib_(Golden_Temple).jpg'], 'altitude' => '234 m', 'best' => 'October–March', 'drive' => 'About 2 hrs from Pathankot', 'text' => 'A vibrant heritage city centered on the Golden Temple, with moving history, lively markets and the daily border ceremony nearby.', 'see' => ['Golden Temple (Harmandir Sahib)', 'Jallianwala Bagh', 'Partition Museum', 'Wagah–Attari border ceremony', 'Gobindgarh Fort'], 'packages' => ['amritsar-pathankot-dalhousie', 'amritsar-katra']],
+    'amritsar' => ['name' => 'Amritsar', 'tagline' => 'Sikh heritage & Punjabi hospitality', 'image' => 'amritsar-golden-temple', 'altitude' => '234 m', 'best' => 'October–March', 'drive' => 'About 2 hrs from Pathankot', 'text' => 'A vibrant heritage city centered on the Golden Temple, with moving history, lively markets and the daily border ceremony nearby.', 'see' => ['Golden Temple (Harmandir Sahib)', 'Jallianwala Bagh', 'Partition Museum', 'Wagah–Attari border ceremony', 'Gobindgarh Fort'], 'packages' => ['amritsar-pathankot-dalhousie', 'amritsar-katra']],
     'pathankot' => ['name' => 'Pathankot', 'tagline' => 'Gateway to Punjab and the hills', 'image' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Pathankot_City.jpg?width=1200', 'image_credit' => ['Vishalsaini · CC BY-SA 3.0', 'https://commons.wikimedia.org/wiki/File:Pathankot_City.jpg'], 'altitude' => '332 m', 'best' => 'October–March', 'drive' => 'Gateway city for nearby hill routes', 'text' => 'Use Pathankot as a base for local heritage and lakeside stops, with routes onward to Himachal and Jammu planned around your trip.', 'see' => ['Ranjit Sagar Dam', 'Nurpur Fort', 'Shahpurkandi Fort', 'Mukteshwar Temple', 'Kathaluar Wildlife Sanctuary', 'Bhasoli Bridge', 'Mini Goa', 'Thar and Uparala'], 'packages' => ['pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie']],
     'chandigarh' => ['name' => 'Chandigarh', 'tagline' => 'Garden city & modernist landmarks', 'image' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Chandigarh_Rock_Garden.jpg?width=1200', 'image_credit' => ['Klaus Nahr · CC BY-SA 2.0', 'https://commons.wikimedia.org/wiki/File:Chandigarh_Rock_Garden.jpg'], 'altitude' => '321 m', 'best' => 'October–March', 'drive' => 'Around 4 hrs from Shimla', 'text' => 'A planned city known for its architecture, open green spaces and the sculptural Rock Garden.', 'see' => ['Rock Garden', 'Sukhna Lake', 'Capitol Complex', 'Rose Garden', 'Sector 17 Plaza'], 'packages' => []],
     'chail' => ['name' => 'Chail', 'tagline' => 'Quiet forests & a hilltop palace', 'image' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Chail_Palace.jpg?width=1200', 'image_credit' => ['Shrey.ashi · CC BY 4.0', 'https://commons.wikimedia.org/wiki/File:Chail_Palace.jpg'], 'altitude' => '2,250 m', 'best' => 'March–June, September–November', 'drive' => 'About 2 hrs from Shimla', 'text' => 'A peaceful mountain retreat of deodar forests, heritage buildings and broad Himalayan views.', 'see' => ['Chail Palace', 'Chail Cricket Ground', 'Sadhupul', 'Kali Tibba Temple'], 'packages' => []],
     'palampur' => ['name' => 'Palampur', 'tagline' => 'Tea gardens below the Dhauladhar', 'image' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Palampur_tea_plantation%2C_Himachal_Pradesh%2C_India.jpg?width=1200', 'image_credit' => ['UnpetitproleX · CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Palampur_tea_plantation,_Himachal_Pradesh,_India.jpg'], 'altitude' => '1,220 m', 'best' => 'March–June, September–November', 'drive' => 'About 1 hr from Dharamshala', 'text' => 'A relaxed Kangra Valley town framed by tea gardens, pine country and the Dhauladhar range.', 'see' => ['Palampur tea gardens', 'Tashi Jong Monastery', 'Neugal Khad', 'Andretta artists’ village'], 'packages' => []],
     'mcleod-ganj' => ['name' => 'McLeod Ganj', 'tagline' => 'Tibetan culture & mountain trails', 'image' => 'https://commons.wikimedia.org/wiki/Special:FilePath/McLeod_Ganj_main_street.jpg?width=1200', 'image_credit' => ['John Hill · CC BY-SA 3.0 / GFDL', 'https://commons.wikimedia.org/wiki/File:McLeod_Ganj_main_street.jpg'], 'altitude' => '2,082 m', 'best' => 'March–June, September–November', 'drive' => 'About 30 min from Dharamshala', 'text' => 'A lively hill town known for Tibetan culture, monasteries, cafés and access to the Dhauladhar foothills.', 'see' => ['Tsuglagkhang Complex', 'Namgyal Monastery', 'Bhagsu Nag Temple and waterfall', 'Tibetan Museum', 'Triund trail'], 'packages' => ['dharamshala-mcleodganj', 'solo-dharamshala-triund-activity']],
     'dalhousie-khajjiar' => ['name' => 'Dalhousie', 'tagline' => 'Colonial hill town & pine forests', 'image' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Dalhousie_View_l_Himachal_Pradesh.jpg?width=1200', 'image_credit' => ['Piyush Tripathi · CC BY-SA 4.0', 'https://commons.wikimedia.org/wiki/File:Dalhousie_View_l_Himachal_Pradesh.jpg'], 'altitude' => '1,970 m', 'best' => 'March–June, September–November', 'drive' => 'About 1 hr from Khajjiar', 'text' => 'A hillside town of old churches, quiet walking paths and views across the Dhauladhar range.', 'see' => ['St. John’s Church', 'Subhash Baoli', 'Panchpula', 'Gandhi Chowk', 'Dainkund Peak'], 'packages' => ['dalhousie-khajjiar']],
-    'khajjiar' => ['name' => 'Khajjiar', 'tagline' => 'Meadows, cedar forest & mountain views', 'image' => 'meadow', 'altitude' => '1,920 m', 'best' => 'March–June', 'drive' => 'About 1 hr from Dalhousie', 'text' => 'A broad alpine meadow surrounded by cedar forest, often visited as a day trip from Dalhousie.', 'see' => ['Khajjiar Lake', 'Khajji Nag Temple', 'Meadow walks', 'Dhauladhar viewpoints'], 'packages' => ['dalhousie-khajjiar']],
+    'khajjiar' => ['name' => 'Khajjiar', 'tagline' => 'Meadows, cedar forest & mountain views', 'image' => 'khajjiar', 'altitude' => '1,920 m', 'best' => 'March–June', 'drive' => 'About 1 hr from Dalhousie', 'text' => 'A broad alpine meadow around Khajjiar Lake, surrounded by cedar forest and often visited as a day trip from Dalhousie.', 'see' => ['Khajjiar Lake', 'Khajji Nag Temple', 'Meadow walks', 'Chamba district scenery'], 'packages' => ['dalhousie-khajjiar']],
     'kufri' => ['name' => 'Kufri', 'tagline' => 'Forest walks & highland views', 'image' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Kufri_in_Shimla_3.jpg?width=1200', 'altitude' => '2,510 m', 'best' => 'April–June; winter for snow', 'drive' => 'About 1 hr from Shimla', 'text' => 'A high-altitude outing near Shimla for mountain scenery, forest trails and seasonal snow.', 'see' => ['Himalayan Nature Park', 'Mahasu Peak', 'Forest walks', 'Seasonal snow views'], 'packages' => ['shimla-local']],
     'narkanda' => ['name' => 'Narkanda', 'tagline' => 'Apple country & Hatu Peak', 'image' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Narkanda.jpg?width=1200', 'image_credit' => ['Skmishraindia · CC0', 'https://commons.wikimedia.org/wiki/File:Narkanda.jpg'], 'altitude' => '2,708 m', 'best' => 'April–June, September–February', 'drive' => 'About 2 hrs from Shimla', 'text' => 'A mountain town on the old Hindustan–Tibet Road, with orchards, forest drives and a high ridge above town.', 'see' => ['Hatu Peak and temple', 'Tannu Jubbar Lake', 'Apple orchards', 'Winter ski slopes'], 'packages' => ['shimla-spiti-kinnaur']],
     'kangra' => ['name' => 'Kangra', 'tagline' => 'Fort heritage & temple country', 'image' => 'https://commons.wikimedia.org/wiki/Special:FilePath/Kangra_Fort%2C_Kangra%2C_Himachal_Pradesh.jpg?width=1200', 'image_credit' => ['Brahmavadini · CC BY 4.0', 'https://commons.wikimedia.org/wiki/File:Kangra_Fort,_Kangra,_Himachal_Pradesh.jpg'], 'altitude' => '733 m', 'best' => 'March–June, September–November', 'drive' => 'About 1 hr from Dharamshala', 'text' => 'A historic valley town beneath the Dhauladhar range, known for its fort, temples and views across the Kangra Valley.', 'see' => ['Kangra Fort', 'Brajeshwari Devi Temple', 'Maharana Pratap Sagar', 'Masrur rock-cut temples'], 'packages' => ['pathankot-nurpur-dharamshala-kangra']],
-    'uttarakhand' => ['name' => 'Uttarakhand', 'tagline' => 'Lake towns & Himalayan escapes', 'image' => 'nainital', 'altitude' => 'Varies by route', 'best' => 'Plan by destination and season', 'drive' => 'Route planned around pickup', 'text' => 'Explore Uttarakhand through its lake towns, hill stations, river retreats, pilgrimage routes and high mountain viewpoints.', 'see' => ['Nainital', 'Mussoorie', 'Chakrata', 'Rishikesh', 'Haridwar', 'Auli', 'Jim Corbett National Park'], 'packages' => []],
+    'uttarakhand' => ['name' => 'Uttarakhand', 'tagline' => 'Lake towns & Himalayan escapes', 'image' => 'bhimtal', 'altitude' => 'Varies by route', 'best' => 'Plan by destination and season', 'drive' => 'Route planned around pickup', 'text' => 'Explore Uttarakhand through its lake towns, hill stations, river retreats, pilgrimage routes and high mountain viewpoints.', 'see' => ['Bhimtal', 'Nainital', 'Mussoorie', 'Chakrata', 'Rishikesh', 'Haridwar', 'Auli', 'Jim Corbett National Park'], 'packages' => []],
     'jammu-kashmir' => ['name' => 'Jammu & Kashmir', 'tagline' => 'Lakes, valleys & mountain journeys', 'image' => 'srinagar', 'altitude' => 'Varies by route', 'best' => 'Plan by destination and season', 'drive' => 'Route planned around pickup', 'text' => 'Plan a journey through Kashmir’s lake towns, mountain valleys, glacier views and Jammu pilgrimage routes.', 'see' => ['Srinagar', 'Gulmarg', 'Pahalgam', 'Sonamarg', 'Katra / Vaishno Devi', 'Patnitop'], 'packages' => []],
 ];
 
@@ -555,7 +589,7 @@ $defaultDestinations = $destinations;
 $defaultDestinationGroups = $defaultDestinations;
 $storedDestinations = app_db_catalog('destination_groups');
 if ($storedDestinations !== null) {
-    $newDestinationSlugs = ['chakrata', 'haridwar', 'yamunotri', 'gangotri', 'kedarnath', 'badrinath', 'hemkund-sahib'];
+    $newDestinationSlugs = ['bhimtal', 'chakrata', 'haridwar', 'yamunotri', 'gangotri', 'kedarnath', 'badrinath', 'hemkund-sahib'];
     $db = app_db();
     if ($db) {
         $insertDestination = $db->prepare('INSERT IGNORE INTO destination_groups (slug, payload) VALUES (?, ?)');
@@ -570,13 +604,22 @@ if ($storedDestinations !== null) {
         $migrationCheck = $db->prepare('SELECT 1 FROM catalog_migrations WHERE migration_key = ?');
         $migrationCheck->execute([$migrationKey]);
         if (!$migrationCheck->fetchColumn()) {
-            $refreshDestinationSlugs = ['manali', 'kasol', 'mussoorie', 'chakrata', 'rishikesh', 'haridwar', 'srinagar', 'gulmarg', 'pahalgam', 'sonamarg', 'jammu-katra', 'dharamshala', 'mcleod-ganj', 'uttarakhand', 'jammu-kashmir'];
+            $refreshDestinationSlugs = ['manali', 'kasol', 'bhimtal', 'mussoorie', 'chakrata', 'rishikesh', 'haridwar', 'srinagar', 'gulmarg', 'pahalgam', 'sonamarg', 'jammu-katra', 'dharamshala', 'mcleod-ganj', 'uttarakhand', 'jammu-kashmir'];
             $updateDestination = $db->prepare('INSERT INTO destination_groups (slug, payload) VALUES (?, ?) ON DUPLICATE KEY UPDATE payload = VALUES(payload)');
             foreach ($refreshDestinationSlugs as $slug) {
                 if (!isset($destinations[$slug])) continue;
                 $updateDestination->execute([$slug, json_encode($destinations[$slug], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
                 $storedDestinations[$slug] = $destinations[$slug];
             }
+            $migrationWrite = $db->prepare('INSERT IGNORE INTO catalog_migrations (migration_key) VALUES (?)');
+            $migrationWrite->execute([$migrationKey]);
+        }
+        $migrationKey = 'mussoorie-george-everest-destination-2026-10-v1';
+        $migrationCheck->execute([$migrationKey]);
+        if (!$migrationCheck->fetchColumn() && isset($destinations['mussoorie'])) {
+            $updateDestination = $db->prepare('INSERT INTO destination_groups (slug, payload) VALUES (?, ?) ON DUPLICATE KEY UPDATE payload = VALUES(payload)');
+            $updateDestination->execute(['mussoorie', json_encode($destinations['mussoorie'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
+            $storedDestinations['mussoorie'] = $destinations['mussoorie'];
             $migrationWrite = $db->prepare('INSERT IGNORE INTO catalog_migrations (migration_key) VALUES (?)');
             $migrationWrite->execute([$migrationKey]);
         }

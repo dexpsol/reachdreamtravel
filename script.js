@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const whatsappNumber = '919780434402'; // Keep in sync with $site['whatsapp'] in includes/data.php.
+  const whatsappNumber = '919816716800'; // Keep in sync with $site['whatsapp'] in includes/data.php.
   const waLink = text => `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const siteHeader = document.querySelector('.site-header');

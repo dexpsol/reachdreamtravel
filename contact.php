@@ -40,7 +40,7 @@ $faqs = [
     <section class="contact-cards-section">
       <div class="container">
         <div class="contact-cards">
-          <a class="contact-card" href="tel:<?= e($site['phoneLink']) ?>"><span class="cc-icon fi-amber"><i class="fa-solid fa-phone" aria-hidden="true"></i></span><small>Call us</small><b><?= e($site['phone']) ?></b><em>Tap to call <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></em></a>
+          <a class="contact-card" href="tel:<?= e($site['phoneLink']) ?>"><span class="cc-icon fi-amber"><i class="fa-solid fa-phone" aria-hidden="true"></i></span><small>Call us</small><b><?= e(site_phone_text()) ?></b><em>Tap to call <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></em></a>
           <a class="contact-card" href="<?= e(wa_link()) ?>" target="_blank" rel="noopener"><span class="cc-icon fi-green"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></span><small>WhatsApp</small><b>Chat with us</b><em>Open chat <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></em></a>
           <a class="contact-card" href="mailto:<?= e($site['email']) ?>"><span class="cc-icon fi-blue"><i class="fa-solid fa-envelope" aria-hidden="true"></i></span><small>Email</small><b class="cc-email"><?= e($site['email']) ?></b><em>Write to us <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></em></a>
           <div class="contact-card"><span class="cc-icon fi-rose"><i class="fa-solid fa-route" aria-hidden="true"></i></span><small>Trip planning</small><b>Discuss your route</b><em><i class="fa-solid fa-message" aria-hidden="true"></i> Call or message</em></div>

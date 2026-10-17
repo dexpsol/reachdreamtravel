@@ -3,24 +3,29 @@
 - `sanjauli-daytime.png`: AI-generated daytime Sanjauli hillside hero image.
 - `sanjauli-sunset.png`: AI-generated wide adaptation of the sunset Sanjauli reference image provided in chat.
 
-- `taj-mahal-agra.jpg`: AussieActive, [Taj Mahal, India](https://unsplash.com/photos/taj-mahal-india-Thr_TUYPtAk), via [Unsplash](https://unsplash.com/license).
+- `taj-mahal-agra.jpg`: User-provided Agra / Taj Mahal image (`82572.jpg`).
 - `hawa-mahal-jaipur.jpg`: Luqman Hariz, [Hawa Mahal, Jaipur, India](https://unsplash.com/photos/hawa-mahal-jaipur-india--s529_PPy1Y), via [Unsplash](https://unsplash.com/license).
-- `amritsar-golden-temple.jpg`: Oleg Yunakov, [Hamandir Sahib (Golden Temple)](https://commons.wikimedia.org/wiki/File:Hamandir_Sahib_(Golden_Temple).jpg), CC BY-SA 3.0.
+- `jodhpur-jaswant-thada.jpg`: User-provided Jaswant Thada and Mehrangarh Fort image (`82569.jpg`).
+- `amritsar-golden-temple.jpg`: User-provided Golden Temple image (`amritsar.jpg`).
 - `ranjit-sagar-dam.jpg`: Vikramaadityasumbria, [Ranjit Sagar Dam 1](https://commons.wikimedia.org/wiki/File:Ranjit_Sagar_Dam_1.jpg), CC BY-SA 3.0.
 - `nurpur-fort.jpg`: Harvinder Chandigarh, [Entrance Nurpur Fort](https://commons.wikimedia.org/wiki/File:Entrance_Nurpur_Fort,Kangra_,Himachal_Pardesh.jpg), CC BY-SA 4.0.
 - `dharamshala.jpg`: Amit Phulera, [Dharamshala 03 (Cropped)](https://commons.wikimedia.org/wiki/File:Dharamshala_03_(Cropped).jpg), CC BY-SA 4.0.
-- `red-fort-delhi.jpg`: A.Savin, [Red Fort in Delhi](https://commons.wikimedia.org/wiki/File:Red_Fort_in_Delhi_03-2016_img3.jpg), [Free Art License](https://artlibre.org/licence/lal/en/).
+- `triund-dhauladhar.jpg`: User-provided Dhauladhar Range near Triund image (`82574.jpg`).
+- `red-fort-delhi.jpg`: User-provided Delhi / India Gate image (`82571.jpg`).
 - `nainital.jpg`: Praveen Singh Bisht, [Naini Lake, Nainital](https://commons.wikimedia.org/wiki/File:Naini_Lake,_Nainital,_Uttarakhand,_India.jpg), CC BY 2.0.
+- `bhimtal.jpg`: User-provided Bhimtal Lake reference image (`82576.jpg`), visible source watermark: inuk.in.
 - `mussoorie.jpg`: Pinakpani, [Mussoorie city in Uttarakhand](https://commons.wikimedia.org/wiki/File:Mussoorie_city_in_Uttarakhand_06.jpg), CC BY-SA 4.0.
 - `rishikesh.jpg`: Carol Miranda, [Along the Holy Ganges river in Rishikesh](https://commons.wikimedia.org/wiki/File:Along_the_Holy_Ganges_river_in_Rishikesh,India.jpg), CC BY-SA 4.0.
 - `jim-corbett.jpg`: Timothy Gonsalves, [Sambar Corbett India](https://commons.wikimedia.org/wiki/File:Sambar_Corbett_India_Dec19_D72_12585.jpg), CC BY-SA 4.0.
 - `srinagar.jpg`: KennyOMG, [Srinagar panorama](https://commons.wikimedia.org/wiki/File:Srinagar_pano.jpg), CC BY-SA 3.0.
+- `sonamarg.jpg`: User-provided Sonamarg landscape image (`82573.jpg`).
 - `Pathankot_City.jpg`: Vishalsaini, [Pathankot City](https://commons.wikimedia.org/wiki/File:Pathankot_City.jpg), CC BY-SA 3.0.
 - `Chandigarh_Rock_Garden.jpg`: Klaus Nahr, [Chandigarh Rock Garden](https://commons.wikimedia.org/wiki/File:Chandigarh_Rock_Garden.jpg), CC BY-SA 2.0.
 - `Chail_Palace.jpg`: Shrey.ashi, [Chail Palace](https://commons.wikimedia.org/wiki/File:Chail_Palace.jpg), CC BY 4.0.
 - `Palampur_tea_plantation,_Himachal_Pradesh,_India.jpg`: UnpetitproleX, [Palampur tea plantation](https://commons.wikimedia.org/wiki/File:Palampur_tea_plantation,_Himachal_Pradesh,_India.jpg), CC BY-SA 4.0.
 - `McLeod_Ganj_main_street.jpg`: John Hill, [McLeod Ganj main street](https://commons.wikimedia.org/wiki/File:McLeod_Ganj_main_street.jpg), CC BY-SA 3.0 / GFDL.
 - `Dalhousie_View_l_Himachal_Pradesh.jpg`: Piyush Tripathi, [Dalhousie view](https://commons.wikimedia.org/wiki/File:Dalhousie_View_l_Himachal_Pradesh.jpg), CC BY-SA 4.0.
+- `khajjiar.jpg`: User-provided Khajjiar Lake and meadows image (`82570.jpg`).
 - `Kufri_in_Shimla_3.jpg`: [Kufri in Shimla](https://commons.wikimedia.org/wiki/File:Kufri_in_Shimla_3.jpg), CC BY-SA 4.0.
 - `Narkanda.jpg`: Skmishraindia, [Narkanda](https://commons.wikimedia.org/wiki/File:Narkanda.jpg), CC0.
 - `Kangra_Fort,_Kangra,_Himachal_Pradesh.jpg`: Brahmavadini, [Kangra Fort](https://commons.wikimedia.org/wiki/File:Kangra_Fort,_Kangra,_Himachal_Pradesh.jpg), CC BY 4.0.

@@ -52,7 +52,7 @@ $nav = [
   <link rel="stylesheet" href="assets/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
   <link rel="stylesheet" href="style.css">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TravelAgency","name":"<?= e($site['name']) ?>","description":"Private North India tours and road trips with routes, drivers, vehicles and stays planned around each traveller.","areaServed":["Himachal Pradesh","Jammu and Kashmir","Uttarakhand","Rajasthan","Delhi","Agra"],"telephone":"<?= e($site['phone']) ?>"}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TravelAgency","name":"<?= e($site['name']) ?>","description":"Private North India tours and road trips with routes, drivers, vehicles and stays planned around each traveller.","areaServed":["Himachal Pradesh","Jammu and Kashmir","Uttarakhand","Rajasthan","Delhi","Agra"],"telephone":<?= json_encode(array_column(site_phone_numbers(), 'phone'), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>}</script>
 </head>
 <body class="page-<?= e($pageKey) ?>">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -70,7 +70,7 @@ $nav = [
             <li class="nav-item"><a class="nav-link<?= $key === $pageKey ? ' active' : '' ?>" href="<?= e($href) ?>"<?= $key === $pageKey ? ' aria-current="page"' : '' ?>><?= e($label) ?></a></li>
 <?php endforeach; ?>
           </ul>
-          <a class="nav-call" href="tel:<?= e($site['phoneLink']) ?>"><span class="phone-icon"><i class="fa-solid fa-phone" aria-hidden="true"></i></span><span><small>Call for booking</small><b><?= e($site['phone']) ?></b></span></a>
+          <a class="nav-call" href="tel:<?= e($site['phoneLink']) ?>"><span class="phone-icon"><i class="fa-solid fa-phone" aria-hidden="true"></i></span><span><small>Call for booking</small><b><?= e(site_phone_text()) ?></b></span></a>
         </div>
       </div>
     </nav>

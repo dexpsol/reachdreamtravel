@@ -31,7 +31,7 @@ $footerPackages = array_slice($packages, 0, 4, true);
       <div class="footer-contact">
         <a class="fc-card" href="tel:<?= e($site['phoneLink']) ?>">
           <span class="fc-icon fc-amber"><i class="fa-solid fa-phone" aria-hidden="true"></i></span>
-          <span class="fc-text"><small>Call for booking</small><b><?= e($site['phone']) ?></b></span>
+          <span class="fc-text"><small>Call for booking</small><b><?= e(site_phone_text()) ?></b></span>
           <i class="fa-solid fa-arrow-right fc-arrow" aria-hidden="true"></i>
         </a>
         <a class="fc-card" href="<?= e(wa_link()) ?>" target="_blank" rel="noopener">

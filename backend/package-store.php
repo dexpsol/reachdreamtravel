@@ -41,7 +41,7 @@ function package_catalog(array $defaults): array
         $db->exec('CREATE TABLE IF NOT EXISTS hidden_packages (slug VARCHAR(190) PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         $hidden = $db->query('SELECT slug FROM hidden_packages')->fetchAll(PDO::FETCH_COLUMN);
         $hiddenMap = array_fill_keys($hidden, true);
-        $newSlugs = ['nainital', 'mussoorie', 'chakrata', 'rishikesh', 'solo-rishikesh-activity-break', 'solo-manali-adventure-break', 'solo-kasol-backpacking-break', 'solo-chakrata-nature-activity', 'solo-dharamshala-triund-activity', 'haridwar', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'triund-trek', 'kareri-lake-trek', 'rupin-pass-trek', 'buran-ghati-trek', 'prashar-lake-trek', 'bijli-mahadev-trek', 'indrahara-pass-trek', 'fairy-forest-pulga', 'kalatop-wildlife-sanctuary', 'shimla-water-catchment-wildlife-sanctuary', 'dhungri-van-vihar', 'shoja-jibhi-forest-escape', 'chail-wildlife-sanctuary', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'char-dham-hemkund-sahib-yatra', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra', 'international-coming-soon'];
+        $newSlugs = ['nainital', 'bhimtal', 'mussoorie', 'chakrata', 'rishikesh', 'solo-rishikesh-activity-break', 'solo-manali-adventure-break', 'solo-kasol-backpacking-break', 'solo-chakrata-nature-activity', 'solo-dharamshala-triund-activity', 'haridwar', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'triund-trek', 'kareri-lake-trek', 'rupin-pass-trek', 'buran-ghati-trek', 'prashar-lake-trek', 'bijli-mahadev-trek', 'indrahara-pass-trek', 'fairy-forest-pulga', 'kalatop-wildlife-sanctuary', 'shimla-water-catchment-wildlife-sanctuary', 'dhungri-van-vihar', 'shoja-jibhi-forest-escape', 'chail-wildlife-sanctuary', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'char-dham-hemkund-sahib-yatra', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra', 'international-coming-soon'];
         $insert = $db->prepare('INSERT IGNORE INTO packages (slug, payload) VALUES (?, ?)');
         foreach ($newSlugs as $slug) {
             if (isset($defaults[$slug]) && !isset($databaseCatalog[$slug]) && !isset($hiddenMap[$slug])) {
@@ -68,7 +68,7 @@ function package_catalog(array $defaults): array
             }
         }
         $db->exec('CREATE TABLE IF NOT EXISTS catalog_migrations (migration_key VARCHAR(190) PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-        $migrationSlugs = ['shimla-local', 'shakti-peeths-himachal', 'chandratal-lahaul', 'nainital', 'mussoorie', 'chakrata', 'rishikesh', 'solo-rishikesh-activity-break', 'solo-manali-adventure-break', 'solo-kasol-backpacking-break', 'solo-chakrata-nature-activity', 'solo-dharamshala-triund-activity', 'haridwar', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'char-dham-hemkund-sahib-yatra', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra', 'international-coming-soon'];
+        $migrationSlugs = ['shimla-local', 'shakti-peeths-himachal', 'chandratal-lahaul', 'nainital', 'bhimtal', 'mussoorie', 'chakrata', 'rishikesh', 'solo-rishikesh-activity-break', 'solo-manali-adventure-break', 'solo-kasol-backpacking-break', 'solo-chakrata-nature-activity', 'solo-dharamshala-triund-activity', 'haridwar', 'auli', 'jim-corbett', 'kashmir-valley', 'dharamshala-mcleodganj', 'dalhousie-khajjiar', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'char-dham-hemkund-sahib-yatra', 'pathankot-nurpur-dharamshala-kangra', 'amritsar-pathankot-dalhousie', 'amritsar-katra', 'international-coming-soon'];
         $migrationCheck = $db->prepare('SELECT 1 FROM catalog_migrations WHERE migration_key = ?');
         $migrationWrite = $db->prepare('INSERT IGNORE INTO catalog_migrations (migration_key) VALUES (?)');
         $packageUpdate = $db->prepare('UPDATE packages SET payload = ? WHERE slug = ?');
@@ -106,7 +106,7 @@ function package_catalog(array $defaults): array
             $migrationWrite->execute([$migrationKey]);
             $databaseCatalog['mussoorie'] = $updatedPackage;
         }
-        $refreshSlugs = ['mussoorie', 'chakrata', 'rishikesh', 'solo-rishikesh-activity-break', 'solo-manali-adventure-break', 'solo-kasol-backpacking-break', 'solo-chakrata-nature-activity', 'solo-dharamshala-triund-activity', 'haridwar', 'kashmir-valley', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'international-coming-soon'];
+        $refreshSlugs = ['bhimtal', 'mussoorie', 'chakrata', 'rishikesh', 'solo-rishikesh-activity-break', 'solo-manali-adventure-break', 'solo-kasol-backpacking-break', 'solo-chakrata-nature-activity', 'solo-dharamshala-triund-activity', 'haridwar', 'kashmir-valley', 'jammu-katra-patnitop', 'katra-vaishno-devi', 'international-coming-soon'];
         $migrationKey = 'requested-packages-refresh-2026-10-v3';
         $migrationCheck->execute([$migrationKey]);
         if (!$migrationCheck->fetchColumn()) {
@@ -122,6 +122,23 @@ function package_catalog(array $defaults): array
                 $databaseCatalog[$slug] = $updatedPackage;
             }
             $migrationWrite->execute([$migrationKey]);
+        }
+        $migrationKey = 'mussoorie-george-everest-peak-2026-10-v1';
+        $migrationCheck->execute([$migrationKey]);
+        if (!$migrationCheck->fetchColumn() && isset($databaseCatalog['mussoorie'], $defaults['mussoorie'])) {
+            $updatedPackage = array_replace($databaseCatalog['mussoorie'], [
+                'image' => $defaults['mussoorie']['image'],
+                'route' => $defaults['mussoorie']['route'],
+                'overview' => $defaults['mussoorie']['overview'],
+                'highlights' => $defaults['mussoorie']['highlights'],
+            ]);
+            if (isset($defaults['mussoorie']['days'])) {
+                $updatedPackage['days'] = $defaults['mussoorie']['days'];
+            }
+            $payload = json_encode($updatedPackage, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+            $packageUpdate->execute([$payload, 'mussoorie']);
+            $migrationWrite->execute([$migrationKey]);
+            $databaseCatalog['mussoorie'] = $updatedPackage;
         }
         $duplicateRoutes = [
             'dharamshala-mcleod-ganj-trek' => 'dharamshala-mcleodganj',
