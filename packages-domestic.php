@@ -13,7 +13,7 @@ $pageHero = [
     'crumb'   => 'Domestic',
     'eyebrow' => 'Domestic packages',
     'title'   => 'Domestic tours across North India',
-    'lead'    => 'All current packages are available here as domestic tours, with routes, vehicles and stays shaped around your dates.',
+    'lead'    => 'Explore domestic tours with routes, vehicles and stays shaped around your dates.',
     'image'   => img('spiti-key-sunset'),
     'meta'    => [['fa-route', count($domesticPackages) . ' domestic routes'], ...(PACKAGE_ROUTE_FIELDS_VISIBLE ? [['fa-location-dot', 'Pickup and drop']] : []), ['fa-sliders', 'Fully customisable']],
 ];
@@ -22,13 +22,7 @@ require __DIR__ . '/includes/header.php';
 
     <section class="section section-packages packages-page">
       <div class="container">
-        <div class="gallery-toolbar">
-          <nav class="package-subnav package-subnav-inline" aria-label="Package type pages">
-            <a class="active" href="packages-domestic.php"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Domestic packages</a>
-            <a href="packages-international.php"><i class="fa-solid fa-plane-departure" aria-hidden="true"></i> International packages</a>
-          </nav>
-          <a class="text-link" href="packages.php">All packages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
-        </div>
+<?php require __DIR__ . '/includes/package-discovery.php'; ?>
         <div class="package-grid">
 <?php foreach ($domesticPackages as $slug => $package) { package_card($slug, $package); } ?>
         </div>

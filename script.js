@@ -41,7 +41,7 @@
       menuToggle?.setAttribute('aria-expanded', 'false');
       menuToggle?.setAttribute('aria-label', 'Open navigation');
     });
-    menuPanel.querySelectorAll('.nav-link').forEach(link => link.addEventListener('click', () => {
+    menuPanel.querySelectorAll('a.nav-link, a.dropdown-item').forEach(link => link.addEventListener('click', () => {
       if (window.innerWidth < 1200 && window.bootstrap) window.bootstrap.Offcanvas.getOrCreateInstance(menuPanel).hide();
     }));
   }

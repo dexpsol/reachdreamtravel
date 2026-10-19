@@ -51,7 +51,7 @@ $nav = [
   <link rel="preload" href="<?= e($pageHero['image'] ?? 'assets/images/destinations/taj-mahal-agra.jpg') ?>" as="image">
   <link rel="stylesheet" href="assets/bootstrap/bootstrap.min.css">
   <link rel="stylesheet" href="assets/fontawesome/css/all.min.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=<?= (int) (filemtime(__DIR__ . '/../style.css') ?: 0) ?>">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"TravelAgency","name":"<?= e($site['name']) ?>","description":"Private North India tours and road trips with routes, drivers, vehicles and stays planned around each traveller.","areaServed":["Himachal Pradesh","Jammu and Kashmir","Uttarakhand","Rajasthan","Delhi","Agra"],"telephone":<?= json_encode(array_column(site_phone_numbers(), 'phone'), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>}</script>
 </head>
 <body class="page-<?= e($pageKey) ?>">
@@ -67,7 +67,18 @@ $nav = [
         <div class="offcanvas-body">
           <ul class="navbar-nav mx-xl-auto">
 <?php foreach ($nav as $key => [$label, $href]): ?>
+<?php if ($key === 'packages'): ?>
+            <li class="nav-item dropdown package-nav">
+              <button class="nav-link package-menu-toggle<?= in_array($pageKey, ['packages', 'solo'], true) ? ' active' : '' ?>" id="packagesMenu" type="button" data-bs-toggle="dropdown" aria-expanded="false">Packages <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+              <ul class="dropdown-menu" aria-labelledby="packagesMenu">
+<?php foreach (['packages-domestic.php' => ['Domestic', 'fa-map-location-dot'], 'packages-international.php' => ['International', 'fa-plane-departure'], 'solo.php' => ['Solo', 'fa-person-walking-luggage']] as $packageHref => [$packageLabel, $packageIcon]): $isPackagePage = basename($_SERVER['SCRIPT_NAME']) === $packageHref; ?>
+                <li><a class="dropdown-item<?= $isPackagePage ? ' active' : '' ?>" href="<?= e($packageHref) ?>"<?= $isPackagePage ? ' aria-current="page"' : '' ?>><i class="fa-solid <?= e($packageIcon) ?>" aria-hidden="true"></i><span><?= e($packageLabel) ?></span></a></li>
+<?php endforeach; ?>
+              </ul>
+            </li>
+<?php else: ?>
             <li class="nav-item"><a class="nav-link<?= $key === $pageKey ? ' active' : '' ?>" href="<?= e($href) ?>"<?= $key === $pageKey ? ' aria-current="page"' : '' ?>><?= e($label) ?></a></li>
+<?php endif; ?>
 <?php endforeach; ?>
           </ul>
           <a class="nav-call" href="tel:<?= e($site['phoneLink']) ?>"><span class="phone-icon"><i class="fa-solid fa-phone" aria-hidden="true"></i></span><span><small>Call for booking</small><b><?= e(site_phone_text()) ?></b></span></a>
