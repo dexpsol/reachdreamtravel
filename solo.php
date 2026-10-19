@@ -18,6 +18,8 @@ $pageHero = [
 ];
 require __DIR__ . '/includes/header.php';
 
+$soloPackages = app_catalog_order($soloPackages, 'solo');
+
 $soloActivities = [
     ['fa-water', 'River rafting', 'Rishikesh rafting plans when the season and local operations allow.'],
     ['fa-spa', 'Yoga and wellness', 'Drop-in yoga, Ganga walks and easy retreat-style days.'],

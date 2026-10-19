@@ -15,7 +15,7 @@ $pageHero = [
     'title'   => 'Domestic tours across North India',
     'lead'    => 'All current packages are available here as domestic tours, with routes, vehicles and stays shaped around your dates.',
     'image'   => img('spiti-key-sunset'),
-    'meta'    => [['fa-route', count($domesticPackages) . ' domestic routes'], ['fa-car-side', 'Pickup and drop'], ['fa-sliders', 'Fully customisable']],
+    'meta'    => [['fa-route', count($domesticPackages) . ' domestic routes'], ...(PACKAGE_ROUTE_FIELDS_VISIBLE ? [['fa-location-dot', 'Pickup and drop']] : []), ['fa-sliders', 'Fully customisable']],
 ];
 require __DIR__ . '/includes/header.php';
 ?>

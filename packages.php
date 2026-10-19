@@ -9,7 +9,7 @@ $pageHero = [
     'title'   => 'North India tours, shaped around you',
     'lead'    => 'Explore mountain, heritage and wildlife routes with an itinerary shaped around your dates. Ask us to arrange a vehicle, driver and stays for your trip.',
     'image'   => img('spiti-key-sunset'),
-    'meta'    => [['fa-route', count($publicPackages) . ' signature routes'], ['fa-location-dot', 'Pickup and drop'], ['fa-sliders', 'Fully customisable']],
+    'meta'    => [['fa-route', count($publicPackages) . ' signature routes'], ...(PACKAGE_ROUTE_FIELDS_VISIBLE ? [['fa-location-dot', 'Pickup and drop']] : []), ['fa-sliders', 'Fully customisable']],
 ];
 require __DIR__ . '/includes/header.php';
 ?>

@@ -59,9 +59,11 @@ function package_card(string $slug, array $p): void
 <?php endforeach; ?>
                 </div>
                 <h3><a href="<?= e(package_url($slug)) ?>"><?= e($p['title']) ?></a></h3>
+<?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?>
                 <p class="route"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <?= e($p['route']) ?></p>
+<?php endif; ?>
 <?php package_price($p); ?>
-                <div class="package-tags"><span class="tag-from"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Pickup &amp; drop</span><span><i class="fa-solid fa-sun" aria-hidden="true"></i> <?= e($p['season']) ?></span></div>
+                <div class="package-tags"><?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?><span class="tag-from"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Pickup &amp; drop</span><?php endif; ?><span><i class="fa-solid fa-sun" aria-hidden="true"></i> <?= e($p['season']) ?></span></div>
                 <a class="package-link" href="<?= e(package_url($slug)) ?>">See day-by-day plan <span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span></a>
                 <div class="package-contact-actions" aria-label="Contact us about <?= e($p['title']) ?>">
                   <a class="package-contact-icon package-call" href="tel:<?= e($site['phoneLink']) ?>" aria-label="Call about <?= e($p['title']) ?>" title="Call us"><i class="fa-solid fa-phone" aria-hidden="true"></i></a>

@@ -6,6 +6,9 @@
  * See assets/images/destinations/credits.md for destination photo credits and licenses.
  */
 
+// Temporary switch for package route, pickup and drop-off fields.
+const PACKAGE_ROUTE_FIELDS_VISIBLE = false;
+
 $site = [
     'name'      => 'Reach Dream Travel',
     'phone'     => '+91 98883 51723',
@@ -474,6 +477,8 @@ foreach ($packages as $slug => &$package) {
     }
 }
 unset($package);
+require_once dirname(__DIR__) . '/backend/catalog-order.php';
+$packages = app_catalog_order($packages, 'packages');
 $allPackages = $packages;
 $packages = array_filter($packages, 'app_catalog_is_active');
 $publicPackages = array_filter($packages, static fn($package) => empty($package['deprecated_duplicate_of']));
@@ -645,6 +650,7 @@ if ($storedDestinations !== null) {
         $destinations = array_replace($destinations, $dynamicDestinations);
     }
 }
+$destinations = app_catalog_order($destinations, 'destinations');
 $allDestinations = $destinations;
 $destinations = array_filter($destinations, 'app_catalog_is_active');
 $destinationGroups = $destinations;

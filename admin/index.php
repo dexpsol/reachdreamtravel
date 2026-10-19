@@ -4,6 +4,7 @@ session_set_cookie_params(['httponly' => true, 'secure' => !empty($_SERVER['HTTP
 session_start();
 require_once dirname(__DIR__) . '/includes/data.php';
 require_once dirname(__DIR__) . '/backend/database.php';
+require_once __DIR__ . '/remember.php';
 
 // Admin must retain inactive records so they can be edited and reactivated.
 $packages = $allPackages;
@@ -16,6 +17,7 @@ if ($db) {
     $db->exec('CREATE TABLE IF NOT EXISTS users (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL, role VARCHAR(32) NOT NULL DEFAULT \'admin\', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
     $setupNeeded = (int) $db->query('SELECT COUNT(*) FROM users')->fetchColumn() === 0;
 }
+admin_remember_restore($db);
 $loadImageLibrary = !empty($_SESSION['admin']) && (
     (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && ($_POST['kind'] ?? '') === 'destination')
     || ($_GET['tab'] ?? '') === 'destinations'
@@ -104,6 +106,24 @@ function admin_status_control(string $kind, string $slug, array $record): void
     <?php
 }
 
+function admin_order_toolbar(string $scope): void
+{
+    ?>
+    <form method="post" action="index.php" class="dash-order-toolbar" data-order-form="<?= admin_h($scope) ?>">
+      <input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>">
+      <input type="hidden" name="kind" value="<?= $scope === 'destinations' ? 'destination' : 'package' ?>">
+      <input type="hidden" name="action" value="reorder">
+      <input type="hidden" name="scope" value="<?= admin_h($scope) ?>">
+      <span class="dash-note" data-order-status role="status">Drag the handles to arrange items. Changes save automatically.</span>
+    </form>
+    <?php
+}
+
+function admin_order_handle(): void
+{
+    ?><button type="button" class="dash-order-handle" aria-label="Reorder item. Use up and down arrow keys to move." title="Drag to reorder, or use up/down arrows"><i class="fa-solid fa-grip-vertical" aria-hidden="true"></i></button><?php
+}
+
 function admin_lines(string $value): array
 {
     $lines = preg_split('/\r?\n/', $value) ?: [];
@@ -138,19 +158,28 @@ function admin_days_from_text(string $value): array
     foreach (admin_lines($value) as $line) {
         $parts = explode('|', $line, 2);
 
-        if (count($parts) !== 2) {
-            continue;
-        }
-
         $title = trim($parts[0]);
-        $details = trim($parts[1]);
+        $details = trim($parts[1] ?? '');
 
-        if ($title !== '' && $details !== '') {
+        if (count($parts) === 2 && $title !== '' && $details !== '') {
             $days[] = [$title, $details];
+        } else {
+            $days[] = ['Day ' . (count($days) + 1), $line];
         }
     }
 
     return $days;
+}
+
+function admin_days_to_text(array $days): string
+{
+    $lines = [];
+
+    foreach ($days as $index => [$title, $details]) {
+        $lines[] = $title === 'Day ' . ($index + 1) ? $details : $title . ' | ' . $details;
+    }
+
+    return implode("\n", $lines);
 }
 
 function admin_catalog_image_upload(string $slug, string $root, string $kind = 'destination'): string
@@ -247,9 +276,9 @@ function admin_package_form_from_post(array $post, array $previousPackage = []):
         'price_regular' => trim((string) ($post['price_regular'] ?? '')),
         'price_discount' => trim((string) ($post['price_discount'] ?? '')),
         'season' => trim((string) ($post['season'] ?? 'All year')),
-        'start' => trim((string) ($post['start'] ?? 'Your home or hotel')),
-        'end' => trim((string) ($post['end'] ?? 'Your home or hotel')),
-        'route' => trim((string) ($post['route'] ?? '')),
+        'start' => trim((string) ($post['start'] ?? $previousPackage['start'] ?? 'Your home or hotel')),
+        'end' => trim((string) ($post['end'] ?? $previousPackage['end'] ?? 'Your home or hotel')),
+        'route' => trim((string) ($post['route'] ?? $previousPackage['route'] ?? '')),
         'overview' => trim((string) ($post['overview'] ?? '')),
         'highlights' => admin_lines((string) ($post['highlights'] ?? '')),
         'days' => [],
@@ -396,10 +425,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             session_regenerate_id(true);
             $_SESSION['admin'] = true;
             $_SESSION['username'] = $user['username'];
+            if (!empty($_POST['remember_me'])) {
+                admin_remember_save($db, $user);
+            } else {
+                admin_remember_forget($db);
+            }
             admin_redirect();
         }
         $error = 'The password was not accepted.';
     } elseif (isset($_POST['logout'])) {
+        admin_remember_forget($db);
         $_SESSION = [];
         session_destroy();
         admin_redirect();
@@ -431,8 +466,32 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     throw new RuntimeException('Start MySQL and use Initialize database before saving records.');
                 }
 
-                if (!in_array($action, ['save', 'delete', 'set_status'], true)) {
+                if (!in_array($action, ['save', 'delete', 'set_status', 'reorder'], true)) {
                     throw new RuntimeException('Choose a valid action.');
+                }
+
+                if ($action === 'reorder') {
+                    $scope = (string) ($_POST['scope'] ?? '');
+                    if (!in_array($scope, ['packages', 'solo', 'destinations'], true)
+                        || $kind !== ($scope === 'destinations' ? 'destination' : 'package')) {
+                        throw new RuntimeException('Choose a valid list.');
+                    }
+                    $catalog = $scope === 'destinations' ? $destinations : $packages;
+                    if ($scope === 'solo') {
+                        $catalog = array_filter($catalog, static fn($package) => empty($package['deprecated_duplicate_of']) && in_array('solo', preg_split('/\s+/', trim((string) ($package['cat'] ?? ''))) ?: [], true));
+                    }
+                    $slugs = $_POST['order'] ?? null;
+                    if (!is_array($slugs) || array_filter($slugs, static fn($slug) => !is_string($slug))) {
+                        throw new RuntimeException('Choose a valid order.');
+                    }
+                    app_catalog_save_order($db, $scope, $slugs, $catalog);
+                    if (($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest') {
+                        header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['ok' => true]);
+                        exit;
+                    }
+                    $_SESSION['notice'] = 'Display order saved.';
+                    admin_redirect($scope);
                 }
 
                 if ($action === 'set_status') {
@@ -558,7 +617,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $days = admin_days_from_text((string) ($_POST['days'] ?? ''));
 
                     if (!$highlights || !$days) {
-                        throw new RuntimeException('Add at least one highlight and one day formatted as "Title | details".');
+                        throw new RuntimeException('Add at least one highlight and one day in the day-by-day plan.');
                     }
 
                     $regularPriceInput = trim((string) ($_POST['price_regular'] ?? ''));
@@ -598,9 +657,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         'price_regular' => $regularPrice,
                         'price_discount' => $discountPrice,
                         'season' => trim((string) ($_POST['season'] ?? 'All year')),
-                        'start' => trim((string) ($_POST['start'] ?? 'Your home or hotel')),
-                        'end' => trim((string) ($_POST['end'] ?? 'Your home or hotel')),
-                        'route' => trim((string) ($_POST['route'] ?? '')),
+                        'start' => trim((string) ($_POST['start'] ?? $previousPackage['start'] ?? 'Your home or hotel')),
+                        'end' => trim((string) ($_POST['end'] ?? $previousPackage['end'] ?? 'Your home or hotel')),
+                        'route' => trim((string) ($_POST['route'] ?? $previousPackage['route'] ?? '')),
                         'overview' => trim((string) ($_POST['overview'] ?? '')),
                         'highlights' => $highlights,
                         'days' => $days,
@@ -652,6 +711,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             }
         }
     }
+}
+
+// Return reorder errors as JSON, including expired sessions and CSRF failures.
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST'
+    && ($_POST['action'] ?? '') === 'reorder'
+    && ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest') {
+    header('Content-Type: application/json; charset=utf-8');
+    http_response_code(empty($_SESSION['admin']) ? 401 : 422);
+    echo json_encode(['ok' => false, 'error' => $error ?: 'Your session expired. Refresh the page and sign in again.']);
+    exit;
 }
 
 $authenticated = !empty($_SESSION['admin']);
@@ -729,6 +798,7 @@ $soloPackages = array_filter($packages, static function (array $package): bool {
 
     return empty($package['deprecated_duplicate_of']) && in_array('solo', $categories, true);
 });
+$soloPackages = app_catalog_order($soloPackages, 'solo');
 $soloAdminActivities = [
     'River rafting',
     'Yoga and wellness',
@@ -824,6 +894,7 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
     .dash-toggle-input:checked{background:#25805e;border-color:#25805e}
     .dash-toggle-input:checked::before{transform:translateX(16px)}
     .dash-toggle-input:focus-visible{outline:3px solid #cf9a3c;outline-offset:3px}
+    .login-password{position:relative;min-width:0}.login-password .form-control{width:100%;padding-right:48px}.login-password-toggle{position:absolute;top:1px;right:1px;bottom:1px;width:44px;padding:0;border:0;border-radius:3px;background:transparent;color:#17604d;font:700 16px/1.4 'DM Sans',sans-serif;cursor:pointer}.login-password-toggle:focus-visible{outline:2px solid #26725e;outline-offset:-3px}.login-form .login-remember{display:flex;align-items:center;gap:9px;margin-top:8px;font-weight:500;cursor:pointer}.login-remember input{width:17px;height:17px;flex:0 0 auto;accent-color:#174f43}
   </style>
   <style>
     .dash-image-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:8px}
@@ -845,6 +916,12 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
     .dash-grid .dash-popular-toggle:focus-within{outline:3px solid rgba(38,114,94,.2);outline-offset:2px}
     @media(max-width:480px){.dash-grid .dash-popular-toggle{width:100%;gap:9px;padding:11px}.dash-popular-copy small{line-height:1.3}.dash-popular-badge{margin-left:auto}}
     .dash-tabs{flex-wrap:wrap}
+    .dash-order-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+    .dash-order-handle{flex-shrink:0;border:1px solid #d8e2dc;background:#f4f8f5;color:#42614f;border-radius:7px;padding:10px 12px;cursor:grab;touch-action:none;user-select:none}
+    .dash-order-handle:focus-visible{outline:3px solid #d8ab50;outline-offset:2px}
+    .dash-row.is-ordering{background:#f1f7ee;box-shadow:0 0 0 2px #91b58a;position:relative;z-index:1}
+    .dash-row.is-ordering .dash-order-handle{cursor:grabbing}
+    body.is-ordering{user-select:none}
     .dash-table-wrap{overflow-x:auto;margin-top:12px}
     .dash-enquiry-table{width:100%;border-collapse:collapse;font-size:13px}
     .dash-enquiry-table th,.dash-enquiry-table td{padding:13px 12px;border-bottom:1px solid #e5e9e7;text-align:left;vertical-align:middle}
@@ -893,7 +970,11 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
           <label for="loginUsername">Username</label>
           <input class="form-control" id="loginUsername" type="text" name="username" required autocomplete="username">
           <label for="loginPassword">Password</label>
-          <input class="form-control" id="loginPassword" type="password" name="password" required autocomplete="current-password">
+          <div class="login-password">
+            <input class="form-control" id="loginPassword" type="password" name="password" required autocomplete="current-password">
+            <button class="login-password-toggle" type="button" aria-controls="loginPassword" aria-pressed="false" aria-label="Show password" title="Show password"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+          </div>
+          <label class="login-remember"><input type="checkbox" name="remember_me" value="1"<?= !empty($_POST['remember_me']) ? ' checked' : '' ?>> <span>Remember me for 30 days</span></label>
           <button class="btn login-submit" name="login" value="1">Sign in <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
         </form>
         <a class="login-back" href="../index.php"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Back to website</a>
@@ -998,7 +1079,7 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <?php foreach ($soloAdminActivities as $activity): ?><label><input type="checkbox" checked disabled><span><?= admin_h($activity) ?></span></label><?php endforeach; ?>
       </div>
     </section>
-    <section class="dash-panel"><h2>Solo packages</h2><?php if (!$soloPackages): ?><p class="dash-empty mb-0">No solo packages yet. Add or edit a package and select Solo trips in Categories.</p><?php else: ?><div class="dash-list"><?php foreach ($soloPackages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?></small></div></div><div class="dash-actions"><?php admin_status_control('package', (string) $slug, $package); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=solo&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a></div></div><?php endforeach; ?></div><?php endif; ?></section>
+    <section class="dash-panel"><h2>Solo packages</h2><?php if (!$soloPackages): ?><p class="dash-empty mb-0">No solo packages yet. Add or edit a package and select Solo trips in Categories.</p><?php else: ?><?php admin_order_toolbar('solo'); ?><div class="dash-list" data-order-list="solo"><?php foreach ($soloPackages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row" data-order-slug="<?= admin_h($slug) ?>"><div class="dash-row-main"><?php admin_order_handle(); ?><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?></small></div></div><div class="dash-actions"><?php admin_status_control('package', (string) $slug, $package); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=solo&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a></div></div><?php endforeach; ?></div><?php endif; ?></section>
   <?php elseif (in_array($selectedTab, ['packages', 'solo'], true)): ?>
     <?php if ($showCatalogEditor): ?>
     <section class="dash-panel" id="editor"><div class="dash-section-title"><h2><?= $packageForm ? 'Update package' : 'Add package' ?></h2><a class="btn btn-outline-secondary btn-sm" href="?tab=<?= $selectedTab === 'solo' ? 'solo' : 'packages' ?>">Back to <?= $selectedTab === 'solo' ? 'solo packages' : 'packages' ?></a></div>
@@ -1018,18 +1099,24 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <label>Discount price (INR)<input type="number" name="price_discount" min="0" step="1" inputmode="numeric" value="<?= admin_h($packageForm['price_discount'] ?? '') ?>" placeholder="Optional"></label>
         <p class="dash-wide dash-note">Leave prices blank to hide them. Discount price should be less than Regular price (INR).</p>
         <label>Best season<input name="season" value="<?= admin_h($packageForm['season'] ?? 'All year') ?>" placeholder="e.g. October to March"></label>
+<?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?>
         <label>Route<input name="route" value="<?= admin_h($packageForm['route'] ?? '') ?>" placeholder="e.g. Jaipur · Jodhpur · Jaisalmer"></label>
+<?php endif; ?>
 <?php if (!empty($packageForm['image'])): ?>
         <div class="dash-wide dash-note">
           <span class="dash-field-title">Featured image</span>
           <div class="dash-row-main mt-2"><img class="dash-thumb" src="<?= admin_h(preg_match('~^https?://~i', (string) $packageForm['image']) ? img((string) $packageForm['image'], true) : '../' . img((string) $packageForm['image'], true)) ?>" alt=""><small>Auto-selected from the relevant destination when this package is saved.</small></div>
         </div>
 <?php endif; ?>
+<?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?>
         <label>Pickup point<input name="start" list="package-pickup-options" value="<?= admin_h($packageForm['start'] ?? 'Your home or hotel') ?>" placeholder="Choose or enter a pickup point"><datalist id="package-pickup-options"><option value="Your home or hotel"><option value="Airport"><option value="Railway station"><option value="Bus stand"></datalist><span class="dash-note">Where the trip begins, such as an airport, station or hotel.</span></label>
+<?php endif; ?>
+<?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?>
         <label>Drop-off point<input name="end" list="package-dropoff-options" value="<?= admin_h($packageForm['end'] ?? 'Your home or hotel') ?>" placeholder="Choose or enter a drop-off point"><datalist id="package-dropoff-options"><option value="Your home or hotel"><option value="Airport"><option value="Railway station"><option value="Bus stand"></datalist><span class="dash-note">Where guests are dropped off at the end of the trip.</span></label>
+<?php endif; ?>
         <label class="dash-wide">Overview<textarea name="overview" required placeholder="Describe the feel of the trip, who it suits and what guests can expect."><?= admin_h($packageForm['overview'] ?? '') ?></textarea></label>
         <label class="dash-wide">Highlights<textarea name="highlights" required placeholder="Amber Fort at opening time&#10;Old-city food walk&#10;Sunset over the dunes"><?= admin_h($packageForm['_highlights_text'] ?? implode("\n", $packageForm['highlights'] ?? [])) ?></textarea><span class="dash-note">One highlight per line.</span></label>
-        <label class="dash-wide">Day-by-day plan<textarea name="days" required placeholder="Day 1: Arrival | Airport pickup and hotel check-in&#10;Day 2: Jaipur | Fort visit and old-city walk"><?= admin_h($packageForm['_days_text'] ?? implode("\n", array_map(static fn($day) => $day[0] . ' | ' . $day[1], $packageForm['days'] ?? []))) ?></textarea><span class="dash-note">One day per line: Day title | day description</span></label>
+        <label class="dash-wide">Day-by-day plan<textarea name="days" required placeholder="Arrive at the airport, check in at the hotel and relax.&#10;Visit Jaipur forts and explore the old city."><?= admin_h($packageForm['_days_text'] ?? admin_days_to_text($packageForm['days'] ?? [])) ?></textarea><span class="dash-note">Write each day's plan on a new line. Day numbers are added automatically. No special format needed.</span></label>
         <label class="dash-popular-toggle">
           <input type="checkbox" name="popular" value="1"<?= !empty($packageForm['popular']) ? ' checked' : '' ?>>
           <span class="dash-popular-copy"><strong>Mark as popular</strong><small>Highlight this package with a popular badge.</small></span>
@@ -1038,7 +1125,7 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
       </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save package</button></p></form>
     </section>
     <?php else: ?>
-    <section class="dash-panel"><div class="dash-section-title"><h2>All packages</h2><a class="btn btn-gold btn-sm" href="?tab=packages&amp;new=1#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add package</a></div><div class="dash-list"><?php foreach ($packages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?><?php if (!empty($package['deprecated_duplicate_of'])): ?> · Saved duplicate of <?= admin_h($packages[$package['deprecated_duplicate_of']]['title'] ?? $package['deprecated_duplicate_of']) ?><?php endif; ?></small></div></div><div class="dash-actions"><?php admin_status_control('package', (string) $slug, $package); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a><form method="post" onsubmit="return confirm('Delete this package?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <section class="dash-panel"><div class="dash-section-title"><h2>All packages</h2><a class="btn btn-gold btn-sm" href="?tab=packages&amp;new=1#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add package</a></div><?php admin_order_toolbar('packages'); ?><div class="dash-list" data-order-list="packages"><?php foreach ($packages as $slug => $package): $packageCategoryLabels = array_map(static fn($category) => $categories[$category] ?? $category, preg_split('/\s+/', trim((string) $package['cat'])) ?: []); ?><div class="dash-row" data-order-slug="<?= admin_h($slug) ?>"><div class="dash-row-main"><?php admin_order_handle(); ?><img class="dash-thumb" src="<?= admin_h('../' . img($package['image'], true)) ?>" alt=""><div><strong><?= admin_h($package['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $packageCategoryLabels)) ?><?php if (!empty($package['deprecated_duplicate_of'])): ?> · Saved duplicate of <?= admin_h($packages[$package['deprecated_duplicate_of']]['title'] ?? $package['deprecated_duplicate_of']) ?><?php endif; ?></small></div></div><div class="dash-actions"><?php admin_status_control('package', (string) $slug, $package); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=packages&amp;kind=package&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><a class="btn btn-sm btn-outline-success" target="_blank" href="../package.php?slug=<?= rawurlencode($slug) ?>">View</a><form method="post" onsubmit="return confirm('Delete this package?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="package"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
     <?php endif; ?>
   <?php elseif ($selectedTab === 'destinations'): ?>
     <?php if ($showCatalogEditor): ?>
@@ -1071,7 +1158,7 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
       </div><p class="mt-3 mb-0"><button class="btn btn-gold" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save destination</button></p></form>
     </section>
     <?php else: ?>
-    <section class="dash-panel"><div class="dash-section-title"><h2>All destinations</h2><a class="btn btn-gold btn-sm" href="?tab=destinations&amp;new=1#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add destination</a></div><div class="dash-list"><?php foreach ($destinationGroups as $slug => $group): ?><div class="dash-row"><div class="dash-row-main"><img class="dash-thumb" src="<?= admin_h('../' . img($group['image'], true)) ?>" alt=""><div><strong><?= admin_h($group['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $group['items'])) ?></small></div></div><div class="dash-actions"><?php admin_status_control('destination', (string) $slug, $group); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=destinations&amp;kind=destination&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><form method="post" onsubmit="return confirm('Delete this destination?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
+    <section class="dash-panel"><div class="dash-section-title"><h2>All destinations</h2><a class="btn btn-gold btn-sm" href="?tab=destinations&amp;new=1#editor"><i class="fa-solid fa-plus" aria-hidden="true"></i> Add destination</a></div><?php admin_order_toolbar('destinations'); ?><div class="dash-list" data-order-list="destinations"><?php foreach ($destinationGroups as $slug => $group): ?><div class="dash-row" data-order-slug="<?= admin_h($slug) ?>"><div class="dash-row-main"><?php admin_order_handle(); ?><img class="dash-thumb" src="<?= admin_h('../' . img($group['image'], true)) ?>" alt=""><div><strong><?= admin_h($group['title']) ?></strong><small><?= admin_h($slug) ?> · <?= admin_h(implode(', ', $group['items'])) ?></small></div></div><div class="dash-actions"><?php admin_status_control('destination', (string) $slug, $group); ?><a class="btn btn-sm btn-outline-secondary" href="?tab=destinations&amp;kind=destination&amp;edit=<?= rawurlencode($slug) ?>#editor">Edit</a><form method="post" onsubmit="return confirm('Delete this destination?')"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><input type="hidden" name="kind" value="destination"><input type="hidden" name="action" value="delete"><input type="hidden" name="slug" value="<?= admin_h($slug) ?>"><button class="btn btn-sm btn-outline-danger">Delete</button></form></div></div><?php endforeach; ?></div></section>
     <?php endif; ?>
   <?php else: ?>
     <?php if ($showCatalogEditor): ?>
@@ -1102,6 +1189,31 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
   <?php endif; ?>
 <?php endif; ?>
 </main>
+<script src="order.js" defer></script>
+<script src="login.js" defer></script>
+<script>
+(() => {
+  const serverError = <?= json_encode($error, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE) ?>;
+  if (serverError) window.alert(serverError);
+
+  // Native validation can report several invalid fields in a single submission.
+  // Collect them into one alert so none of the errors are missed.
+  let validationTimer = null;
+  const errors = new Set();
+  document.addEventListener('invalid', (event) => {
+    const field = event.target;
+    const label = field.labels?.[0];
+    const name = label?.firstChild?.textContent?.trim() || field.name || 'Field';
+    errors.add(name + ': ' + field.validationMessage);
+    if (validationTimer !== null) return;
+    validationTimer = window.setTimeout(() => {
+      window.alert(Array.from(errors).join('\n'));
+      errors.clear();
+      validationTimer = null;
+    }, 0);
+  }, true);
+})();
+</script>
 <?php if (in_array($selectedTab, ['packages', 'solo'], true)): ?>
 <script>
 (() => {

@@ -21,7 +21,7 @@ $breadcrumbs = [['Packages', 'packages.php']];
 $pageHero = [
     'eyebrow' => $package['label'],
     'title'   => $package['title'],
-    'lead'    => $package['route'],
+    'lead'    => PACKAGE_ROUTE_FIELDS_VISIBLE ? $package['route'] : '',
     'image'   => img($package['image']),
     'meta'    => [['fa-clock', $package['duration']], ['fa-sun', $package['season']]],
 ];
@@ -50,7 +50,9 @@ $related = array_slice($related, 0, 3, true);
             <div class="pd-facts">
               <div><i class="fa-solid fa-clock" aria-hidden="true"></i><small>Duration</small><b><?= e($package['duration']) ?></b></div>
               <div><i class="fa-solid fa-sun" aria-hidden="true"></i><small>Best season</small><b><?= e($package['season']) ?></b></div>
+<?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?>
               <div><i class="fa-solid fa-location-dot" aria-hidden="true"></i><small>Starts &amp; ends</small><b><?= e($package['start']) ?></b></div>
+<?php endif; ?>
             </div>
             <div class="package-tags package-category-tags" aria-label="Package categories">
 <?php foreach (package_category_labels($package) as $categoryLabel): ?>
@@ -82,7 +84,9 @@ $related = array_slice($related, 0, 3, true);
                   <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Private vehicle with experienced driver</li>
                   <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Hotel, cottage, homestay or camp stays</li>
                   <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Sightseeing as per the trip plan</li>
+<?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?>
                   <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Pickup and drop at your home or hotel</li>
+<?php endif; ?>
                 </ul>
               </div>
               <div>
