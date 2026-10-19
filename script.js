@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const whatsappNumber = '919816716800'; // Keep in sync with $site['whatsapp'] in includes/data.php.
+  const whatsappNumber = document.body.dataset.whatsapp;
   const waLink = text => `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const siteHeader = document.querySelector('.site-header');
@@ -312,7 +312,7 @@
   }
 
   // Trip enquiry forms open WhatsApp with the submitted details ready to send.
-  const labels = { name: 'Name', phone: 'Phone', email: 'Email', destination: 'Trip', duration: 'Duration (nights)', date: 'Travel date', travellers: 'Travellers', purpose: 'Package for', arrival: 'Arrival date', departure: 'Departure date', adults: 'Adults', kids: 'Kids', room_required: 'Room required', room_type: 'Room type', meal_plan: 'Meal plan', transportation: 'Transportation', vehicle: 'Vehicle type', message: 'Notes' };
+  const labels = { name: 'Name', phone: 'Phone', email: 'Email', destination: 'Trip', duration: 'Duration (nights)', date: 'Travel date', travellers: 'Travellers', purpose: 'Package for', arrival: 'Arrival date', departure: 'Departure date', adults: 'Adults', kids: 'Kids', room_required: 'Room required', room_type: 'Room type', meal_plan: 'Meal plan', transportation: 'Transportation', vehicle: 'Vehicle type', stay: 'Stays', message: 'Notes' };
   document.querySelectorAll('[data-transport-choice]').forEach(choice => {
     const vehicleField = choice.form.querySelector('[data-vehicle-field]');
     const vehicleSelect = vehicleField.querySelector('select');

@@ -40,6 +40,7 @@ $fields = [
     'meal_plan' => 'Meal plan',
     'transportation' => 'Transportation',
     'vehicle' => 'Vehicle type',
+    'stay' => 'Stays',
     'message' => 'Notes',
 ];
 

@@ -48,6 +48,9 @@ require_once __DIR__ . '/includes/components.php';
               <label class="field"><span>Vehicle</span>
                 <select name="vehicle"><?php vehicle_select_options(); ?></select>
               </label>
+              <label class="field"><span>Stays</span>
+                <select name="stay"><option value="">Choose your stay preference</option><?php foreach (package_stay_options() as $stayLabel): ?><option value="<?= e($stayLabel) ?>"><?= e($stayLabel) ?></option><?php endforeach; ?><option>No stay required</option></select>
+              </label>
               <input class="visually-hidden" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
               <button class="btn btn-gold w-100" type="submit">Get my free quote <i class="fa-brands fa-whatsapp" aria-hidden="true"></i></button>
               <p class="form-status" role="status" aria-live="polite" hidden></p>

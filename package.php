@@ -62,6 +62,7 @@ $related = array_slice($related, 0, 3, true);
 
             <h2 class="pd-title">Trip overview</h2>
             <p class="pd-lead"><?= e($package['overview']) ?></p>
+<?php package_facilities($package); ?>
 
             <h2 class="pd-title">Highlights</h2>
             <ul class="pd-highlights list-unstyled">
@@ -77,28 +78,7 @@ $related = array_slice($related, 0, 3, true);
 <?php endforeach; ?>
             </ol>
 
-            <div class="pd-included">
-              <div>
-                <h2 class="pd-title">Can be arranged</h2>
-                <ul class="list-unstyled pd-list pd-yes">
-                  <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Private vehicle with experienced driver</li>
-                  <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Hotel, cottage, homestay or camp stays</li>
-                  <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Sightseeing as per the trip plan</li>
-<?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?>
-                  <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Pickup and drop at your home or hotel</li>
-<?php endif; ?>
-                </ul>
-              </div>
-              <div>
-                <h2 class="pd-title">Discussed while planning</h2>
-                <ul class="list-unstyled pd-list pd-maybe">
-                  <li><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Meals and entry tickets</li>
-                  <li><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Activities such as rafting or paragliding</li>
-                  <li><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Permits, tolls and parking</li>
-                  <li><i class="fa-solid fa-circle-info" aria-hidden="true"></i> Route changes due to weather or road conditions</li>
-                </ul>
-              </div>
-            </div>
+<?php require __DIR__ . '/includes/package-inclusions.php'; ?>
           </div>
 
           <aside class="pd-aside">

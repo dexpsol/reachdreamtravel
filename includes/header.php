@@ -54,7 +54,7 @@ $nav = [
   <link rel="stylesheet" href="style.css?v=<?= (int) (filemtime(__DIR__ . '/../style.css') ?: 0) ?>">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"TravelAgency","name":"<?= e($site['name']) ?>","description":"Private North India tours and road trips with routes, drivers, vehicles and stays planned around each traveller.","areaServed":["Himachal Pradesh","Jammu and Kashmir","Uttarakhand","Rajasthan","Delhi","Agra"],"telephone":<?= json_encode(array_column(site_phone_numbers(), 'phone'), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>}</script>
 </head>
-<body class="page-<?= e($pageKey) ?>">
+<body class="page-<?= e($pageKey) ?>" data-whatsapp="<?= e($site['whatsapp']) ?>">
   <a class="skip-link" href="#main">Skip to content</a>
   <div class="scroll-progress" aria-hidden="true"></div>
 

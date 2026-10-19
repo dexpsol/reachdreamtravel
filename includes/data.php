@@ -16,9 +16,12 @@ $site = [
     'otherPhones' => [
         ['phone' => '+91 98054 02695', 'phoneLink' => '+919805402695'],
     ],
-    'whatsapp'  => '919816716800', // Also update whatsappNumber in script.js.
+    'whatsapp'  => '919816716800',
     'email'     => 'reachdreamtravel@gmail.com',
+    'address'   => '',
 ];
+require_once dirname(__DIR__) . '/backend/site-settings.php';
+$site = array_replace($site, site_contact_settings());
 
 /*
  * Approximate road times from our base. Real times depend on traffic, weather and stops.
@@ -355,6 +358,12 @@ unset($package);
 $defaultPackages = $packages;
 require_once dirname(__DIR__) . '/backend/package-store.php';
 $packages = package_catalog($packages);
+require_once dirname(__DIR__) . '/backend/package-options.php';
+foreach ($packages as &$package) {
+    // Seed existing records while preserving each package's saved selections, including empty lists.
+    $package += package_option_defaults();
+}
+unset($package);
 foreach ($packages as &$package) {
     $categoryKeys = preg_split('/\s+/', trim((string) ($package['cat'] ?? ''))) ?: [];
     if (!in_array('international', $categoryKeys, true) && !in_array('domestic', $categoryKeys, true)) {

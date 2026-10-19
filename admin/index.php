@@ -286,6 +286,9 @@ function admin_package_form_from_post(array $post, array $previousPackage = []):
         '_old_slug_value' => admin_slug((string) ($post['old_slug'] ?? '')),
         '_highlights_text' => (string) ($post['highlights'] ?? ''),
         '_days_text' => (string) ($post['days'] ?? ''),
+        'facilities' => is_array($post['facilities'] ?? null) ? array_values(array_intersect(array_keys(package_facility_options()), array_filter($post['facilities'], 'is_string'))) : [],
+        'inclusions' => admin_lines(is_string($post['inclusions'] ?? null) ? $post['inclusions'] : ''),
+        'exclusions' => admin_lines(is_string($post['exclusions'] ?? null) ? $post['exclusions'] : ''),
     ];
 }
 
@@ -439,7 +442,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         session_destroy();
         admin_redirect();
     } elseif (!empty($_SESSION['admin'])) {
-        if (isset($_POST['initialize_database'])) {
+        if (isset($_POST['save_contact_settings'])) {
+            try {
+                if (!$db) throw new RuntimeException('Start MySQL before saving contact details.');
+                site_contact_save($db, site_contact_from_post($_POST));
+                $_SESSION['notice'] = 'Contact details saved.';
+                admin_redirect('settings');
+            } catch (Throwable $exception) {
+                $error = $exception instanceof RuntimeException ? $exception->getMessage() : 'Could not save contact details. Check your database connection.';
+            }
+        } elseif (isset($_POST['initialize_database'])) {
             try {
                 $error = app_db_initialize($packages ?: $defaultPackages, $vehicles ?: $defaultVehicles, $destinations ?: $defaultDestinations);
                 if ($error === '') {
@@ -664,6 +676,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         'highlights' => $highlights,
                         'days' => $days,
                     ];
+                    $record = array_merge($record, package_options_from_post($_POST));
                 }
                 if (in_array($kind, ['package', 'destination'], true)) {
                     if (!in_array($_POST['active'] ?? '1', ['0', '1'], true)) {
@@ -688,6 +701,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 }
                 $statement = $db->prepare('INSERT INTO `' . $table . '` (slug, payload) VALUES (?, ?) ON DUPLICATE KEY UPDATE payload = VALUES(payload)');
                 $statement->execute([$slug, json_encode($record, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
+                if ($kind === 'package' && !$previousPackage) {
+                    // New packages lead the list; subsequent edits keep the chosen drag order.
+                    app_catalog_prepend_package($db, $slug, $record, $packages);
+                }
                 $_SESSION['notice'] = ucfirst($kind) . ' saved.';
                 admin_redirect($kind === 'package' && ($_POST['return_tab'] ?? '') === 'solo' ? 'solo' : ['package' => 'packages', 'destination' => 'destinations', 'taxi' => 'taxis'][$kind]);
             } catch (Throwable $exception) {
@@ -725,7 +742,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST'
 
 $authenticated = !empty($_SESSION['admin']);
 $requestedTab = (string) ($_GET['tab'] ?? 'dashboard');
-$adminTabs = ['dashboard', 'packages', 'solo', 'taxis', 'destinations', 'enquiries'];
+$adminTabs = ['dashboard', 'packages', 'solo', 'taxis', 'destinations', 'enquiries', 'settings'];
 $activeTab = in_array($requestedTab, $adminTabs, true) ? $requestedTab : 'dashboard';
 $editingSlug = (string) ($_GET['edit'] ?? '');
 $editingKind = (string) ($_GET['kind'] ?? '');
@@ -855,6 +872,7 @@ $enquiryLabels = [
     'meal_plan' => 'Meal plan',
     'transportation' => 'Transportation',
     'vehicle' => 'Vehicle type',
+    'stay' => 'Stays',
     'message' => 'Notes',
 ];
 $selectedEnquiryValues = $selectedEnquiry ? json_decode((string) $selectedEnquiry['payload'], true) : null;
@@ -1003,8 +1021,26 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
   </div>
 <?php else: ?>
   <div class="dash-top"><div><span class="dash-kicker">Reach Dream Travel Admin</span><h1><?= $selectedTab === 'dashboard' ? 'Dashboard' : ($selectedTab === 'enquiries' ? 'Enquiries' : 'Content studio') ?></h1><p><?= $selectedTab === 'enquiries' ? 'Review trip requests submitted through your website.' : 'Manage trips, destination collections and vehicles shown on your website.' ?></p></div><?php if (!$dbReady): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="initialize_database" value="1"><i class="fa-solid fa-database" aria-hidden="true"></i> Initialize database</button></form><?php endif; ?></div>
-  <nav class="dash-tabs" aria-label="Admin sections"><a class="<?= $selectedTab === 'dashboard' ? 'active' : '' ?>" href="?tab=dashboard"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Dashboard</a><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'solo' ? 'active' : '' ?>" href="?tab=solo"><i class="fa-solid fa-person-walking-luggage" aria-hidden="true"></i> Solo <span>(<?= count($soloPackages) ?>)</span></a><a class="<?= $selectedTab === 'destinations' ? 'active' : '' ?>" href="?tab=destinations"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Destinations <span>(<?= count($destinations) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a><a class="<?= $selectedTab === 'enquiries' ? 'active' : '' ?>" href="?tab=enquiries"><i class="fa-solid fa-inbox" aria-hidden="true"></i> Enquiries <span>(<?= $enquiryCount ?>)</span></a></nav>
-  <?php if ($selectedTab === 'dashboard'): ?>
+  <nav class="dash-tabs" aria-label="Admin sections"><a class="<?= $selectedTab === 'dashboard' ? 'active' : '' ?>" href="?tab=dashboard"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Dashboard</a><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'solo' ? 'active' : '' ?>" href="?tab=solo"><i class="fa-solid fa-person-walking-luggage" aria-hidden="true"></i> Solo <span>(<?= count($soloPackages) ?>)</span></a><a class="<?= $selectedTab === 'destinations' ? 'active' : '' ?>" href="?tab=destinations"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Destinations <span>(<?= count($destinations) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a><a class="<?= $selectedTab === 'enquiries' ? 'active' : '' ?>" href="?tab=enquiries"><i class="fa-solid fa-inbox" aria-hidden="true"></i> Enquiries <span>(<?= $enquiryCount ?>)</span></a><a class="<?= $selectedTab === 'settings' ? 'active' : '' ?>" href="?tab=settings"><i class="fa-solid fa-address-card" aria-hidden="true"></i> Contact details</a></nav>
+  <?php if ($selectedTab === 'settings'): ?>
+    <section class="dash-panel">
+      <div class="dash-section-title"><h2>Contact details</h2><a class="btn btn-sm btn-outline-success" href="../contact.php" target="_blank" rel="noopener">View website</a></div>
+      <p class="dash-note">Update the contact cards and contact links across the website. Enter phone numbers with country codes.</p>
+<?php $contactValue = static function (string $field, string $default): string { return isset($_POST['save_contact_settings']) && is_string($_POST[$field] ?? null) ? $_POST[$field] : $default; }; ?>
+      <form method="post" action="index.php?tab=settings">
+        <input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>">
+        <input type="hidden" name="save_contact_settings" value="1">
+        <div class="dash-grid">
+          <label>Primary phone<input type="tel" name="contact_phone" required maxlength="40" value="<?= admin_h($contactValue('contact_phone', $site['phone'])) ?>"></label>
+          <label>Additional phones<textarea name="contact_other_phones" placeholder="One phone number per line"><?= admin_h($contactValue('contact_other_phones', implode("\n", array_column($site['otherPhones'], 'phone')))) ?></textarea></label>
+          <label>WhatsApp number<input type="tel" name="contact_whatsapp" required maxlength="40" value="<?= admin_h($contactValue('contact_whatsapp', $site['whatsapp'])) ?>"></label>
+          <label>Email<input type="email" name="contact_email" required maxlength="254" value="<?= admin_h($contactValue('contact_email', $site['email'])) ?>"></label>
+          <label class="dash-wide">Address<textarea name="contact_address" maxlength="1500" placeholder="Office address, city, state and postal code"><?= admin_h($contactValue('contact_address', $site['address'])) ?></textarea><span class="dash-note">The address card opens this location in Google Maps.</span></label>
+        </div>
+        <p class="mt-3 mb-0"><button class="btn btn-gold" type="submit">Save contact details</button></p>
+      </form>
+    </section>
+  <?php elseif ($selectedTab === 'dashboard'): ?>
     <section class="dash-hero" aria-label="Dashboard overview">
       <div>
         <span>Operations overview</span>
@@ -1115,6 +1151,14 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <label>Card label<input name="label" value="<?= admin_h($packageForm['label'] ?? '') ?>" placeholder="e.g. Desert & heritage"></label>
         <div class="dash-field"><span class="dash-field-title">Categories</span><div class="category-picker"><?php $selectedCategories = preg_split('/\s+/', (string) ($packageForm['cat'] ?? ($selectedTab === 'solo' ? 'solo' : 'heritage'))) ?: []; foreach ($categories as $key => $label): ?><label><input type="checkbox" name="cat[]" value="<?= admin_h($key) ?>"<?= in_array($key, $selectedCategories, true) ? ' checked' : '' ?>><span><?= admin_h($label) ?></span></label><?php endforeach; ?></div></div>
         <label>Duration<input name="duration" value="<?= admin_h($packageForm['duration'] ?? '') ?>" placeholder="e.g. 5 days · 4 nights"></label>
+        <div class="dash-field dash-wide">
+          <span class="dash-field-title" id="packageFacilitiesLabel">Facilities</span>
+          <div class="category-picker" role="group" aria-labelledby="packageFacilitiesLabel">
+<?php $selectedFacilities = $packageForm['facilities'] ?? package_option_defaults()['facilities']; foreach (package_facility_options() as $facilityKey => [$facilityLabel, $facilityIcon]): ?>
+            <label><input type="checkbox" name="facilities[]" value="<?= admin_h($facilityKey) ?>"<?= in_array($facilityKey, $selectedFacilities, true) ? ' checked' : '' ?>><i class="fa-solid <?= admin_h($facilityIcon) ?>" aria-hidden="true"></i><span><?= admin_h($facilityLabel) ?></span></label>
+<?php endforeach; ?>
+          </div>
+        </div>
         <label>Regular price (INR)<input type="number" name="price_regular" min="0" step="1" inputmode="numeric" value="<?= admin_h($packageForm['price_regular'] ?? '') ?>" placeholder="Optional"></label>
         <label>Discount price (INR)<input type="number" name="price_discount" min="0" step="1" inputmode="numeric" value="<?= admin_h($packageForm['price_discount'] ?? '') ?>" placeholder="Optional"></label>
         <p class="dash-wide dash-note">Leave prices blank to hide them. Discount price should be less than Regular price (INR).</p>
@@ -1137,6 +1181,8 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <label class="dash-wide">Overview<textarea name="overview" required placeholder="Describe the feel of the trip, who it suits and what guests can expect."><?= admin_h($packageForm['overview'] ?? '') ?></textarea></label>
         <label class="dash-wide">Highlights<textarea name="highlights" required placeholder="Amber Fort at opening time&#10;Old-city food walk&#10;Sunset over the dunes"><?= admin_h($packageForm['_highlights_text'] ?? implode("\n", $packageForm['highlights'] ?? [])) ?></textarea><span class="dash-note">One highlight per line.</span></label>
         <label class="dash-wide">Day-by-day plan<textarea name="days" required placeholder="Arrive at the airport, check in at the hotel and relax.&#10;Visit Jaipur forts and explore the old city."><?= admin_h($packageForm['_days_text'] ?? admin_days_to_text($packageForm['days'] ?? [])) ?></textarea><span class="dash-note">Write each day's plan on a new line. Day numbers are added automatically. No special format needed.</span></label>
+        <label>Inclusions<textarea name="inclusions" placeholder="One inclusion per line"><?= admin_h(implode("\n", $packageForm['inclusions'] ?? package_option_defaults()['inclusions'])) ?></textarea><span class="dash-note">One item per line. Confirm these match the package facilities and stay.</span></label>
+        <label>Exclusions<textarea name="exclusions" placeholder="One exclusion per line"><?= admin_h(implode("\n", $packageForm['exclusions'] ?? package_option_defaults()['exclusions'])) ?></textarea><span class="dash-note">One item per line. Clear the field to hide this section.</span></label>
         <label class="dash-popular-toggle">
           <input type="checkbox" name="popular" value="1"<?= !empty($packageForm['popular']) ? ' checked' : '' ?>>
           <span class="dash-popular-copy"><strong>Mark as popular</strong><small>Highlight this package with a popular badge.</small></span>

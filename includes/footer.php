@@ -44,8 +44,12 @@ $footerPackages = array_slice($packages, 0, 4, true);
           <span class="fc-text"><small>Email us</small><b><?= e($site['email']) ?></b></span>
           <i class="fa-solid fa-arrow-right fc-arrow" aria-hidden="true"></i>
         </a>
+        <a class="fc-card" href="<?= $site['address'] !== '' ? e('https://www.google.com/maps/search/?api=1&query=' . rawurlencode($site['address'])) : 'contact.php' ?>"<?= $site['address'] !== '' ? ' target="_blank" rel="noopener"' : '' ?>>
+          <span class="fc-icon fc-amber"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>
+          <span class="fc-text"><small>Address</small><b><?= $site['address'] !== '' ? nl2br(e($site['address'])) : 'Contact us for our address' ?></b></span>
+          <i class="fa-solid fa-arrow-right fc-arrow" aria-hidden="true"></i>
+        </a>
       </div>
-
       <div class="footer-main">
         <div class="footer-about">
           <a class="brand footer-brand" href="index.php"><span class="brand-mark" aria-hidden="true"><img src="assets/logo.svg" alt="" width="170px" height="auto"></span></a>
@@ -79,9 +83,10 @@ $footerPackages = array_slice($packages, 0, 4, true);
         </div>
       </div>
 
+<?php require __DIR__ . '/footer-assurance.php'; ?>
       <div class="footer-bottom">
         <span>© <?= date('Y') ?> <?= e($site['name']) ?>. All rights reserved.</span>
-        <nav class="footer-legal" aria-label="Legal"><a href="privacy.php">Privacy</a><a href="terms.php">Terms</a><a href="photo-credits.php">Photo credits</a></nav>
+        <nav class="footer-legal" aria-label="Legal"><a href="privacy.php">Privacy</a><a href="terms.php">Terms</a></nav>
         <!-- <span class="footer-made">Made with <i class="fa-solid fa-heart" aria-hidden="true"></i><span class="visually-hidden">love</span> in the Himalaya</span> -->
       </div>
     </div>

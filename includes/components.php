@@ -37,6 +37,20 @@ function package_price(array $p): void
 <?php
 }
 
+function package_facilities(array $package): void
+{
+    $options = package_facility_options();
+    $selected = array_intersect(array_keys($options), $package['facilities'] ?? []);
+    if (!$selected) return;
+    ?>
+    <ul class="package-facilities list-unstyled" aria-label="Package facilities">
+<?php foreach ($selected as $key): [$label, $icon] = $options[$key]; ?>
+      <li><i class="fa-solid <?= e($icon) ?>" aria-hidden="true"></i> <?= e($label) ?></li>
+<?php endforeach; ?>
+    </ul>
+    <?php
+}
+
 /** Tour package card (homepage and packages page). */
 function package_card(string $slug, array $p): void
 {
@@ -62,6 +76,7 @@ function package_card(string $slug, array $p): void
 <?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?>
                 <p class="route"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <?= e($p['route']) ?></p>
 <?php endif; ?>
+<?php package_facilities($p); ?>
 <?php package_price($p); ?>
                 <div class="package-tags"><?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?><span class="tag-from"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Pickup &amp; drop</span><?php endif; ?><span><i class="fa-solid fa-sun" aria-hidden="true"></i> <?= e($p['season']) ?></span></div>
                 <a class="package-link" href="<?= e(package_url($slug)) ?>">See day-by-day plan <span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span></a>

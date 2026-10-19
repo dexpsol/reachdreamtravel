@@ -26,6 +26,18 @@ function app_catalog_apply_order(array $catalog, array $slugs): array
     return $ordered + $catalog;
 }
 
+function app_catalog_prepend_package(PDO $db, string $slug, array $record, array $catalog): void
+{
+    $updatedCatalog = [$slug => $record] + $catalog;
+    app_catalog_save_order($db, 'packages', array_keys($updatedCatalog), $updatedCatalog);
+    $categories = preg_split('/\s+/', trim((string) ($record['cat'] ?? ''))) ?: [];
+    if (in_array('solo', $categories, true)) {
+        $soloCatalog = app_catalog_order(array_filter($catalog, static fn($item) => empty($item['deprecated_duplicate_of']) && in_array('solo', preg_split('/\s+/', trim((string) ($item['cat'] ?? ''))) ?: [], true)), 'solo');
+        $soloCatalog = [$slug => $record] + $soloCatalog;
+        app_catalog_save_order($db, 'solo', array_keys($soloCatalog), $soloCatalog);
+    }
+}
+
 function app_catalog_save_order(PDO $db, string $scope, array $slugs, array $catalog): void
 {
     if (!in_array($scope, ['packages', 'solo', 'destinations'], true)) {
