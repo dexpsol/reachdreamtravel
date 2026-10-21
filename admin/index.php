@@ -5,6 +5,7 @@ session_start();
 require_once dirname(__DIR__) . '/includes/data.php';
 require_once dirname(__DIR__) . '/backend/database.php';
 require_once __DIR__ . '/remember.php';
+$paymentSettings = require dirname(__DIR__) . '/includes/payment-settings.php';
 
 // Admin must retain inactive records so they can be edited and reactivated.
 $packages = $allPackages;
@@ -442,7 +443,21 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         session_destroy();
         admin_redirect();
     } elseif (!empty($_SESSION['admin'])) {
-        if (isset($_POST['save_contact_settings'])) {
+        if (isset($_POST['save_payment_settings'])) {
+            $uploadedQr = '';
+            try {
+                if (!$db) throw new RuntimeException('Start MySQL before saving payment details.');
+                $settings = site_payment_from_post($_POST, $paymentSettings);
+                $uploadedQr = site_payment_qr_upload($_FILES['payment_qr'] ?? [], $root);
+                if ($uploadedQr !== '') $settings['upi']['qrImage'] = $uploadedQr;
+                site_payment_save($db, $settings);
+                $_SESSION['notice'] = 'Payment details saved.';
+                admin_redirect('payment');
+            } catch (Throwable $exception) {
+                if ($uploadedQr !== '') @unlink($root . '/' . $uploadedQr);
+                $error = $exception instanceof RuntimeException ? $exception->getMessage() : 'Could not save payment details. Check your database connection.';
+            }
+        } elseif (isset($_POST['save_contact_settings'])) {
             try {
                 if (!$db) throw new RuntimeException('Start MySQL before saving contact details.');
                 site_contact_save($db, site_contact_from_post($_POST));
@@ -742,7 +757,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST'
 
 $authenticated = !empty($_SESSION['admin']);
 $requestedTab = (string) ($_GET['tab'] ?? 'dashboard');
-$adminTabs = ['dashboard', 'packages', 'solo', 'taxis', 'destinations', 'enquiries', 'settings'];
+$adminTabs = ['dashboard', 'packages', 'solo', 'taxis', 'destinations', 'enquiries', 'settings', 'payment'];
 $activeTab = in_array($requestedTab, $adminTabs, true) ? $requestedTab : 'dashboard';
 $editingSlug = (string) ($_GET['edit'] ?? '');
 $editingKind = (string) ($_GET['kind'] ?? '');
@@ -1021,8 +1036,33 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
   </div>
 <?php else: ?>
   <div class="dash-top"><div><span class="dash-kicker">Reach Dream Travel Admin</span><h1><?= $selectedTab === 'dashboard' ? 'Dashboard' : ($selectedTab === 'enquiries' ? 'Enquiries' : 'Content studio') ?></h1><p><?= $selectedTab === 'enquiries' ? 'Review trip requests submitted through your website.' : 'Manage trips, destination collections and vehicles shown on your website.' ?></p></div><?php if (!$dbReady): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="initialize_database" value="1"><i class="fa-solid fa-database" aria-hidden="true"></i> Initialize database</button></form><?php endif; ?></div>
-  <nav class="dash-tabs" aria-label="Admin sections"><a class="<?= $selectedTab === 'dashboard' ? 'active' : '' ?>" href="?tab=dashboard"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Dashboard</a><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'solo' ? 'active' : '' ?>" href="?tab=solo"><i class="fa-solid fa-person-walking-luggage" aria-hidden="true"></i> Solo <span>(<?= count($soloPackages) ?>)</span></a><a class="<?= $selectedTab === 'destinations' ? 'active' : '' ?>" href="?tab=destinations"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Destinations <span>(<?= count($destinations) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a><a class="<?= $selectedTab === 'enquiries' ? 'active' : '' ?>" href="?tab=enquiries"><i class="fa-solid fa-inbox" aria-hidden="true"></i> Enquiries <span>(<?= $enquiryCount ?>)</span></a><a class="<?= $selectedTab === 'settings' ? 'active' : '' ?>" href="?tab=settings"><i class="fa-solid fa-address-card" aria-hidden="true"></i> Contact details</a></nav>
-  <?php if ($selectedTab === 'settings'): ?>
+  <nav class="dash-tabs" aria-label="Admin sections"><a class="<?= $selectedTab === 'dashboard' ? 'active' : '' ?>" href="?tab=dashboard"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Dashboard</a><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'solo' ? 'active' : '' ?>" href="?tab=solo"><i class="fa-solid fa-person-walking-luggage" aria-hidden="true"></i> Solo <span>(<?= count($soloPackages) ?>)</span></a><a class="<?= $selectedTab === 'destinations' ? 'active' : '' ?>" href="?tab=destinations"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Destinations <span>(<?= count($destinations) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a><a class="<?= $selectedTab === 'enquiries' ? 'active' : '' ?>" href="?tab=enquiries"><i class="fa-solid fa-inbox" aria-hidden="true"></i> Enquiries <span>(<?= $enquiryCount ?>)</span></a><a class="<?= $selectedTab === 'settings' ? 'active' : '' ?>" href="?tab=settings"><i class="fa-solid fa-address-card" aria-hidden="true"></i> Contact details</a><a class="<?= $selectedTab === 'payment' ? 'active' : '' ?>" href="?tab=payment"><i class="fa-solid fa-building-columns" aria-hidden="true"></i> Payment details</a></nav>
+  <?php if ($selectedTab === 'payment'): ?>
+    <section class="dash-panel">
+      <div class="dash-section-title"><h2>Payment details</h2><a class="btn btn-sm btn-outline-success" href="../payment.php" target="_blank" rel="noopener">View payment page</a></div>
+      <p class="dash-note">Update the bank account, UPI details, QR image and location on your payment page. Replace the sample values before turning off demo mode.</p>
+<?php $paymentValue = static function (string $field, string $default): string { return isset($_POST['save_payment_settings']) && is_string($_POST[$field] ?? null) ? $_POST[$field] : $default; }; ?>
+      <form method="post" action="index.php?tab=payment" enctype="multipart/form-data">
+        <input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>">
+        <input type="hidden" name="save_payment_settings" value="1">
+        <div class="dash-grid">
+<?php foreach (['accountName' => 'Account name', 'bankName' => 'Bank name', 'accountNumber' => 'Account number', 'accountType' => 'Account type', 'ifsc' => 'IFSC code', 'branch' => 'Branch name'] as $key => $label): ?>
+          <label><?= admin_h($label) ?><input type="text" name="payment_bank_<?= admin_h($key) ?>" maxlength="150" value="<?= admin_h($paymentValue('payment_bank_' . $key, $paymentSettings['bank'][$key])) ?>"<?= $key === 'accountNumber' ? ' inputmode="numeric"' : '' ?>></label>
+<?php endforeach; ?>
+<?php foreach (['id' => 'UPI ID', 'name' => 'UPI recipient name', 'phone' => 'Google Pay number'] as $key => $label): ?>
+          <label><?= admin_h($label) ?><input type="<?= $key === 'phone' ? 'tel' : 'text' ?>" name="payment_upi_<?= admin_h($key) ?>" maxlength="150" value="<?= admin_h($paymentValue('payment_upi_' . $key, $paymentSettings['upi'][$key])) ?>"></label>
+<?php endforeach; ?>
+          <label class="dash-wide">Payment page location<textarea name="payment_location" maxlength="1500" rows="3"><?= admin_h($paymentValue('payment_location', $paymentSettings['location'])) ?></textarea><span class="dash-note">Leave blank to use the address from Contact details.</span></label>
+          <label>Payment QR image<input type="file" name="payment_qr" accept="image/jpeg,image/png,image/webp"><span class="dash-note">JPG, PNG or WebP, up to 6 MB. Leave blank to keep the current image. Uploading a new image replaces it.</span></label>
+<?php if ($paymentSettings['upi']['qrImage'] !== '' && is_file($root . '/' . $paymentSettings['upi']['qrImage'])): ?>
+          <div><img src="../<?= admin_h($paymentSettings['upi']['qrImage']) ?>" alt="Current payment QR image" style="max-width:180px;max-height:220px;object-fit:contain"><label style="display:block"><input style="width:auto" type="checkbox" name="payment_remove_qr" value="1"<?= !empty($_POST['payment_remove_qr']) ? ' checked' : '' ?>> Remove current QR image</label></div>
+<?php endif; ?>
+          <label class="dash-wide" style="display:block"><input style="width:auto" type="checkbox" name="payment_demo" value="1"<?= (isset($_POST['save_payment_settings']) ? !empty($_POST['payment_demo']) : $paymentSettings['demo']) ? ' checked' : '' ?>> Demo mode — display a notice that the details are samples and must not be used for payment.</label>
+        </div>
+        <p class="mt-3 mb-0"><button class="btn btn-gold" type="submit">Save payment details</button></p>
+      </form>
+    </section>
+  <?php elseif ($selectedTab === 'settings'): ?>
     <section class="dash-panel">
       <div class="dash-section-title"><h2>Contact details</h2><a class="btn btn-sm btn-outline-success" href="../contact.php" target="_blank" rel="noopener">View website</a></div>
       <p class="dash-note">Update the contact cards and contact links across the website. Enter phone numbers with country codes.</p>

@@ -70,6 +70,7 @@ $footerPackages = array_slice($packages, 0, 4, true);
           <a href="vehicles.php">Vehicles</a>
           <a href="gallery.php">Gallery</a>
           <a href="contact.php">Contact</a>
+          <a href="payment.php">Payment details</a>
         </nav>
 
         <div class="footer-col footer-tours">

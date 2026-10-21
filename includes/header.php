@@ -30,6 +30,7 @@ $nav = [
     'destinations' => ['Destinations', 'destinations.php'],
     'vehicles'     => ['Vehicles', 'vehicles.php'],
     'gallery'      => ['Gallery', 'gallery.php'],
+    'payment'      => ['Payment', 'payment.php'],
     'contact'      => ['Contact', 'contact.php'],
 ];
 ?>
