@@ -44,9 +44,6 @@ $related = array_slice($related, 0, 3, true);
       <div class="container">
         <div class="pd-layout">
           <div class="pd-main">
-<?php if ($photoCredit = package_photo_credit((string) $package['image'])): ?>
-            <p class="small text-muted mb-3">Photo: <a href="<?= e($photoCredit['source']) ?>" target="_blank" rel="noopener"><?= e($photoCredit['author']) ?></a> &middot; <a href="<?= e($photoCredit['license_url']) ?>" target="_blank" rel="noopener"><?= e($photoCredit['license']) ?></a>. Resized for display.</p>
-<?php endif; ?>
             <div class="pd-facts">
               <div><i class="fa-solid fa-clock" aria-hidden="true"></i><small>Duration</small><b><?= e($package['duration']) ?></b></div>
               <div><i class="fa-solid fa-sun" aria-hidden="true"></i><small>Best season</small><b><?= e($package['season']) ?></b></div>
