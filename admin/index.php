@@ -443,16 +443,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         session_destroy();
         admin_redirect();
     } elseif (!empty($_SESSION['admin'])) {
-        if (isset($_POST['import_tour_content'])) {
-            try {
-                if (!$db) throw new RuntimeException('Start MySQL before importing package content.');
-                require_once dirname(__DIR__) . '/backend/tour-content-import.php';
-                $_SESSION['notice'] = tour_content_import($db);
-                admin_redirect('packages');
-            } catch (Throwable $exception) {
-                $error = $exception instanceof RuntimeException ? $exception->getMessage() : 'Could not import package content. No changes were saved.';
-            }
-        } elseif (isset($_POST['save_payment_settings'])) {
+        if (isset($_POST['save_payment_settings'])) {
             $uploadedQr = '';
             try {
                 if (!$db) throw new RuntimeException('Start MySQL before saving payment details.');
@@ -1063,19 +1054,6 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
 <?php else: ?>
   <div class="dash-top"><div><span class="dash-kicker">Reach Dream Travel Admin</span><h1><?= $selectedTab === 'dashboard' ? 'Dashboard' : ($selectedTab === 'enquiries' ? 'Enquiries' : 'Content studio') ?></h1><p><?= $selectedTab === 'enquiries' ? 'Review trip requests submitted through your website.' : 'Manage trips, destination collections and vehicles shown on your website.' ?></p></div><?php if (!$dbReady): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="initialize_database" value="1"><i class="fa-solid fa-database" aria-hidden="true"></i> Initialize database</button></form><?php endif; ?></div>
   <nav class="dash-tabs" aria-label="Admin sections"><a class="<?= $selectedTab === 'dashboard' ? 'active' : '' ?>" href="?tab=dashboard"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Dashboard</a><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'solo' ? 'active' : '' ?>" href="?tab=solo"><i class="fa-solid fa-person-walking-luggage" aria-hidden="true"></i> Solo <span>(<?= count($soloPackages) ?>)</span></a><a class="<?= $selectedTab === 'destinations' ? 'active' : '' ?>" href="?tab=destinations"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Destinations <span>(<?= count($destinations) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a><a class="<?= $selectedTab === 'enquiries' ? 'active' : '' ?>" href="?tab=enquiries"><i class="fa-solid fa-inbox" aria-hidden="true"></i> Enquiries <span>(<?= $enquiryCount ?>)</span></a><a class="<?= $selectedTab === 'settings' ? 'active' : '' ?>" href="?tab=settings"><i class="fa-solid fa-address-card" aria-hidden="true"></i> Contact details</a><a class="<?= $selectedTab === 'payment' ? 'active' : '' ?>" href="?tab=payment"><i class="fa-solid fa-building-columns" aria-hidden="true"></i> Payment details</a></nav>
-  <?php if (isset($_GET['tour_import'])): ?>
-    <section class="dash-panel">
-      <h2>Import supplied tour packages</h2>
-      <p>Update 8 existing packages and add 3 distinct tours: Kufri, Chail and Manali &amp; Solang. Existing URLs, prices, images and inclusions are preserved. Destination links are updated without creating destinations.</p>
-      <p>Dalhousie has three supplied sightseeing days for a four-day tour. Dharamshala has two supplied days for the existing five-day tour. Remaining arrangements need confirmation.</p>
-      <details><summary>Review package mapping</summary><ul>
-<?php require_once dirname(__DIR__) . '/backend/tour-content-import.php'; foreach (tour_content_plan() as $importPackage): ?>
-        <li><?= admin_h(isset($packages[$importPackage['slug']]) ? 'Update: ' : 'Add: ') ?><?= admin_h($importPackage['title']) ?> &mdash; <?= count($importPackage['days']) ?> supplied itinerary days</li>
-<?php endforeach; ?>
-      </ul></details>
-      <form method="post" class="mt-3"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="import_tour_content" value="1">Save supplied packages to database</button></form>
-    </section>
-  <?php endif; ?>
   <?php if ($selectedTab === 'payment'): ?>
     <section class="dash-panel">
       <div class="dash-section-title"><h2>Payment details</h2><a class="btn btn-sm btn-outline-success" href="../payment.php" target="_blank" rel="noopener">View payment page</a></div>
