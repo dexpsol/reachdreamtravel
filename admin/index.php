@@ -870,6 +870,15 @@ if ($authenticated && $db && in_array($selectedTab, ['dashboard', 'enquiries'], 
     }
 }
 $enquiryLabels = [
+    'ticket_type' => 'Ticket type',
+    'passengers' => 'Number of pax',
+    'journey_from' => 'From',
+    'journey_to' => 'To',
+    'journey_type' => 'Journey type',
+    'return_date' => 'Return date',
+    'travel_class' => 'Preferred class / seat',
+    'preferred_time' => 'Preferred departure time',
+    'preferred_service' => 'Preferred train / airline / bus operator',
     'name' => 'Name',
     'phone' => 'Phone',
     'email' => 'Email',

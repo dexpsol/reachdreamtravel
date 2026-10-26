@@ -42,6 +42,15 @@ $fields = [
     'vehicle' => 'Vehicle type',
     'stay' => 'Stays',
     'message' => 'Notes',
+    'ticket_type' => 'Ticket type',
+    'passengers' => 'Number of pax',
+    'journey_from' => 'From',
+    'journey_to' => 'To',
+    'journey_type' => 'Journey type',
+    'return_date' => 'Return date',
+    'travel_class' => 'Preferred class / seat',
+    'preferred_time' => 'Preferred departure time',
+    'preferred_service' => 'Preferred train / airline / bus operator',
 ];
 
 $values = [];
@@ -59,8 +68,16 @@ if (($values['email'] ?? '') !== '' && !filter_var($values['email'], FILTER_VALI
     enquiry_response(422, false, 'Please enter a valid email address.');
 }
 
+$ticketEnquiry = ($_POST['enquiry_type'] ?? '') === 'ticket' || isset($_POST['ticket_type']);
+if ($ticketEnquiry) {
+    require_once __DIR__ . '/ticket-enquiry.php';
+    $ticketError = ticket_enquiry_error($values);
+    if ($ticketError !== null) enquiry_response(422, false, $ticketError);
+    if ($values['journey_type'] === 'One way') $values['return_date'] = '';
+}
 $customPackage = isset($_POST['purpose']) || isset($_POST['arrival']) || isset($_POST['departure']);
 $subject = $customPackage ? 'Customized package request' : 'Trip enquiry';
+if ($ticketEnquiry) $subject = $values['ticket_type'] . ' ticket enquiry';
 $db = app_db();
 if (!$db) {
     enquiry_response(503, false, 'We could not save your request. Please contact us on WhatsApp.');

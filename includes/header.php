@@ -29,6 +29,7 @@ $nav = [
     'packages'     => ['Packages', 'packages.php'],
     'destinations' => ['Destinations', 'destinations.php'],
     'vehicles'     => ['Vehicles', 'vehicles.php'],
+    'tickets'      => ['Tickets', 'tickets.php'],
     'gallery'      => ['Gallery', 'gallery.php'],
     'payment'      => ['Payment', 'payment.php'],
     'contact'      => ['Contact', 'contact.php'],
@@ -68,6 +69,7 @@ $nav = [
         <div class="offcanvas-body">
           <ul class="navbar-nav mx-xl-auto">
 <?php foreach ($nav as $key => [$label, $href]): ?>
+<?php if ($key === 'home') continue; ?>
 <?php if ($key === 'packages'): ?>
             <li class="nav-item dropdown package-nav">
               <button class="nav-link package-menu-toggle<?= in_array($pageKey, ['packages', 'solo'], true) ? ' active' : '' ?>" id="packagesMenu" type="button" data-bs-toggle="dropdown" aria-expanded="false">Packages <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>

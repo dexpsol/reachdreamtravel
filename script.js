@@ -313,6 +313,7 @@
 
   // Trip enquiry forms open WhatsApp with the submitted details ready to send.
   const labels = { name: 'Name', phone: 'Phone', email: 'Email', destination: 'Trip', duration: 'Duration (nights)', date: 'Travel date', travellers: 'Travellers', purpose: 'Package for', arrival: 'Arrival date', departure: 'Departure date', adults: 'Adults', kids: 'Kids', room_required: 'Room required', room_type: 'Room type', meal_plan: 'Meal plan', transportation: 'Transportation', vehicle: 'Vehicle type', stay: 'Stays', message: 'Notes' };
+  Object.assign(labels, { ticket_type: 'Ticket type', passengers: 'Number of pax', journey_from: 'From', journey_to: 'To', journey_type: 'Journey type', return_date: 'Return date', travel_class: 'Preferred class / seat', preferred_time: 'Preferred departure time', preferred_service: 'Preferred train / airline / bus operator' });
   document.querySelectorAll('[data-transport-choice]').forEach(choice => {
     const vehicleField = choice.form.querySelector('[data-vehicle-field]');
     const vehicleSelect = vehicleField.querySelector('select');
@@ -352,7 +353,7 @@
     }
 
     const data = new FormData(form);
-    const lines = ['Hello Reach Dream Travel, I would like a quote for a trip.'];
+    const lines = [form.hasAttribute('data-ticket-form') ? 'Hello Reach Dream Travel, I would like to enquire about tickets.' : 'Hello Reach Dream Travel, I would like a quote for a trip.'];
     data.forEach((value, key) => {
       const text = String(value).trim();
       if (text && labels[key]) lines.push(`${labels[key]}: ${text}`);

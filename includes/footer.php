@@ -68,6 +68,7 @@ $footerPackages = array_slice($packages, 0, 4, true);
           <a href="about.php">About us</a>
           <a href="packages.php">Tour packages</a>
           <a href="vehicles.php">Vehicles</a>
+          <a href="tickets.php">Ticket enquiry</a>
           <a href="gallery.php">Gallery</a>
           <a href="contact.php">Contact</a>
           <a href="payment.php">Payment details</a>
