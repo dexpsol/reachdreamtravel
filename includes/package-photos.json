@@ -1,5 +1,8 @@
 {
   "routes": {
+    "kufri-tour": "shimla-snow",
+    "chail-tour": "package-chail",
+    "manali-solang": "solang",
     "amritsar-katra": "package-amritsar",
     "amritsar-pathankot-dalhousie": "package-khajjiar",
     "auli": "package-auli",
@@ -33,7 +36,7 @@
     "kinnaur-chitkul": "kinnaur-sangla",
     "mussoorie": "package-mussoorie",
     "nainital": "package-nainital",
-    "pathankot-nurpur-dharamshala-kangra": "package-dharamshala",
+    "pathankot-nurpur-dharamshala-kangra": "nurpur-fort",
     "prashar-lake-trek": "package-prashar",
     "rajasthan-heritage-trail": "package-jodhpur",
     "rishikesh": "package-rishikesh",
@@ -53,6 +56,14 @@
     "triund-trek": "package-triund"
   },
   "photos": {
+    "nurpur-fort": {
+      "destination": "Nurpur Fort, Kangra",
+      "title": "Entrance Nurpur Fort, Kangra, Himachal Pradesh",
+      "author": "Harvinder Chandigarh",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "source": "https://commons.wikimedia.org/wiki/File:Entrance_Nurpur_Fort,Kangra_,Himachal_Pardesh.jpg"
+    },
     "package-amritsar": {
       "destination": "Golden Temple, Amritsar",
       "title": "The Golden Temple of Amrithsar 7.jpg",

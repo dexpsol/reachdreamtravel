@@ -443,7 +443,16 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         session_destroy();
         admin_redirect();
     } elseif (!empty($_SESSION['admin'])) {
-        if (isset($_POST['save_payment_settings'])) {
+        if (isset($_POST['import_tour_content'])) {
+            try {
+                if (!$db) throw new RuntimeException('Start MySQL before importing package content.');
+                require_once dirname(__DIR__) . '/backend/tour-content-import.php';
+                $_SESSION['notice'] = tour_content_import($db);
+                admin_redirect('packages');
+            } catch (Throwable $exception) {
+                $error = $exception instanceof RuntimeException ? $exception->getMessage() : 'Could not import package content. No changes were saved.';
+            }
+        } elseif (isset($_POST['save_payment_settings'])) {
             $uploadedQr = '';
             try {
                 if (!$db) throw new RuntimeException('Start MySQL before saving payment details.');
@@ -611,7 +620,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         throw new RuntimeException('Upload a destination image.');
                     }
 
-                    $record = [
+                    $record = array_replace($previousDestination, [
                         'name' => $name,
                         'tagline' => trim((string) ($_POST['tagline'] ?? '')),
                         'image' => $image,
@@ -621,18 +630,21 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         'text' => trim((string) ($_POST['text'] ?? '')),
                         'see' => $see,
                         'packages' => [],
-                    ];
+                    ]);
 
                     if ($record['tagline'] === '' || $record['text'] === '') {
                         throw new RuntimeException('Add a tagline and destination description.');
                     }
 
-                    $record['packages'] = admin_match_destination_packages($record, $packages);
+                    $record['packages'] = array_values(array_unique(array_merge(
+                        $previousDestination['packages'] ?? [],
+                        admin_match_destination_packages($record, $packages)
+                    )));
                 } else {
                     $categoryValues = admin_categories_from_post($_POST);
                     $previousSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
                     $previousPackage = $packages[$previousSlug] ?? $packages[$slug] ?? [];
-                    $image = !empty($previousPackage['image_customized'])
+                    $image = !empty($previousPackage['image'])
                         ? (string) ($previousPackage['image'] ?? 'hero-himachal')
                         : admin_package_feature_image($_POST, $destinations, (string) ($previousPackage['image'] ?? 'hero-himachal'));
 
@@ -672,12 +684,17 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         $image = $uploadedImage;
                     }
 
-                    $record = [
+                    $duration = trim((string) ($_POST['duration'] ?? '')) ?: 'Custom duration';
+                    $short = $previousPackage['short'] ?? 'Flexible';
+                    if (preg_match('/(\d+)\s*days?\D+(\d+)\s*nights?/i', $duration, $durationParts)) {
+                        $short = $durationParts[1] . 'D · ' . $durationParts[2] . 'N';
+                    }
+                    $record = array_replace($previousPackage, [
                         'title' => $name,
                         'label' => trim((string) ($_POST['label'] ?? '')),
                         'cat' => implode(' ', $categoryValues),
-                        'duration' => trim((string) ($_POST['duration'] ?? '')) ?: 'Custom duration',
-                        'short' => $previousPackage['short'] ?? 'Flexible',
+                        'duration' => $duration,
+                        'short' => $short,
                         'popular' => !empty($_POST['popular']),
                         'image' => $image,
                         'image_customized' => $uploadedImage !== '' || !empty($previousPackage['image_customized']),
@@ -690,7 +707,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         'overview' => trim((string) ($_POST['overview'] ?? '')),
                         'highlights' => $highlights,
                         'days' => $days,
-                    ];
+                    ]);
                     $record = array_merge($record, package_options_from_post($_POST));
                 }
                 if (in_array($kind, ['package', 'destination'], true)) {
@@ -1046,6 +1063,19 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
 <?php else: ?>
   <div class="dash-top"><div><span class="dash-kicker">Reach Dream Travel Admin</span><h1><?= $selectedTab === 'dashboard' ? 'Dashboard' : ($selectedTab === 'enquiries' ? 'Enquiries' : 'Content studio') ?></h1><p><?= $selectedTab === 'enquiries' ? 'Review trip requests submitted through your website.' : 'Manage trips, destination collections and vehicles shown on your website.' ?></p></div><?php if (!$dbReady): ?><form method="post"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="initialize_database" value="1"><i class="fa-solid fa-database" aria-hidden="true"></i> Initialize database</button></form><?php endif; ?></div>
   <nav class="dash-tabs" aria-label="Admin sections"><a class="<?= $selectedTab === 'dashboard' ? 'active' : '' ?>" href="?tab=dashboard"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> Dashboard</a><a class="<?= $selectedTab === 'packages' ? 'active' : '' ?>" href="?tab=packages"><i class="fa-solid fa-route" aria-hidden="true"></i> Packages <span>(<?= count($packages) ?>)</span></a><a class="<?= $selectedTab === 'solo' ? 'active' : '' ?>" href="?tab=solo"><i class="fa-solid fa-person-walking-luggage" aria-hidden="true"></i> Solo <span>(<?= count($soloPackages) ?>)</span></a><a class="<?= $selectedTab === 'destinations' ? 'active' : '' ?>" href="?tab=destinations"><i class="fa-solid fa-map-location-dot" aria-hidden="true"></i> Destinations <span>(<?= count($destinations) ?>)</span></a><a class="<?= $selectedTab === 'taxis' ? 'active' : '' ?>" href="?tab=taxis"><i class="fa-solid fa-car-side" aria-hidden="true"></i> Taxis <span>(<?= count($vehicles) ?>)</span></a><a class="<?= $selectedTab === 'enquiries' ? 'active' : '' ?>" href="?tab=enquiries"><i class="fa-solid fa-inbox" aria-hidden="true"></i> Enquiries <span>(<?= $enquiryCount ?>)</span></a><a class="<?= $selectedTab === 'settings' ? 'active' : '' ?>" href="?tab=settings"><i class="fa-solid fa-address-card" aria-hidden="true"></i> Contact details</a><a class="<?= $selectedTab === 'payment' ? 'active' : '' ?>" href="?tab=payment"><i class="fa-solid fa-building-columns" aria-hidden="true"></i> Payment details</a></nav>
+  <?php if (isset($_GET['tour_import'])): ?>
+    <section class="dash-panel">
+      <h2>Import supplied tour packages</h2>
+      <p>Update 8 existing packages and add 3 distinct tours: Kufri, Chail and Manali &amp; Solang. Existing URLs, prices, images and inclusions are preserved. Destination links are updated without creating destinations.</p>
+      <p>Dalhousie has three supplied sightseeing days for a four-day tour. Dharamshala has two supplied days for the existing five-day tour. Remaining arrangements need confirmation.</p>
+      <details><summary>Review package mapping</summary><ul>
+<?php require_once dirname(__DIR__) . '/backend/tour-content-import.php'; foreach (tour_content_plan() as $importPackage): ?>
+        <li><?= admin_h(isset($packages[$importPackage['slug']]) ? 'Update: ' : 'Add: ') ?><?= admin_h($importPackage['title']) ?> &mdash; <?= count($importPackage['days']) ?> supplied itinerary days</li>
+<?php endforeach; ?>
+      </ul></details>
+      <form method="post" class="mt-3"><input type="hidden" name="csrf" value="<?= admin_h(admin_csrf()) ?>"><button class="btn btn-gold" name="import_tour_content" value="1">Save supplied packages to database</button></form>
+    </section>
+  <?php endif; ?>
   <?php if ($selectedTab === 'payment'): ?>
     <section class="dash-panel">
       <div class="dash-section-title"><h2>Payment details</h2><a class="btn btn-sm btn-outline-success" href="../payment.php" target="_blank" rel="noopener">View payment page</a></div>
@@ -1218,7 +1248,7 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
 <?php if (!empty($packageForm['image'])): ?>
         <div class="dash-wide dash-note">
           <span class="dash-field-title">Featured image</span>
-          <div class="dash-row-main mt-2"><img class="dash-thumb" src="<?= admin_h(preg_match('~^https?://~i', (string) $packageForm['image']) ? img((string) $packageForm['image'], true) : '../' . img((string) $packageForm['image'], true)) ?>" alt=""><small>Auto-selected from the relevant destination when this package is saved.</small></div>
+          <div class="dash-row-main mt-2"><img class="dash-thumb" src="<?= admin_h(preg_match('~^https?://~i', (string) $packageForm['image']) ? img((string) $packageForm['image'], true) : '../' . img((string) $packageForm['image'], true)) ?>" alt=""><small>The current image is preserved when this package is saved.</small></div>
         </div>
 <?php endif; ?>
 <?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?>

@@ -113,7 +113,8 @@ require_once __DIR__ . '/includes/components.php';
           <a class="text-link" href="contact.php">Plan a custom trip <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
         <div class="row g-4">
-<?php foreach (['shimla-spiti-kinnaur', 'golden-triangle-delhi-agra-jaipur', 'rajasthan-heritage-trail'] as $slug): if (!isset($packages[$slug])) continue; $package = $packages[$slug]; ?>
+<?php $homePackages = array_intersect_key($publicPackages, array_flip(['shimla-spiti-kinnaur', 'golden-triangle-delhi-agra-jaipur', 'rajasthan-heritage-trail'])) + $publicPackages; ?>
+<?php foreach (array_slice($homePackages, 0, 3, true) as $slug => $package): ?>
           <div class="col-12 col-md-6 col-lg-4">
 <?php package_card($slug, $package); ?>
           </div>
@@ -125,6 +126,7 @@ require_once __DIR__ . '/includes/components.php';
     </section>
 
     <!-- India signature escapes -->
+<?php if (array_intersect(['golden-triangle-delhi-agra-jaipur', 'rajasthan-heritage-trail', 'delhi-agra-weekend'], array_keys($publicPackages))): ?>
     <section class="section section-india-escapes">
       <div class="container">
         <div class="section-heading split">
@@ -137,6 +139,7 @@ require_once __DIR__ . '/includes/components.php';
         </div>
 
         <div class="india-journeys-grid">
+<?php if (isset($publicPackages['golden-triangle-delhi-agra-jaipur'])): ?>
           <article class="india-journey-card">
             <div class="india-journey-body">
               <span class="india-route-label">North India</span>
@@ -154,6 +157,8 @@ require_once __DIR__ . '/includes/components.php';
             </div>
           </article>
 
+<?php endif; ?>
+<?php if (isset($publicPackages['rajasthan-heritage-trail'])): ?>
           <article class="india-journey-card">
             <div class="india-journey-body">
               <span class="india-route-label">Royal Rajasthan</span>
@@ -171,6 +176,8 @@ require_once __DIR__ . '/includes/components.php';
             </div>
           </article>
 
+<?php endif; ?>
+<?php if (isset($publicPackages['delhi-agra-weekend'])): ?>
           <article class="india-journey-card">
             <div class="india-journey-body">
               <span class="india-route-label">Quick getaway</span>
@@ -187,9 +194,11 @@ require_once __DIR__ . '/includes/components.php';
               </div>
             </div>
           </article>
+<?php endif; ?>
         </div>
       </div>
     </section>
+<?php endif; ?>
 
     <!-- Fleet -->
     <section class="section section-fleet" id="fleet">

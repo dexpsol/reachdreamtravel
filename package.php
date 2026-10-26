@@ -15,13 +15,13 @@ if (!empty($package['deprecated_duplicate_of']) && isset($packages[$package['dep
 }
 
 $pageKey = 'packages';
-$pageTitle = $package['title'];
-$pageDescription = $package['overview'];
+$pageTitle = $package['title'] . ' - ' . $package['duration'];
+$pageDescription = $package['seo_description'] ?? $package['overview'];
 $breadcrumbs = [['Packages', 'packages.php']];
 $pageHero = [
     'eyebrow' => $package['label'],
     'title'   => $package['title'],
-    'lead'    => PACKAGE_ROUTE_FIELDS_VISIBLE ? $package['route'] : '',
+    'lead'    => $package['route'] ?? '',
     'image'   => img($package['image']),
     'meta'    => [['fa-clock', $package['duration']], ['fa-sun', $package['season']]],
 ];
@@ -50,8 +50,11 @@ $related = array_slice($related, 0, 3, true);
             <div class="pd-facts">
               <div><i class="fa-solid fa-clock" aria-hidden="true"></i><small>Duration</small><b><?= e($package['duration']) ?></b></div>
               <div><i class="fa-solid fa-sun" aria-hidden="true"></i><small>Best season</small><b><?= e($package['season']) ?></b></div>
-<?php if (PACKAGE_ROUTE_FIELDS_VISIBLE): ?>
-              <div><i class="fa-solid fa-location-dot" aria-hidden="true"></i><small>Starts &amp; ends</small><b><?= e($package['start']) ?></b></div>
+<?php if (!empty($package['start'])): ?>
+              <div><i class="fa-solid fa-location-dot" aria-hidden="true"></i><small>Pickup / arrival</small><b><?= e($package['start']) ?></b></div>
+<?php endif; ?>
+<?php if (!empty($package['end'])): ?>
+              <div><i class="fa-solid fa-flag-checkered" aria-hidden="true"></i><small>Departure / drop-off</small><b><?= e($package['end']) ?></b></div>
 <?php endif; ?>
             </div>
             <div class="package-tags package-category-tags" aria-label="Package categories">
@@ -62,6 +65,14 @@ $related = array_slice($related, 0, 3, true);
 
             <h2 class="pd-title">Trip overview</h2>
             <p class="pd-lead"><?= e($package['overview']) ?></p>
+<?php $packageDestinations = array_filter($destinations, static fn($destination) => in_array($slug, $destination['packages'] ?? [], true)); ?>
+<?php if ($packageDestinations): ?>
+            <nav class="package-tags mb-4" aria-label="Explore this package's destinations">
+<?php foreach ($packageDestinations as $destinationSlug => $destination): ?>
+              <a class="btn btn-sm btn-outline-secondary" href="destinations.php?destination=<?= rawurlencode($destinationSlug) ?>#<?= e($destinationSlug) ?>"><?= e($destination['name']) ?></a>
+<?php endforeach; ?>
+            </nav>
+<?php endif; ?>
 <?php package_facilities($package); ?>
 
             <h2 class="pd-title">Highlights</h2>
@@ -77,6 +88,9 @@ $related = array_slice($related, 0, 3, true);
               <li class="timeline-item"><span class="timeline-day">Day <?= $i + 1 ?></span><div class="timeline-card"><h3><?= e($dayTitle) ?></h3><p><?= e($dayText) ?></p></div></li>
 <?php endforeach; ?>
             </ol>
+<?php if (!empty($package['itinerary_note'])): ?>
+            <p class="small text-muted"><?= e($package['itinerary_note']) ?></p>
+<?php endif; ?>
 
 <?php require __DIR__ . '/includes/package-inclusions.php'; ?>
           </div>

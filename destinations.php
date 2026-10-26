@@ -18,7 +18,8 @@ require __DIR__ . '/includes/header.php';
     <section class="section dest-list-section">
       <div class="container">
         <div class="dest-list">
-<?php $n = 0; foreach ($destinations as $slug => $d): $n++; $hasScenicPhoto = !empty($d['image']); $destinationPackages = $d['packages'] ?? []; ?>
+<?php $visibleDestinations = $selectedDestination ? [$selectedDestinationSlug => $selectedDestination] : $destinations; ?>
+<?php $n = 0; foreach ($visibleDestinations as $slug => $d): $n++; $hasScenicPhoto = !empty($d['image']); $destinationPackages = $d['packages'] ?? []; ?>
           <article class="dest-row<?= $n % 2 === 0 ? ' is-flipped' : '' ?><?= $hasScenicPhoto ? '' : ' is-text-only' ?>" id="<?= e($slug) ?>">
 <?php if ($hasScenicPhoto): ?>
             <div class="dr-media">
