@@ -1,5 +1,14 @@
+<?php
+$availablePackageCategories = ['all' => true];
+foreach ($domesticPackages ?? $publicPackages as $filterPackage) {
+    foreach (preg_split('/\s+/', trim((string) ($filterPackage['cat'] ?? ''))) ?: [] as $category) {
+        $availablePackageCategories[$category] = true;
+    }
+}
+$visiblePackageFilters = array_intersect_key($packageFilterCategories, $availablePackageCategories);
+?>
         <div class="gallery-toolbar">
-<?php filter_bar($packageFilterCategories, '.packages-page .package-card', 'Filter packages'); ?>
+<?php filter_bar($visiblePackageFilters, '.packages-page .package-card', 'Filter packages'); ?>
           <a class="text-link" href="contact.php">Plan a custom trip <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
         <div class="group-travel" aria-labelledby="groupTravelTitle">

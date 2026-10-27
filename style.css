@@ -3439,7 +3439,10 @@ h3 {
 
 @media(max-width:767.98px) {
   .hero-content {
-    padding-bottom: 130px
+    padding-bottom: 130px;
+    /* Keep the form opaque and steady while scrolling through the stacked hero. */
+    opacity: 1;
+    translate: none
   }
 
   .float-chip {
