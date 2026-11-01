@@ -1,7 +1,7 @@
 # Destination Photo Credits
 
 - `sanjauli-daytime.png`: AI-generated daytime Sanjauli hillside hero image.
-- `sanjauli-sunset.png`: AI-generated wide adaptation of the sunset Sanjauli reference image provided in chat.
+- `sanjauli-sunset.webp`: AI-generated wide adaptation of the sunset Sanjauli reference image provided in chat; compressed to WebP for the website.
 
 - `taj-mahal-agra.jpg`: User-provided Agra / Taj Mahal image (`82572.jpg`).
 - `hawa-mahal-jaipur.jpg`: Luqman Hariz, [Hawa Mahal, Jaipur, India](https://unsplash.com/photos/hawa-mahal-jaipur-india--s529_PPy1Y), via [Unsplash](https://unsplash.com/license).
