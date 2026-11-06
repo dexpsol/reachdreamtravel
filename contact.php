@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/includes/data.php';
 $pageKey = 'contact';
+// Temporary: set to true to show the map again.
+$showContactMap = false;
 $pageTitle = 'Contact Us';
 $pageDescription = 'Contact Reach Dream Travel to plan a private North India tour. Ask about Himachal, Kashmir, Uttarakhand, Rajasthan, vehicles, stays and custom itineraries.';
 $pageHero = [
@@ -48,7 +50,7 @@ $faqs = [
       </div>
     </section>
 
-    <!-- Form + map -->
+    <!-- Custom package request -->
     <section class="section contact-section">
       <div class="container">
         <div class="row g-4 g-lg-5 align-items-stretch">
@@ -89,6 +91,7 @@ $faqs = [
             </div>
           </div>
           <div class="col-12 col-lg-5">
+<?php if ($showContactMap): ?>
             <div class="map-card">
               <iframe title="Map showing India" src="https://www.google.com/maps?q=India&amp;z=4&amp;output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
               <div class="map-info">
@@ -97,6 +100,29 @@ $faqs = [
                 <a class="text-link" href="https://www.google.com/maps/search/?api=1&amp;query=India" target="_blank" rel="noopener">Explore destinations <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>
               </div>
             </div>
+<?php else: ?>
+            <aside class="map-card contact-planning-card" aria-labelledby="contactPlanningTitle">
+              <div class="contact-planning-photo">
+                <img src="<?= e(img('kinnaur-sangla', true)) ?>" alt="Green mountain valley and villages in Kinnaur" loading="lazy" width="900" height="600">
+                <span><i class="fa-solid fa-mountain-sun" aria-hidden="true"></i> Private journeys across North India</span>
+              </div>
+              <div class="contact-planning-body">
+                <span class="eyebrow">The journey starts with you</span>
+                <h3 id="contactPlanningTitle">A trip planned<br>around you.</h3>
+                <p>Mountain escapes, heritage trails or time with family. We help bring your route, stays and transport together.</p>
+                <ol class="contact-planning-steps list-unstyled">
+                  <li><span aria-hidden="true">01</span><div><h4>Share your plans</h4><p>Tell us your dates, group size and the places you have in mind.</p></div></li>
+                  <li><span aria-hidden="true">02</span><div><h4>Shape your itinerary</h4><p>We suggest a route, stays and travel options to suit your pace.</p></div></li>
+                  <li><span aria-hidden="true">03</span><div><h4>Review your quote</h4><p>Check the inclusions and trip details before you book.</p></div></li>
+                </ol>
+                <div class="contact-planning-actions">
+                  <p>Prefer to talk through your ideas?</p>
+                  <a class="btn btn-dark" href="<?= e(wa_link('Hello Reach Dream Travel, I would like help planning a customized package.')) ?>" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i> Chat about your trip</a>
+                  <a class="text-link" href="packages.php">Browse tour packages <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                </div>
+              </div>
+            </aside>
+<?php endif; ?>
           </div>
         </div>
       </div>

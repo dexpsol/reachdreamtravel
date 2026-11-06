@@ -4777,6 +4777,127 @@ a.contact-card:hover em i {
   font-size: 15px
 }
 
+.contact-planning-card {
+  border: 1px solid var(--line);
+  background: #f5f8f5
+}
+
+.contact-planning-photo {
+  position: relative;
+  flex: 0 0 auto
+}
+
+.contact-planning-photo::after {
+  content: '';
+  position: absolute;
+  inset: 35% 0 0;
+  background: linear-gradient(transparent, rgba(11, 31, 51, .8))
+}
+
+.contact-planning-photo img {
+  display: block;
+  width: 100%;
+  height: clamp(200px, 21vw, 270px);
+  object-fit: cover
+}
+
+.contact-planning-photo > span {
+  position: absolute;
+  z-index: 1;
+  right: 26px;
+  bottom: 22px;
+  left: 26px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5
+}
+
+.contact-planning-photo > span i {
+  color: var(--amber)
+}
+
+.contact-planning-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: clamp(24px, 3vw, 38px)
+}
+
+.contact-planning-body h3 {
+  margin: 12px 0 16px;
+  font: 800 clamp(27px, 2.6vw, 36px)/1.15 Montserrat, sans-serif;
+  letter-spacing: -.04em
+}
+
+.contact-planning-body > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7
+}
+
+.contact-planning-steps {
+  display: grid;
+  gap: 24px;
+  margin: 30px 0
+}
+
+.contact-planning-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px
+}
+
+.contact-planning-steps li > span {
+  display: grid;
+  flex: 0 0 36px;
+  place-items: center;
+  height: 36px;
+  border: 1px solid #d5e5da;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--green-dark);
+  font-size: 12px;
+  font-weight: 700
+}
+
+.contact-planning-steps h4 {
+  margin: 0 0 5px;
+  font: 700 15px/1.4 Montserrat, sans-serif
+}
+
+.contact-planning-steps p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6
+}
+
+.contact-planning-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid #d5e5da
+}
+
+.contact-planning-actions p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600
+}
+
+.contact-planning-actions .btn {
+  max-width: 100%;
+  white-space: normal
+}
+
 /* ---- Inner pages: responsive ---- */
 @media(max-width:1199.98px) {
   .value-grid {

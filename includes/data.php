@@ -617,16 +617,8 @@ $defaultDestinations = $destinations;
 $defaultDestinationGroups = $defaultDestinations;
 $storedDestinations = app_db_catalog('destination_groups');
 if ($storedDestinations !== null) {
-    $newDestinationSlugs = ['bhimtal', 'chakrata', 'haridwar', 'yamunotri', 'gangotri', 'kedarnath', 'badrinath', 'hemkund-sahib'];
     $db = app_db();
     if ($db) {
-        $insertDestination = $db->prepare('INSERT IGNORE INTO destination_groups (slug, payload) VALUES (?, ?)');
-        foreach ($newDestinationSlugs as $slug) {
-            if (isset($destinations[$slug]) && !isset($storedDestinations[$slug])) {
-                $insertDestination->execute([$slug, json_encode($destinations[$slug], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
-                $storedDestinations[$slug] = $destinations[$slug];
-            }
-        }
         $db->exec('CREATE TABLE IF NOT EXISTS catalog_migrations (migration_key VARCHAR(190) PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
         $migrationKey = 'requested-destinations-refresh-2026-10-v2';
         $migrationCheck = $db->prepare('SELECT 1 FROM catalog_migrations WHERE migration_key = ?');
@@ -655,11 +647,21 @@ if ($storedDestinations !== null) {
         }
     }
     $dynamicDestinations = array_filter($storedDestinations, static fn($destination) => isset($destination['name'], $destination['tagline'], $destination['text'], $destination['see']));
-    if ($dynamicDestinations) {
-        $destinations = array_replace($destinations, $dynamicDestinations);
-    }
+    $destinations = $dynamicDestinations;
+} else {
+    $destinations = [];
+}
+if ($storedDestinations !== null && ($db = app_db())) {
+    $allPackages = app_db_migrate_package_destinations($db, $allPackages, $destinations);
+    $packages = array_filter($allPackages, 'app_catalog_is_active');
+    $publicPackages = array_filter($packages, static fn($package) => empty($package['deprecated_duplicate_of']));
 }
 $destinations = app_catalog_order($destinations, 'destinations');
+// The package's saved main destinations are the only source of membership.
+foreach ($destinations as $slug => &$destination) {
+    $destination['packages'] = array_keys(array_filter($publicPackages, static fn($package) => in_array($slug, $package['destination_slugs'] ?? [], true)));
+}
+unset($destination);
 $allDestinations = $destinations;
 $destinations = array_filter($destinations, 'app_catalog_is_active');
 $destinationGroups = $destinations;

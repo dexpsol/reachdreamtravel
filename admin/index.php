@@ -222,39 +222,6 @@ function admin_catalog_image_upload(string $slug, string $root, string $kind = '
 
     return $fileBase;
 }
-function admin_match_destination_packages(array $destination, array $packages): array
-{
-    $needles = array_merge([(string) ($destination['name'] ?? '')], $destination['see'] ?? []);
-    $needles = array_map(static fn($value) => admin_slug((string) $value), $needles);
-    $needles = array_filter($needles, static fn($value) => strlen($value) > 2);
-    $needles = array_values(array_unique($needles));
-
-    $matches = [];
-
-    foreach ($packages as $slug => $package) {
-        if (!empty($package['deprecated_duplicate_of'])) {
-            continue;
-        }
-
-        $parts = [$slug, $package['title'] ?? '', $package['route'] ?? '', $package['overview'] ?? ''];
-
-        foreach ($package['highlights'] ?? [] as $highlight) {
-            $parts[] = $highlight;
-        }
-
-        $haystack = admin_slug(implode(' ', array_map('strval', $parts)));
-
-        foreach ($needles as $needle) {
-            if (str_contains($haystack, $needle)) {
-                $matches[] = $slug;
-                break;
-            }
-        }
-    }
-
-    return $matches;
-}
-
 function admin_package_form_from_post(array $post, array $previousPackage = []): array
 {
     global $destinations;
@@ -269,6 +236,8 @@ function admin_package_form_from_post(array $post, array $previousPackage = []):
         'active' => ($post['active'] ?? '1') === '1',
         'label' => trim((string) ($post['label'] ?? '')),
         'cat' => implode(' ', $categoryValues),
+        'destination_slugs' => is_array($post['destination_slugs'] ?? null)
+            ? array_values(array_intersect(array_filter($post['destination_slugs'], 'is_string'), array_keys($destinations))) : [],
         'duration' => trim((string) ($post['duration'] ?? '')),
         'short' => $previousPackage['short'] ?? 'Flexible',
         'popular' => !empty($post['popular']),
@@ -534,6 +503,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $payload = $find->fetchColumn();
                     $record = $payload !== false ? json_decode($payload, true, 512, JSON_THROW_ON_ERROR) : $catalog[$slug];
                     $record['active'] = $_POST['active'] === '1';
+                    if ($kind === 'package' && $record['active']
+                        && !in_array('international', preg_split('/\s+/', trim((string) ($record['cat'] ?? ''))) ?: [], true)
+                        && !array_intersect($record['destination_slugs'] ?? [], array_keys($destinations))) {
+                        throw new RuntimeException('Edit this package and choose a main destination before activating it.');
+                    }
                     $statement = $db->prepare('INSERT INTO `' . $table . '` (slug, payload) VALUES (?, ?) ON DUPLICATE KEY UPDATE payload = VALUES(payload)');
                     $statement->execute([$slug, json_encode($record, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
                     $_SESSION['notice'] = ucfirst($kind) . ($record['active'] ? ' activated.' : ' deactivated.');
@@ -542,6 +516,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 }
 
                 if ($action === 'delete') {
+                    if ($kind === 'destination') {
+                        foreach ($packages as $package) {
+                            if (in_array($slug, $package['destination_slugs'] ?? [], true)) {
+                                throw new RuntimeException('Reassign packages using this main destination before deleting it.');
+                            }
+                        }
+                    }
                     if ($table === 'packages') {
                         $db->exec('CREATE TABLE IF NOT EXISTS hidden_packages (slug VARCHAR(190) PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
                         $hide = $db->prepare('INSERT IGNORE INTO hidden_packages (slug) VALUES (?)');
@@ -627,10 +608,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         throw new RuntimeException('Add a tagline and destination description.');
                     }
 
-                    $record['packages'] = array_values(array_unique(array_merge(
-                        $previousDestination['packages'] ?? [],
-                        admin_match_destination_packages($record, $packages)
-                    )));
+                    unset($record['packages']);
                 } else {
                     $categoryValues = admin_categories_from_post($_POST);
                     $previousSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
@@ -641,6 +619,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
                     if (!$categoryValues || array_diff($categoryValues, array_keys($categories))) {
                         throw new RuntimeException('Choose at least one valid package category.');
+                    }
+
+                    $destinationSlugs = app_package_destinations_from_post($_POST, $destinations);
+                    if (!$destinationSlugs && ($_POST['active'] ?? '1') === '1' && !in_array('international', $categoryValues, true)) {
+                        throw new RuntimeException('Choose at least one main destination for an active domestic package.');
                     }
 
                     $highlights = admin_lines((string) ($_POST['highlights'] ?? ''));
@@ -684,6 +667,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         'title' => $name,
                         'label' => trim((string) ($_POST['label'] ?? '')),
                         'cat' => implode(' ', $categoryValues),
+                        'destination_slugs' => $destinationSlugs,
                         'duration' => $duration,
                         'short' => $short,
                         'popular' => !empty($_POST['popular']),
@@ -708,6 +692,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     $record['active'] = ($_POST['active'] ?? '1') === '1';
                 }
                 $oldSlug = admin_slug((string) ($_POST['old_slug'] ?? ''));
+                if ($kind === 'destination') $db->beginTransaction();
                 if ($oldSlug !== '' && $oldSlug !== $slug) {
                     if ($kind === 'package') {
                         $db->exec('CREATE TABLE IF NOT EXISTS hidden_packages (slug VARCHAR(190) PRIMARY KEY) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
@@ -724,6 +709,17 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 }
                 $statement = $db->prepare('INSERT INTO `' . $table . '` (slug, payload) VALUES (?, ?) ON DUPLICATE KEY UPDATE payload = VALUES(payload)');
                 $statement->execute([$slug, json_encode($record, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR)]);
+                if ($kind === 'destination') {
+                    if ($oldSlug !== '' && $oldSlug !== $slug) {
+                        $updatePackage = $db->prepare('UPDATE packages SET payload = ?, updated_at = updated_at WHERE slug = ?');
+                        foreach (app_db_catalog('packages') ?? [] as $packageSlug => $savedPackage) {
+                            if (!in_array($oldSlug, $savedPackage['destination_slugs'] ?? [], true)) continue;
+                            $savedPackage['destination_slugs'] = array_values(array_unique(array_map(static fn($destinationSlug) => $destinationSlug === $oldSlug ? $slug : $destinationSlug, $savedPackage['destination_slugs'])));
+                            $updatePackage->execute([app_db_json($savedPackage), $packageSlug]);
+                        }
+                    }
+                    $db->commit();
+                }
                 if ($kind === 'package' && !$previousPackage) {
                     // New packages lead the list; subsequent edits keep the chosen drag order.
                     app_catalog_prepend_package($db, $slug, $record, $packages);
@@ -731,6 +727,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 $_SESSION['notice'] = ucfirst($kind) . ' saved.';
                 admin_redirect($kind === 'package' && ($_POST['return_tab'] ?? '') === 'solo' ? 'solo' : ['package' => 'packages', 'destination' => 'destinations', 'taxi' => 'taxis'][$kind]);
             } catch (Throwable $exception) {
+                if ($db && $db->inTransaction()) $db->rollBack();
                 $error = $exception instanceof RuntimeException ? $exception->getMessage() : 'Could not save to the database. Initialize it first and check MySQL permissions.';
                 if (($action ?? '') === 'save' && in_array(($kind ?? ''), ['package', 'destination'], true)) {
                     $postedSlug = admin_slug((string) ($_POST['slug'] ?? ''));
@@ -1200,6 +1197,15 @@ $dashboardRecentDestinations = array_slice($destinationGroups, 0, 3, true);
         <input type="hidden" name="old_slug" value="<?= admin_h($packageForm['_old_slug_value'] ?? ($editingKind === 'package' ? $editingSlug : '')) ?>">
         <label>Status<select name="active"><option value="1"<?= app_catalog_is_active($packageForm) ? ' selected' : '' ?>>Active</option><option value="0"<?= !app_catalog_is_active($packageForm) ? ' selected' : '' ?>>Inactive</option></select><span class="dash-note">Only active entries appear on the site.</span></label>
         <label>Package title<input name="title" required value="<?= admin_h($packageForm['title'] ?? '') ?>" placeholder="e.g. Jaipur & Jaisalmer Heritage Trail"></label>
+        <div class="dash-field dash-wide">
+          <span class="dash-field-title" id="packageDestinationsLabel">Main destinations</span>
+          <div class="category-picker" role="group" aria-labelledby="packageDestinationsLabel">
+<?php foreach ($destinations as $destinationSlug => $destination): ?>
+            <label><input type="checkbox" name="destination_slugs[]" value="<?= admin_h($destinationSlug) ?>"<?= in_array($destinationSlug, $packageForm['destination_slugs'] ?? [], true) ? ' checked' : '' ?>><span><?= admin_h($destination['name']) ?><?= app_catalog_is_active($destination) ? '' : ' (inactive)' ?></span></label>
+<?php endforeach; ?>
+          </div>
+          <span class="dash-note">Choose the main holiday destinations. Do not select a city used only for pickup, drop-off or passing through. Active domestic packages need at least one.</span>
+        </div>
         <label>URL slug<input name="slug" data-package-slug value="<?= admin_h($packageForm['_slug_value'] ?? ($editingKind === 'package' ? $editingSlug : '')) ?>" placeholder="Generated from package title"></label>
         <label>Package image<input type="file" name="image_upload" accept="image/jpeg,image/png,image/webp"><span class="dash-note">Upload a JPG, PNG or WebP image up to 6 MB. Leave blank to keep the current image.</span></label>
         <?php if (!empty($packageForm['image'])): ?>

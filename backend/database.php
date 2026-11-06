@@ -227,3 +227,111 @@ function app_db_slug(string $value): string
 {
     return trim(strtolower((string) preg_replace('/[^a-z0-9]+/i', '-', $value)), '-');
 }
+
+/** One-time conversion of existing tours to explicit main destinations. */
+function app_db_migrate_package_destinations(PDO $db, array $packages, array $destinations): array
+{
+    $db->exec('CREATE TABLE IF NOT EXISTS catalog_migrations (migration_key VARCHAR(190) PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+    $migrationKey = 'explicit-main-destinations-2026-11-v1';
+    $check = $db->prepare('SELECT 1 FROM catalog_migrations WHERE migration_key = ?');
+    $check->execute([$migrationKey]);
+    if ($check->fetchColumn()) return $packages;
+    $savedPackages = app_db_catalog('packages');
+    if ($savedPackages === null) return $packages;
+
+    // Reviewed tour assignments, used only for this migration. Pickup cities and
+    // passing stops are deliberately excluded; future edits use the admin form.
+    $assignments = [
+        'shimla-spiti-kinnaur' => ['spiti'],
+        'shimla-kullu-manali' => ['shimla', 'manali', 'kasol'],
+        'shimla-local' => ['shimla'],
+        'kasol-parvati' => ['kasol'],
+        'manali-solang' => ['manali'],
+        'kinnaur-chitkul' => ['kinnaur'],
+        'chandratal-lahaul' => ['chandratal'],
+        'shakti-peeths-himachal' => ['kangra', 'palampur'],
+        'golden-triangle-delhi-agra-jaipur' => ['delhi', 'agra', 'rajasthan'],
+        'rajasthan-heritage-trail' => ['rajasthan'],
+        'delhi-agra-weekend' => ['delhi', 'agra'],
+        'delhi-heritage-city-tour' => ['delhi'],
+        'agra-heritage-tour' => ['agra'],
+        'nainital' => ['nainital'],
+        'bhimtal' => ['bhimtal'],
+        'mussoorie' => ['mussoorie'],
+        'chakrata' => ['chakrata'],
+        'rishikesh' => ['rishikesh'],
+        'haridwar' => ['haridwar', 'rishikesh'],
+        'auli' => ['auli'],
+        'jim-corbett' => ['jim-corbett'],
+        'uttarakhand-hills-ganga-wildlife-tour' => ['uttarakhand', 'mussoorie', 'rishikesh', 'haridwar', 'nainital', 'jim-corbett'],
+        'kashmir-valley' => ['jammu-kashmir', 'srinagar', 'gulmarg', 'pahalgam', 'sonamarg'],
+        'jammu-kashmir-six-day-tour' => ['jammu-kashmir', 'jammu-katra', 'srinagar', 'gulmarg', 'pahalgam', 'sonamarg'],
+        'jammu-katra-patnitop' => ['patnitop'],
+        'katra-vaishno-devi' => ['jammu-katra'],
+        'dharamshala-mcleodganj' => ['dharamshala', 'mcleod-ganj'],
+        'triund-trek' => ['dharamshala', 'mcleod-ganj'],
+        'kareri-lake-trek' => ['dharamshala'],
+        'rupin-pass-trek' => ['shimla'],
+        'buran-ghati-trek' => ['shimla'],
+        'bijli-mahadev-trek' => ['kasol'],
+        'indrahara-pass-trek' => ['dharamshala', 'mcleod-ganj'],
+        'fairy-forest-pulga' => ['kasol'],
+        'kalatop-wildlife-sanctuary' => ['dalhousie-khajjiar'],
+        'shimla-water-catchment-wildlife-sanctuary' => ['shimla'],
+        'dhungri-van-vihar' => ['manali'],
+        'shoja-jibhi-forest-escape' => ['kasol'],
+        'chail-wildlife-sanctuary' => ['chail'],
+        'chail-tour' => ['chail'],
+        'kufri-tour' => ['kufri'],
+        'dalhousie-khajjiar' => ['dalhousie-khajjiar', 'khajjiar'],
+        'char-dham-hemkund-sahib-yatra' => ['uttarakhand', 'yamunotri', 'gangotri', 'kedarnath', 'badrinath', 'hemkund-sahib'],
+        'pathankot-nurpur-dharamshala-kangra' => ['pathankot', 'dharamshala', 'mcleod-ganj', 'kangra'],
+        'amritsar-pathankot-dalhousie' => ['amritsar', 'pathankot', 'dalhousie-khajjiar'],
+        'amritsar-katra' => ['amritsar', 'jammu-katra'],
+        'solo-rishikesh-activity-break' => ['rishikesh'],
+        'solo-manali-adventure-break' => ['manali'],
+        'solo-kasol-backpacking-break' => ['kasol'],
+        'solo-chakrata-nature-activity' => ['chakrata'],
+        'solo-dharamshala-triund-activity' => ['dharamshala', 'mcleod-ganj'],
+        'dharamshala-mcleod-ganj-trek' => ['dharamshala', 'mcleod-ganj'],
+        'dalhousie-khajjiar-nature' => ['dalhousie-khajjiar', 'khajjiar'],
+        'shimla-kufri-narkanda' => ['shimla', 'kufri', 'narkanda'],
+        'himachal-six-shakti-peeth' => ['kangra', 'palampur'],
+        'jaipur-jaisalmer-test' => ['rajasthan'],
+    ];
+
+    $db->beginTransaction();
+    try {
+        $update = $db->prepare('UPDATE packages SET payload = ?, updated_at = updated_at WHERE slug = ?');
+        // Read the original payloads so display defaults are never written back.
+        foreach ($savedPackages as $slug => $package) {
+            if (array_key_exists('destination_slugs', $package)) continue;
+            $package['destination_slugs'] = array_values(array_filter($assignments[$slug] ?? [], static fn($destination) => isset($destinations[$destination])));
+            $update->execute([app_db_json($package), $slug]);
+            if (isset($packages[$slug])) $packages[$slug]['destination_slugs'] = $package['destination_slugs'];
+        }
+        $updateDestination = $db->prepare('UPDATE destination_groups SET payload = ?, updated_at = updated_at WHERE slug = ?');
+        foreach (app_db_catalog('destination_groups') ?? [] as $slug => $destination) {
+            if (!array_key_exists('packages', $destination)) continue;
+            unset($destination['packages']);
+            $updateDestination->execute([app_db_json($destination), $slug]);
+        }
+        $mark = $db->prepare('INSERT IGNORE INTO catalog_migrations (migration_key) VALUES (?)');
+        $mark->execute([$migrationKey]);
+        $db->commit();
+    } catch (Throwable $exception) {
+        $db->rollBack();
+        throw $exception;
+    }
+    return $packages;
+}
+
+function app_package_destinations_from_post(array $post, array $destinations): array
+{
+    $selected = $post['destination_slugs'] ?? [];
+    if (!is_array($selected) || array_filter($selected, static fn($slug) => !is_string($slug))
+        || array_diff($selected, array_keys($destinations))) {
+        throw new RuntimeException('Choose valid main destinations.');
+    }
+    return array_values(array_unique($selected));
+}
