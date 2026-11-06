@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Coming Soon | Reach Dream Travel</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+            color: #fff;
+            background: linear-gradient(160deg, #0f2a3d 0%, #1d4e5f 50%, #2f7a6b 100%);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Mountain silhouettes */
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+        body::before {
+            height: 45vh;
+            background: rgba(255, 255, 255, 0.06);
+            clip-path: polygon(0 100%, 0 55%, 15% 30%, 28% 50%, 42% 15%, 58% 45%, 70% 25%, 85% 50%, 100% 35%, 100% 100%);
+        }
+        body::after {
+            height: 30vh;
+            background: rgba(0, 0, 0, 0.18);
+            clip-path: polygon(0 100%, 0 60%, 12% 45%, 25% 65%, 38% 35%, 52% 60%, 66% 40%, 80% 62%, 92% 45%, 100% 55%, 100% 100%);
+        }
+
+        .card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 560px;
+            text-align: center;
+        }
+
+        .brand {
+            font-size: 14px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            opacity: 0.85;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: clamp(40px, 9vw, 72px);
+            font-weight: 700;
+            line-height: 1.05;
+            margin-bottom: 16px;
+        }
+
+        h1 span { color: #f4c95d; }
+
+        p {
+            font-size: 17px;
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 32px;
+        }
+
+        .loader {
+            width: 160px;
+            height: 4px;
+            margin: 0 auto 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .loader::after {
+            content: "";
+            display: block;
+            width: 40%;
+            height: 100%;
+            background: #f4c95d;
+            border-radius: 4px;
+            animation: slide 1.6s ease-in-out infinite;
+        }
+        @keyframes slide {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(250%); }
+        }
+
+        .contact {
+            font-size: 15px;
+            opacity: 0.85;
+        }
+        .contact a {
+            color: #f4c95d;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(244, 201, 93, 0.5);
+        }
+        .contact a:hover { border-bottom-color: #f4c95d; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .loader::after { animation: none; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <div class="brand">Reach Dream Travel</div>
+        <h1>Coming <span>Soon</span></h1>
+        <p>We're putting the finishing touches on something new. Our journeys through Himachal and beyond will be back online shortly.</p>
+        <div class="loader" aria-hidden="true"></div>
+        <div class="contact">
+            Need help now? <a href="mailto:info@example.com">info@example.com</a>
+        </div>
+    </main>
+</body>
+</html>
